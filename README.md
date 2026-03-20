@@ -464,72 +464,40 @@ See `benchmarks/bench_complete_comparison.py` to reproduce.
 
 Each dialect includes proper identifier quoting, keyword handling, function name translation, and syntax transformations (e.g. LIMIT vs TOP vs FETCH FIRST).
 
-<table>
-<tr>
-<td valign="top">
-
-**Production RDBMS**
 | Database | Dialect |
 |----------|---------|
-| PostgreSQL | PostgreSQL |
-| MySQL | MySQL |
-| MariaDB | MariaDB |
-| SQLite | SQLite |
-| Oracle | Oracle |
-| SQL Server | SQLServer |
-
-</td>
-<td valign="top">
-
-**Data warehousing**
-| Database | Dialect |
-|----------|---------|
-| BigQuery | BigQuery |
-| Snowflake | Snowflake |
-| Redshift | Redshift |
-| Athena | Athena |
-| Databricks | Databricks |
-
-</td>
-</tr>
-<tr>
-<td valign="top">
-
-**Analytics**
-| Database | Dialect |
-|----------|---------|
-| DuckDB | DuckDB |
-| ClickHouse | ClickHouse |
-| Presto | Presto |
-| Trino | Trino |
-| Hive | Hive |
-| Spark | Spark |
-| Impala | Impala |
-| Drill | Drill |
-
-</td>
-<td valign="top">
-
-**Specialised**
-| Database | Dialect |
-|----------|---------|
-| CockroachDB | CockroachDB |
-| TimescaleDB | TimescaleDB |
-| Greenplum | Greenplum |
-| Vertica | Vertica |
-| Teradata | Teradata |
-| Netezza | Netezza |
-| Phoenix | Phoenix |
-| Calcite | Calcite |
-| Dremio | Dremio |
-| Pinot | Pinot |
-| StarRocks | StarRocks |
-| Doris | Doris |
 | ANSI SQL | ANSI |
-
-</td>
-</tr>
-</table>
+| Athena | Athena |
+| BigQuery | BigQuery |
+| Calcite | Calcite |
+| ClickHouse | ClickHouse |
+| CockroachDB | CockroachDB |
+| Databricks | Databricks |
+| Doris | Doris |
+| Dremio | Dremio |
+| Drill | Drill |
+| DuckDB | DuckDB |
+| Greenplum | Greenplum |
+| Hive | Hive |
+| Impala | Impala |
+| MariaDB | MariaDB |
+| MySQL | MySQL |
+| Netezza | Netezza |
+| Oracle | Oracle |
+| Phoenix | Phoenix |
+| Pinot | Pinot |
+| PostgreSQL | PostgreSQL |
+| Presto | Presto |
+| Redshift | Redshift |
+| Snowflake | Snowflake |
+| Spark | Spark |
+| SQL Server | SQLServer |
+| SQLite | SQLite |
+| StarRocks | StarRocks |
+| Teradata | Teradata |
+| TimescaleDB | TimescaleDB |
+| Trino | Trino |
+| Vertica | Vertica |
 
 ## Licence
 

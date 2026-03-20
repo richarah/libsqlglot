@@ -20,9 +20,8 @@ while true; do
 
     timeout 60 ./simple_fuzzer > logs/simple_${ITERATION}.log 2>&1 &
     timeout 60 ./fuzz_edge_cases > logs/edge_${ITERATION}.log 2>&1 &
-    # DISABLED: optimizer and generator fuzzers crash due to bugs in those modules
-    #timeout 60 ./fuzz_optimizer > logs/opt_${ITERATION}.log 2>&1 &
-    #timeout 60 ./fuzz_generator > logs/gen_${ITERATION}.log 2>&1 &
+    timeout 60 ./fuzz_optimizer > logs/opt_${ITERATION}.log 2>&1 &
+    timeout 60 ./fuzz_generator > logs/gen_${ITERATION}.log 2>&1 &
     
     wait
     

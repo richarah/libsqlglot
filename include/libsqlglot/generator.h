@@ -699,7 +699,9 @@ private:
         }
 
         sql_ << " AS (";
-        visit_select(cte->query);
+        if (cte->query) {
+            visit(cte->query);  // Use general visit() to handle both SELECT and set operations
+        }
         sql_ << ")";
     }
 

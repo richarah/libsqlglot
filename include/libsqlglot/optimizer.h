@@ -103,10 +103,13 @@ public:
             // 3. No conflicting column names
             if (can_eliminate_subquery(stmt, subquery)) {
                 flatten_subquery(stmt, subquery, subquery_expr->alias, arena);
+                // After flattening, recursively process the new FROM clause
+                // (only if we still have a valid FROM after flattening)
+                if (stmt->from) {
+                    eliminate_subqueries(stmt, arena);
+                }
+                return;  // Don't process again below
             }
-
-            // Recursively process remaining subqueries
-            eliminate_subqueries(stmt, arena);
         }
 
         // Process JOIN clauses

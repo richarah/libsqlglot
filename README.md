@@ -1,10 +1,12 @@
 # libsqlglot
 
-sqlglot in C++. 37x faster than the sqlglot C extension for simple queries, 1650x for complex queries. Performance gap scales with query complexity. See [Benchmarks](#benchmarks).
+sqlglot in C++. 
 
 Transpiles between sqlglot AST and 31+ SQL dialects. Full stored procedure support. Fail-fast errors with exact line and column. Python bindings at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
 
-Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the hard work of developing a unified AST for abstracting across SQL dialects, and mapping every dialect quirk across 31+ databases. libsqlglot does the easy part: freeing it from Python.
+37x faster than the sqlglot C extension for simple queries, 1650x for complex queries. Performance gap scales with query complexity. See [Benchmarks](#benchmarks).
+
+Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the hard work of developing a unified AST for abstracting across SQL dialects, and mapping every dialect quirk across 31+ databases. libsqlglot does the easy work of freeing it from Python.
 
 ## What this covers
 

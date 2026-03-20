@@ -7,6 +7,8 @@ Testing/
 # Test binaries
 test_*
 !test_*.cpp
+# Ignore debug/scratch test files in root
+/test_*.cpp
 fuzzing/simple_fuzzer
 fuzzing/fuzz_generator
 fuzzing/fuzz_optimizer

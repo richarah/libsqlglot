@@ -1,8 +1,14 @@
 # libsqlglot
 
+#### What is this?
+
 sqlglot, in C++. 126× faster on polite SQL, 235× on the kind your ORM generates when nobody's looking. Speedup scales with query complexity, see [Benchmarks](#benchmarks).
 
-Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot) SQL parser/transpiler, which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it.
+Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot) parser/transpiler, which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it.
+
+#### What is this for?
+
+For proxies, linters, migration tools, query rewriters, and anything else that needs to parse or transpile SQL at volume. If latency matters, use this. If it doesn't, sqlglot is great.
 
 ## Contents
 
@@ -123,7 +129,7 @@ ctest --test-dir build
 
 ## Architecture
 
-7,319 lines of C++ headers, 16 files, no `.cpp` files. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (966, 88 expression types). Entry point is `transpiler.h` (86 lines).
+7,319 lines of C++ headers, 16 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (966, 88 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 

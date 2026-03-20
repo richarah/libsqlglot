@@ -12,7 +12,9 @@ fuzzing/fuzz_generator
 fuzzing/fuzz_optimizer
 fuzzing/fuzz_edge_cases
 fuzzing/*.log
-
+fuzzing/fuzz_optimizer_debug
+fuzzing/crash_samples
+fuzzing/logs
 
 # Python
 __pycache__/

@@ -1,0 +1,24 @@
+#!/bin/bash
+# Git pre-commit hook to auto-update README metrics
+# Install: ln -sf ../../.githooks/pre-commit .git/hooks/pre-commit
+
+# Only run if README.md or source files are staged
+if ! git diff --cached --name-only | grep -qE '(README\.md|include/.*\.h|tests/)'; then
+    exit 0
+fi
+
+echo "Updating README metrics..."
+
+# Run the metrics update script
+if ! ./scripts/update_readme_metrics.sh; then
+    echo "ERROR: Failed to update README metrics"
+    exit 1
+fi
+
+# If README was modified, stage the changes
+if [[ -f README.md ]] && git diff --name-only README.md | grep -q README.md; then
+    git add README.md
+    echo "README.md metrics updated and staged"
+fi
+
+exit 0

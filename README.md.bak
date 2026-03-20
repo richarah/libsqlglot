@@ -2,27 +2,15 @@
 
 sqlglot, in C++. 126× faster on polite SQL, 235× on the kind your ORM generates when nobody's looking. Speedup scales with query complexity, see [Benchmarks](#benchmarks).
 
-Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot) SQL parser/transpiler, which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it.
-
-## Contents
-
-- [Functionality](#functionality)
-- [C++ API](#c-api)
-- [Python bindings](#python-bindings)
-- [Building](#building)
-- [Architecture](#architecture)
-- [Benchmarks](#benchmarks)
-- [Examples](#examples)
-- [Supported SQL dialects](#supported-sql-dialects)
-- [Licence](#licence)
+Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it.
 
 ## Functionality
 
-Transpiles between sqlglot AST and 31+ SQL dialects. Full stored procedure support. Fail-fast errors with exact line and column. Python bindings available at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
+Transpiles between sqlglot AST and 31+ SQL dialects. Full stored procedure support. Fail-fast errors with exact line and column. [Python bindings](#python-bindings) at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
 
-Handles the full SQL surface: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE, MERGE, plus stored procedures (CALL, RETURN, DECLARE, IF/ELSEIF/ELSE, WHILE, FOR loops). Also handles CTEs, window functions, subqueries, and various JOIN types.
+Handles the full SQL surface: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE, MERGE, plus stored procedures (CALL, RETURN, DECLARE, IF/ELSEIF/ELSE, WHILE, FOR loops). Also handles CTEs, window functions, subqueries, and various JOIN types. Further details: [SQL support](#sql-support).
 
-Compatible with 31+ dialects.
+Compatible with 31+ dialects. See [Supported SQL dialects](#supported-sql-dialects).
 
 ## C++ API
 

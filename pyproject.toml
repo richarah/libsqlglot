@@ -4,8 +4,8 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "libsqlglot"
-version = "0.1.0"
-description = "High-performance C++ SQL parser, transpiler, and optimizer with Python bindings"
+version = "0.1.2"
+description = "Python bindings for libsqlglot, a high-performance SQL parser, transpiler, and optimiser written in C++"
 readme = "README.md"
 authors = [
     {name = "libsqlglot contributors"}

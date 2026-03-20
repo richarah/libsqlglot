@@ -182,7 +182,7 @@ public:
 
     /// Check if token is a synchronization point
     template<typename Token>
-    static bool is_sync_point(const Token& token) {
+    static bool is_sync_point(const Token&) {
         // In real implementation, check token type
         // For now, this is a placeholder
         return false;
@@ -190,21 +190,21 @@ public:
 
     /// Check if token is a statement keyword
     template<typename Token>
-    static bool is_statement_keyword(const Token& token) {
+    static bool is_statement_keyword(const Token&) {
         // SELECT, INSERT, UPDATE, DELETE, CREATE, DROP, etc.
         return false;
     }
 
     /// Check if token is a list separator
     template<typename Token>
-    static bool is_list_separator(const Token& token) {
+    static bool is_list_separator(const Token&) {
         // Comma or closing paren/bracket
         return false;
     }
 
     /// Check if token is right paren
     template<typename Token>
-    static bool is_rparen(const Token& token) {
+    static bool is_rparen(const Token&) {
         return false;
     }
 };

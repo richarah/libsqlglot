@@ -10,7 +10,7 @@ Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which di
 
 #### What is this for?
 
-DB proxies, linters, migration tools, query rewriters, anything else that needs to parse/transpile SQL at volume. If latency matters, use this. If it doesn't, sqlglot is great.
+DB proxies, linters, migration tools, query rewriters, anything else that needs to parse/transpile SQL fast. If latency matters, use this. If it doesn't, sqlglot is great.
 
 ## Contents
 

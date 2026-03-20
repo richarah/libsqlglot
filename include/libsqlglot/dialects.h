@@ -45,6 +45,20 @@ enum class Dialect {
     Doris
 };
 
+} // namespace libsqlglot
+
+// Hash specialization for Dialect enum to enable use in unordered_map
+namespace std {
+    template<>
+    struct hash<libsqlglot::Dialect> {
+        size_t operator()(libsqlglot::Dialect d) const noexcept {
+            return hash<int>{}(static_cast<int>(d));
+        }
+    };
+}
+
+namespace libsqlglot {
+
 /// Dialect-specific features and quirks
 struct DialectFeatures {
     bool supports_cte = true;

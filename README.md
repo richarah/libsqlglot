@@ -124,7 +124,7 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
 | **Optimizer** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
-| **Codebase** | 7,321 lines C++ | 50,000+ lines Python |
+| **Codebase** | 7,341 lines C++ | 50,000+ lines Python |
 | **Binary** | 15KB lib, optional 258KB Python extension | N/A |
 
 Everything else (SQL coverage, 31+ dialects, no runtime deps) is the same.
@@ -159,7 +159,7 @@ ctest --test-dir build
 
 **Compiled sizes** (stripped, `-O3`): C++ library 15KB, Python extension 258KB.
 
-**Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes 26,554 assertions across 288 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
+**Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes  assertions across  test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
 
 ### Advanced optimizations
 
@@ -182,7 +182,7 @@ cmake --build build
 
 ## Architecture
 
-7,321 lines of C++ headers, 16 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (966, 88 expression types). Entry point is `transpiler.h` (86 lines).
+7,341 lines of C++ headers, 16 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (975, 89 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 
@@ -210,7 +210,7 @@ Arena allocation: all AST nodes allocated in contiguous chunks, freed together i
 
 ## Testing
 
-288 test cases, 26,554 assertions, all passing.
+ test cases,  assertions, all passing.
 
 ```bash
 cd build
@@ -231,7 +231,7 @@ ctest --output-on-failure
 
 ## Security
 
-26,554 assertions covering SQL injection, buffer overflow, stack overflow (recursion depth at 256, adjustable via `Parser::kMaxRecursionDepth` in `parser.h`), memory corruption (arena prevents use-after-free and double-free), integer overflow, and encoding attacks (UTF-8 identifiers rejected, UTF-8 string literals accepted). All pass.
+ assertions covering SQL injection, buffer overflow, stack overflow (recursion depth at 256, adjustable via `Parser::kMaxRecursionDepth` in `parser.h`), memory corruption (arena prevents use-after-free and double-free), integer overflow, and encoding attacks (UTF-8 identifiers rejected, UTF-8 string literals accepted). All pass.
 
 ## Fuzzing
 

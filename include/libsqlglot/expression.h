@@ -122,6 +122,7 @@ enum class ExprType : uint16_t {
     WHILE_LOOP,         // WHILE condition DO ... END WHILE
     FOR_LOOP,           // FOR var IN ... LOOP ... END LOOP
     RETURN_STMT,        // RETURN expression
+    BEGIN_END_BLOCK,    // BEGIN ... END block (T-SQL, MySQL, PL/SQL)
 
     // Triggers
     CREATE_TRIGGER,     // CREATE TRIGGER
@@ -875,6 +876,14 @@ struct ReturnStmt : Expression {
 
     ReturnStmt(Expression* val = nullptr)
         : Expression(ExprType::RETURN_STMT), return_value(val) {}
+};
+
+/// BEGIN...END block (T-SQL, MySQL, PL/SQL style)
+struct BeginEndBlock : Expression {
+    std::vector<Expression*> statements;
+
+    BeginEndBlock()
+        : Expression(ExprType::BEGIN_END_BLOCK) {}
 };
 
 // ============================================================================

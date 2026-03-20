@@ -99,6 +99,17 @@ struct DialectFeatures {
     // Boolean literals
     std::string true_literal = "TRUE";
     std::string false_literal = "FALSE";
+
+    // Stored procedure / procedural SQL features
+    bool supports_begin_end_blocks = false;  // BEGIN...END for statement blocks (T-SQL, MySQL, PL/SQL)
+    bool supports_for_loops = true;          // FOR i IN 1..10 LOOP syntax (PostgreSQL, Oracle, generic)
+    std::string variable_prefix = "";        // @ for T-SQL, $ for PostgreSQL params, empty for others
+
+    enum class AssignmentStyle {
+        WALRUS,          // := (Oracle PL/SQL, PL/pgSQL)
+        SET_KEYWORD,     // SET var = value (MySQL, T-SQL)
+        EQUALS           // = (some contexts)
+    } assignment_style = AssignmentStyle::WALRUS;
 };
 
 /// Dialect configuration - features and transformations

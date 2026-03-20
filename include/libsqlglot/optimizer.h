@@ -47,7 +47,7 @@ public:
     }
 
     /// Predicate pushdown - push WHERE predicates into subqueries
-    static void pushdown_predicates(SelectStmt* stmt) {
+    static void pushdown_predicates(SelectStmt* stmt, Arena& arena) {
         if (!stmt || !stmt->where || !stmt->from) return;
 
         // Check if FROM is a subquery
@@ -65,10 +65,10 @@ public:
 
             // Push predicates into subquery
             if (!pushable.empty()) {
-                Expression* pushed_cond = combine_predicates(pushable);
+                Expression* pushed_cond = combine_predicates(pushable, arena);
                 if (subquery->where) {
                     // Combine with existing WHERE
-                    subquery->where = create_and(subquery->where, pushed_cond);
+                    subquery->where = create_and(subquery->where, pushed_cond, arena);
                 } else {
                     subquery->where = pushed_cond;
                 }
@@ -77,12 +77,12 @@ public:
                 if (remaining.empty()) {
                     stmt->where = nullptr;
                 } else {
-                    stmt->where = combine_predicates(remaining);
+                    stmt->where = combine_predicates(remaining, arena);
                 }
             }
 
             // Recursively optimize subquery
-            pushdown_predicates(subquery);
+            pushdown_predicates(subquery, arena);
         }
     }
 
@@ -225,22 +225,20 @@ private:
     }
 
     /// Combine multiple predicates with AND
-    static Expression* combine_predicates(const std::vector<Expression*>& predicates) {
+    static Expression* combine_predicates(const std::vector<Expression*>& predicates, Arena& arena) {
         if (predicates.empty()) return nullptr;
         if (predicates.size() == 1) return predicates[0];
 
         Expression* result = predicates[0];
         for (size_t i = 1; i < predicates.size(); ++i) {
-            result = create_and(result, predicates[i]);
+            result = create_and(result, predicates[i], arena);
         }
         return result;
     }
 
-    /// Create AND expression (helper to avoid including arena)
-    static Expression* create_and(Expression* left, Expression* right) {
-        // Note: This creates a raw pointer without arena allocation
-        // In practice, should use arena, but for simplicity using direct allocation
-        return new BinaryOp(ExprType::AND, left, right);
+    /// Create AND expression using arena allocation (no memory leaks)
+    static Expression* create_and(Expression* left, Expression* right, Arena& arena) {
+        return arena.create<BinaryOp>(ExprType::AND, left, right);
     }
 
     /// Check if subquery can be eliminated (no aggregation, compatible structure)
@@ -270,7 +268,7 @@ private:
 
     /// Flatten subquery into outer query
     static void flatten_subquery(SelectStmt* outer, SelectStmt* subquery,
-                                 const std::string& alias, [[maybe_unused]] Arena& arena) {
+                                 const std::string& alias, Arena& arena) {
         if (!outer || !subquery) return;
 
         // Replace FROM with subquery's FROM
@@ -279,7 +277,7 @@ private:
         // Merge WHERE clauses
         if (subquery->where) {
             if (outer->where) {
-                outer->where = create_and(outer->where, subquery->where);
+                outer->where = create_and(outer->where, subquery->where, arena);
             } else {
                 outer->where = subquery->where;
             }

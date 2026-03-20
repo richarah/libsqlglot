@@ -124,7 +124,7 @@ TEST_CASE("Window - RANK with ORDER BY", "[phase3][window]") {
 
 TEST_CASE("Window - LAG with arguments", "[phase3][window]") {
     Arena arena;
-    Parser parser(arena, "SELECT LAG(price, 1) OVER (ORDER BY date) FROM stocks");
+    Parser parser(arena, "SELECT LAG(price, 1) OVER (ORDER BY trade_date) FROM stocks");
 
     auto expr = parser.parse_select();
     auto stmt = static_cast<SelectStmt*>(expr);
@@ -140,7 +140,7 @@ TEST_CASE("Window - LAG with arguments", "[phase3][window]") {
 
 TEST_CASE("Window - SUM with PARTITION BY and ORDER BY", "[phase3][window]") {
     Arena arena;
-    Parser parser(arena, "SELECT SUM(amount) OVER (PARTITION BY user_id ORDER BY date) FROM transactions");
+    Parser parser(arena, "SELECT SUM(amount) OVER (PARTITION BY user_id ORDER BY transaction_date) FROM transactions");
 
     auto expr = parser.parse_select();
     auto stmt = static_cast<SelectStmt*>(expr);
@@ -152,7 +152,7 @@ TEST_CASE("Window - SUM with PARTITION BY and ORDER BY", "[phase3][window]") {
     REQUIRE(win_func->over->order_by.size() == 1);
 
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql.find("SUM(amount) OVER (PARTITION BY user_id ORDER BY date)") != std::string::npos);
+    REQUIRE(sql.find("SUM(amount) OVER (PARTITION BY user_id ORDER BY transaction_date)") != std::string::npos);
 }
 
 // ============================================================================

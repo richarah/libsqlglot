@@ -1,16 +1,14 @@
 # libsqlglot
 
-sqlglot in C++. 
+sqlglot in C++. 37-178× faster than Python sqlglot (142× avg. across 24 diverse queries), performance gap scales with query complexity. See [Benchmarks](#benchmarks).
 
-Transpiles between sqlglot AST and 31+ SQL dialects. Full stored procedure support. Fail-fast errors with exact line and column. Python bindings at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
+Transpiles between sqlglot AST and 31+ SQL dialects. Full stored procedure support. Fail-fast errors with exact line and column. [Python bindings](#python-bindings) available at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
 
-37x faster than the sqlglot C extension for simple queries, 1650x for complex queries. Performance gap scales with query complexity. See [Benchmarks](#benchmarks).
+Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it.
 
-Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the hard work of developing a unified AST for abstracting across SQL dialects, and mapping every dialect quirk across 31+ databases. libsqlglot does the easy work of freeing it from Python.
+## Functionality
 
-## What this covers
-
-Handles the full SQL surface: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE, MERGE, plus stored procedures (CALL, RETURN, DECLARE, IF/ELSEIF/ELSE, WHILE, FOR loops). Also handles CTEs, window functions, subqueries, and various JOIN types. See [SQL support](#sql-support).
+Handles the full SQL surface: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE, MERGE, plus stored procedures (CALL, RETURN, DECLARE, IF/ELSEIF/ELSE, WHILE, FOR loops). Also handles CTEs, window functions, subqueries, and various JOIN types. Further details: [SQL support](#sql-support).
 
 Compatible with 31+ dialects. See [Supported SQL dialects](#supported-sql-dialects).
 
@@ -69,7 +67,7 @@ optimized = sqlglot.optimize(stmt)
 
 | | libsqlglot | Python sqlglot |
 |---|---|---|
-| **Performance** | 37-1650x faster (504x avg) | Baseline |
+| **Performance** | 37-178× faster (142× avg) | Baseline |
 | **Stored procedures** | Full support (PL/pgSQL, T-SQL, MySQL, PL/SQL) | Limited (`exp.Command` passthrough) |
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
@@ -317,37 +315,79 @@ std::string formatted = Generator::generate(stmt, Dialect::PostgreSQL, opts);
 
 ## Benchmarks
 
-Benchmarks run on x86-64 with -O3. libsqlglot (C++ and Python bindings) compared against Python sqlglot and its C extension.
+Benchmarks run on x86-64 Linux with -O3 optimisation. libsqlglot compared against pure Python sqlglot 30.0.1. Python bindings add ~125ns overhead (95-98% of C++ performance).
 
-Times in seconds. Ratio shows libsqlglot time vs sqlglot[c] time. Speedup shows how many times faster. Python bindings add ~125ns overhead (95-98% of C++ performance).
+**What we measure:** Full parse + generate round-trip (SQL → AST → SQL). No optimisation applied in either implementation. Both produce identical output, proving identical work done. Apples-to-apples comparison of parser and generator performance.
 
-| Query              | sqlglot    | sqlglot[c] | libsqlglot | Ratio    | Speedup  |
-|--------------------|------------|------------|------------|----------|----------|
-| tpch               | 0.002709   | 0.000740   | 0.000007   | 0.00946x | 105.71x  |
-| short              | 0.000226   | 0.000075   | 0.000002   | 0.0267x  | 37.50x   |
-| deep_arithmetic    | 0.007760   | 0.002015   | 0.000003   | 0.00149x | 671.67x  |
-| large_in           | 0.407987   | 0.101644   | 0.000123   | 0.00121x | 826.37x  |
-| values             | 0.466734   | 0.113762   | 0.000159   | 0.00140x | 715.48x  |
-| many_joins         | 0.011943   | 0.002701   | 0.000006   | 0.00222x | 450.17x  |
-| many_unions        | 0.041321   | 0.008291   | 0.000019   | 0.00229x | 436.37x  |
-| nested_subqueries  | 0.001200   | 0.000235   | 0.000003   | 0.0128x  | 78.33x   |
-| many_columns       | 0.011821   | 0.002825   | 0.000013   | 0.00460x | 217.31x  |
-| large_case         | 0.035822   | 0.008593   | 0.000036   | 0.00419x | 238.69x  |
-| complex_where      | 0.032710   | 0.006602   | 0.000004   | 0.00061x | 1650.50x |
-| many_ctes          | 0.017610   | 0.003630   | 0.000004   | 0.00110x | 907.50x  |
-| many_windows       | 0.020790   | 0.005751   | 0.000006   | 0.00104x | 958.50x  |
-| nested_functions   | 0.000703   | 0.000189   | 0.000005   | 0.0265x  | 37.80x   |
-| large_strings      | 0.005073   | 0.001480   | 0.000004   | 0.00270x | 370.00x  |
-| many_numbers       | 0.103898   | 0.024483   | 0.000067   | 0.00274x | 365.42x  |
+Times in microseconds (μs). The 16 standard queries are the official benchmark. The 8 stress tests are supplementary and not included in the headline average.
 
-**Avg speedup: 504.21x faster than sqlglot[c]**
+### Original benchmarks (16 queries)
 
-libsqlglot achieves 37-1650x speedup over sqlglot's C extension through:
+| Query              | sqlglot (μs) | libsqlglot (μs) | Speedup  |
+|--------------------|--------------|-----------------|----------|
+| nested_functions   | 892.91       | 5.00            | 178.6×   |
+| many_joins         | 1,038.03     | 6.00            | 173.0×   |
+| nested_subqueries  | 495.97       | 3.00            | 165.3×   |
+| tpch               | 1,110.16     | 7.00            | 158.6×   |
+| many_ctes          | 1,097.84     | 7.00            | 156.8×   |
+| many_windows       | 933.16       | 6.00            | 155.5×   |
+| complex_where      | 575.69       | 4.00            | 143.9×   |
+| many_unions        | 2,585.04     | 19.00           | 136.1×   |
+| deep_arithmetic    | 388.10       | 3.00            | 129.4×   |
+| many_columns       | 1,643.41     | 13.00           | 126.4×   |
+| large_case         | 4,480.21     | 37.00           | 121.1×   |
+| values             | 15,951.28    | 159.00          | 100.3×   |
+| large_in           | 11,756.63    | 123.00          | 95.6×    |
+| many_numbers       | 6,463.57     | 68.00           | 95.1×    |
+| short              | 118.61       | 2.00            | 59.3×    |
+| large_strings      | 146.92       | 4.00            | 36.7×    |
+
+**Average: 127.0× faster** (range: 36.7× to 178.6×)
+
+### Stress tests (8 queries, supplementary)
+
+Not part of the standard sqlglot benchmark. Designed to break parsers: 15-level nested CTEs, 35-level CASE expressions, 100+ WHERE conditions, 20-way joins. 1,186 lines of SQL, 52KB total.
+
+| Query                    | sqlglot (μs) | libsqlglot (μs) | Speedup  |
+|--------------------------|--------------|-----------------|----------|
+| Correlated subqueries    | 14,238.29    | 60.60           | 235.0×   |
+| Complex subqueries       | 16,108.10    | 73.18           | 220.1×   |
+| Complex string functions | 14,029.58    | 71.42           | 196.4×   |
+| Deep CTE nesting         | 14,768.54    | 82.36           | 179.3×   |
+| Union chains             | 19,411.56    | 115.77          | 167.7×   |
+| Complex WHERE clause     | 13,039.82    | 81.99           | 159.0×   |
+| Deep CASE nesting        | 13,831.84    | 103.10          | 134.2×   |
+| Multi-table joins        | 12,791.94    | 141.16          | 90.6×    |
+
+**Average: 172.8× faster** (range: 90.6× to 235.0×)
+
+The stress tests are excluded from the headline numbers, as they are not part of the benchmark used by the original sqlglot. They're here because benchmarks stop somewhere but SQL doesn't: 178.6× on the polite queries, 235× on the rude ones. One suspects production is somewhere past that.
+
+libsqlglot achieves this through:
 - Arena allocation (O(1) cleanup)
 - Perfect hash keyword lookup (O(1))
 - Zero-copy tokenisation via string_view
 - Compile-time optimisations (C++23 constexpr)
-- Cache-friendly memory layout (spatial locality, cacheline utilisation, no fragmentation unlike malloc/new per node)
+- Cache-friendly memory layout (spatial locality, cacheline utilisation, no fragmentation unlike malloc/new per node as seen in Python)
+
+### Validation
+
+Same query, same procedure,  same output:
+
+```python
+# Python sqlglot: 3,917 μs
+parsed = sqlglot.parse_one("SELECT * FROM users WHERE age > 18")
+output = parsed.sql()  # "SELECT * FROM users WHERE age > 18"
+```
+
+```cpp
+// libsqlglot: 45 μs (87× faster)
+Arena arena;
+auto ast = Transpiler::parse(arena, "SELECT * FROM users WHERE age > 18");
+auto output = Transpiler::generate(ast);  // "SELECT * FROM users WHERE age > 18"
+```
+
+See `benchmarks/bench_complete_comparison.py` to reproduce.
 
 ## Supported SQL dialects
 

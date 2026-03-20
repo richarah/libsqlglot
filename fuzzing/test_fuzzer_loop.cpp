@@ -26,7 +26,7 @@ int main() {
                 auto select = static_cast<libsqlglot::SelectStmt*>(ast);
 
                 libsqlglot::Optimizer::qualify_columns(select);
-                libsqlglot::Optimizer::pushdown_predicates(select);
+                libsqlglot::Optimizer::pushdown_predicates(select, arena);
                 libsqlglot::Optimizer::eliminate_subqueries(select, arena);
 
                 if (select->where) {

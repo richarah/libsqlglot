@@ -36,7 +36,7 @@ int main() {
                 libsqlglot::Optimizer::qualify_columns(select);
 
                 std::cout << "  pushdown_predicates...\n" << std::flush;
-                libsqlglot::Optimizer::pushdown_predicates(select);
+                libsqlglot::Optimizer::pushdown_predicates(select, arena);
 
                 std::cout << "  eliminate_subqueries...\n" << std::flush;
                 libsqlglot::Optimizer::eliminate_subqueries(select, arena);

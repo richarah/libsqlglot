@@ -27,7 +27,7 @@ int main() {
 
         std::cout << "Test 2: pushdown_predicates..." << std::endl;
         try {
-            libsqlglot::Optimizer::pushdown_predicates(select);
+            libsqlglot::Optimizer::pushdown_predicates(select, arena);
             std::cout << "pushdown_predicates succeeded" << std::endl;
         } catch (const std::exception& e) {
             std::cout << "pushdown_predicates exception: " << e.what() << std::endl;

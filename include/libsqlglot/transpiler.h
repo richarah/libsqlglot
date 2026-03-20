@@ -59,7 +59,7 @@ public:
         Optimizer::qualify_columns(stmt);
 
         // Apply predicate pushdown optimization
-        Optimizer::pushdown_predicates(stmt);
+        Optimizer::pushdown_predicates(stmt, arena);
 
         // Apply subquery elimination
         Optimizer::eliminate_subqueries(stmt, arena);

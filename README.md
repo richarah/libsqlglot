@@ -462,6 +462,9 @@ See `benchmarks/bench_complete_comparison.py` to reproduce.
 
 31+ dialects with full parse and generation support. Use `Dialect::Name` in C++ or `sqlglot.Dialect.Name` in Python.
 
+Each dialect includes proper identifier quoting, keyword handling, function name translation, and syntax transformations (e.g. LIMIT vs TOP vs FETCH FIRST).
+
+
 <table>
 <tr>
 <td valign="top">
@@ -531,8 +534,6 @@ See `benchmarks/bench_complete_comparison.py` to reproduce.
 </td>
 </tr>
 </table>
-
-Each dialect includes proper identifier quoting, keyword handling, function name translation, and syntax transformations (e.g. LIMIT vs TOP vs FETCH FIRST).
 
 ## Licence
 

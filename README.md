@@ -124,7 +124,7 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
 | **Optimizer** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
-| **Codebase** | 7,341 lines C++ | 50,000+ lines Python |
+| **Codebase** | 7,363 lines C++ | 50,000+ lines Python |
 | **Binary** | 15KB lib, optional 258KB Python extension | N/A |
 
 Everything else (SQL coverage, 31+ dialects, no runtime deps) is the same.
@@ -182,7 +182,7 @@ cmake --build build
 
 ## Architecture
 
-7,341 lines of C++ headers, 16 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (975, 89 expression types). Entry point is `transpiler.h` (86 lines).
+7,363 lines of C++ headers, 16 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (975, 89 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 

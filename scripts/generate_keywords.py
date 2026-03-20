@@ -2,39 +2,44 @@
 """Generate perfect hash keyword table for libsqlglot"""
 
 # List of SQL keywords with their token types
+# Complete list from tokens.h
 keywords = [
+    # Keywords - SQL Standard
     ("SELECT", "SELECT"),
-    ("FROM", "FROM"),
-    ("WHERE", "WHERE"),
     ("INSERT", "INSERT"),
     ("UPDATE", "UPDATE"),
     ("DELETE", "DELETE"),
+    ("MERGE", "MERGE"),
     ("CREATE", "CREATE"),
     ("DROP", "DROP"),
-    ("TABLE", "TABLE"),
-    ("VIEW", "VIEW"),
-    ("INDEX", "INDEX"),
     ("ALTER", "ALTER"),
+    ("TRUNCATE", "TRUNCATE"),
+    ("FROM", "FROM"),
+    ("WHERE", "WHERE"),
+    ("HAVING", "HAVING"),
+    ("GROUP", "GROUP"),
+    ("ORDER", "ORDER"),
+    ("LIMIT", "LIMIT"),
+    ("OFFSET", "OFFSET"),
     ("JOIN", "JOIN"),
     ("INNER", "INNER"),
     ("LEFT", "LEFT"),
     ("RIGHT", "RIGHT"),
     ("FULL", "FULL"),
     ("CROSS", "CROSS"),
+    ("OUTER", "OUTER"),
     ("ON", "ON"),
     ("USING", "USING"),
+    ("NATURAL", "NATURAL"),
     ("UNION", "UNION"),
     ("INTERSECT", "INTERSECT"),
     ("EXCEPT", "EXCEPT"),
-    ("GROUP", "GROUP"),
-    ("HAVING", "HAVING"),
-    ("ORDER", "ORDER"),
-    ("BY", "BY"),
-    ("LIMIT", "LIMIT"),
-    ("OFFSET", "OFFSET"),
+    ("MINUS", "MINUS_KW"),
+    ("AS", "AS"),
     ("DISTINCT", "DISTINCT"),
     ("ALL", "ALL"),
-    ("AS", "AS"),
+    ("ANY", "ANY"),
+    ("SOME", "SOME"),
     ("AND", "AND"),
     ("OR", "OR"),
     ("NOT", "NOT"),
@@ -42,6 +47,7 @@ keywords = [
     ("EXISTS", "EXISTS"),
     ("BETWEEN", "BETWEEN"),
     ("LIKE", "LIKE"),
+    ("ILIKE", "ILIKE"),
     ("IS", "IS"),
     ("NULL", "NULL_KW"),
     ("TRUE", "TRUE"),
@@ -51,46 +57,297 @@ keywords = [
     ("THEN", "THEN"),
     ("ELSE", "ELSE"),
     ("END", "END"),
+    ("ASC", "ASC"),
+    ("DESC", "DESC"),
+    ("NULLS", "NULLS"),
+    ("FIRST", "FIRST"),
+    ("LAST", "LAST"),
     ("WITH", "WITH"),
     ("RECURSIVE", "RECURSIVE"),
     ("VALUES", "VALUES"),
     ("DEFAULT", "DEFAULT"),
     ("SET", "SET"),
     ("RETURNING", "RETURNING"),
+
+    # Data types
+    ("INT", "INT"),
+    ("INTEGER", "INTEGER"),
+    ("BIGINT", "BIGINT"),
+    ("SMALLINT", "SMALLINT"),
+    ("TINYINT", "TINYINT"),
+    ("FLOAT", "FLOAT"),
+    ("DOUBLE", "DOUBLE"),
+    ("REAL", "REAL"),
+    ("DECIMAL", "DECIMAL"),
+    ("NUMERIC", "NUMERIC"),
+    ("CHAR", "CHAR"),
+    ("VARCHAR", "VARCHAR"),
+    ("TEXT", "TEXT"),
+    ("STRING", "STRING_TYPE"),
+    ("BOOLEAN", "BOOLEAN"),
+    ("BOOL", "BOOL"),
+    ("DATE", "DATE"),
+    ("TIME", "TIME"),
+    ("TIMESTAMP", "TIMESTAMP"),
+    ("TIMESTAMPTZ", "TIMESTAMPTZ"),
+    ("INTERVAL", "INTERVAL"),
+    ("BINARY", "BINARY"),
+    ("VARBINARY", "VARBINARY"),
+    ("BLOB", "BLOB"),
+    ("ARRAY", "ARRAY"),
+    ("MAP", "MAP"),
+    ("STRUCT", "STRUCT"),
+    ("JSON", "JSON"),
+    ("JSONB", "JSONB"),
+    ("UUID", "UUID"),
+
+    # DDL
+    ("TABLE", "TABLE"),
+    ("VIEW", "VIEW"),
+    ("INDEX", "INDEX"),
+    ("SCHEMA", "SCHEMA"),
+    ("DATABASE", "DATABASE"),
+    ("CATALOG", "CATALOG"),
+    ("COLUMN", "COLUMN"),
+    ("CONSTRAINT", "CONSTRAINT"),
     ("PRIMARY", "PRIMARY"),
     ("FOREIGN", "FOREIGN"),
+    ("KEY", "KEY"),
     ("REFERENCES", "REFERENCES"),
     ("UNIQUE", "UNIQUE"),
     ("CHECK", "CHECK"),
-    ("KEY", "KEY"),
+    ("TEMPORARY", "TEMPORARY"),
+    ("TEMP", "TEMP"),
+    ("RENAME", "RENAME"),
+    ("ADD", "ADD"),
+    ("MODIFY", "MODIFY"),
+    ("CHANGE", "CHANGE"),
+
+    # Functions - Common
+    ("COUNT", "COUNT"),
+    ("SUM", "SUM"),
+    ("AVG", "AVG"),
+    ("MIN", "MIN"),
+    ("MAX", "MAX"),
+    ("COALESCE", "COALESCE"),
+    ("NULLIF", "NULLIF"),
+    ("IFNULL", "IFNULL"),
+    ("NVL", "NVL"),
+    ("CAST", "CAST"),
+    ("TRY_CAST", "TRY_CAST"),
+    ("SAFE_CAST", "SAFE_CAST"),
+    ("CONVERT", "CONVERT"),
+    ("EXTRACT", "EXTRACT"),
+    ("DATE_ADD", "DATE_ADD"),
+    ("DATE_SUB", "DATE_SUB"),
+    ("DATE_DIFF", "DATE_DIFF"),
+    ("DATE_TRUNC", "DATE_TRUNC"),
+    ("SUBSTRING", "SUBSTRING"),
+    ("SUBSTR", "SUBSTR"),
+    ("CONCAT", "CONCAT_KW"),
+    ("CONCAT_WS", "CONCAT_WS"),
+    ("LENGTH", "LENGTH"),
+    ("TRIM", "TRIM"),
+    ("UPPER", "UPPER"),
+    ("LOWER", "LOWER"),
+    ("REPLACE", "REPLACE_KW"),
+    ("SPLIT", "SPLIT"),
+    ("ROUND", "ROUND"),
+    ("FLOOR", "FLOOR"),
+    ("CEIL", "CEIL"),
+    ("ABS", "ABS"),
+    ("POWER", "POWER"),
+    ("SQRT", "SQRT"),
+
+    # Window functions
+    ("OVER", "OVER"),
+    ("PARTITION", "PARTITION"),
+    ("BY", "BY"),
+    ("ROWS", "ROWS"),
+    ("RANGE", "RANGE"),
+    ("PRECEDING", "PRECEDING"),
+    ("FOLLOWING", "FOLLOWING"),
+    ("UNBOUNDED", "UNBOUNDED"),
+    ("CURRENT", "CURRENT"),
+    ("ROW", "ROW"),
+    ("RANK", "RANK"),
+    ("DENSE_RANK", "DENSE_RANK"),
+    ("ROW_NUMBER", "ROW_NUMBER"),
+    ("NTILE", "NTILE"),
+    ("LEAD", "LEAD"),
+    ("LAG", "LAG"),
+    ("FIRST_VALUE", "FIRST_VALUE"),
+    ("LAST_VALUE", "LAST_VALUE"),
+    ("NTH_VALUE", "NTH_VALUE"),
+
+    # Set operations & clauses
+    ("LATERAL", "LATERAL"),
+    ("APPLY", "APPLY"),
+    ("PIVOT", "PIVOT"),
+    ("UNPIVOT", "UNPIVOT"),
+    ("QUALIFY", "QUALIFY"),
+    ("TABLESAMPLE", "TABLESAMPLE"),
+    ("FETCH", "FETCH"),
+    ("NEXT", "NEXT"),
+    ("ONLY", "ONLY"),
+    ("FOR", "FOR"),
+    ("SHARE", "SHARE"),
+    ("NOWAIT", "NOWAIT"),
+    ("SKIP", "SKIP"),
+    ("LOCKED", "LOCKED"),
+
+    # DML modifiers
+    ("INTO", "INTO"),
+    ("OVERWRITE", "OVERWRITE"),
+    ("IGNORE", "IGNORE"),
+
+    # Transaction control
     ("BEGIN", "BEGIN"),
     ("COMMIT", "COMMIT"),
     ("ROLLBACK", "ROLLBACK"),
     ("SAVEPOINT", "SAVEPOINT"),
-    ("SHOW", "SHOW"),
-    ("DESCRIBE", "DESCRIBE"),
-    ("DESC", "DESC"),
+    ("TRANSACTION", "TRANSACTION"),
+    ("WORK", "WORK"),
+    ("ISOLATION", "ISOLATION"),
+    ("LEVEL", "LEVEL"),
+    ("READ", "READ"),
+    ("WRITE", "WRITE"),
+    ("COMMITTED", "COMMITTED"),
+    ("UNCOMMITTED", "UNCOMMITTED"),
+    ("REPEATABLE", "REPEATABLE"),
+    ("SERIALIZABLE", "SERIALIZABLE"),
+
+    # Misc SQL
     ("EXPLAIN", "EXPLAIN"),
     ("ANALYZE", "ANALYZE"),
-    ("IF", "IF_KW"),
-    ("OVER", "OVER"),
-    ("PARTITION", "PARTITION"),
-    ("ROWS", "ROWS"),
-    ("RANGE", "RANGE"),
-    ("ANY", "ANY"),
-    ("SOME", "SOME"),
-    ("COALESCE", "COALESCE"),
-    ("NULLIF", "NULLIF"),
-    ("INTO", "INTO"),
-    ("MERGE", "MERGE"),
-    ("MATCHED", "MATCHED"),
-    ("SIMILAR", "SIMILAR"),
+    ("VERBOSE", "VERBOSE"),
+    ("DESCRIBE", "DESCRIBE"),
+    ("SHOW", "SHOW"),
+    ("USE", "USE"),
+    ("GRANT", "GRANT"),
+    ("REVOKE", "REVOKE"),
+    ("PRIVILEGES", "PRIVILEGES"),
+    ("COPY", "COPY"),
+    ("LOAD", "LOAD"),
+    ("EXPORT", "EXPORT"),
+    ("IMPORT", "IMPORT"),
+    ("PRAGMA", "PRAGMA"),
+    ("VACUUM", "VACUUM"),
+    ("REINDEX", "REINDEX"),
     ("REGEXP", "REGEXP"),
-    ("LATERAL", "LATERAL"),
-    ("PIVOT", "PIVOT"),
-    ("UNPIVOT", "UNPIVOT"),
-    ("TABLESAMPLE", "TABLESAMPLE"),
-    ("QUALIFY", "QUALIFY"),
+    ("RLIKE", "RLIKE"),
+    ("SIMILAR", "SIMILAR"),
+    ("MATCHED", "MATCHED"),
+
+    # DuckDB-specific
+    ("HUGEINT", "HUGEINT"),
+    ("UHUGEINT", "UHUGEINT"),
+    ("LIST", "LIST"),
+    ("EXCLUDE", "EXCLUDE"),
+    ("COLUMNS", "COLUMNS"),
+    ("SAMPLE", "SAMPLE"),
+    ("SUMMARIZE", "SUMMARIZE"),
+
+    # BigQuery-specific
+    ("SAFE", "SAFE"),
+    ("ORDINAL", "ORDINAL"),
+    ("SAFE_OFFSET", "SAFE_OFFSET"),
+    ("UNNEST", "UNNEST"),
+    ("FLATTEN", "FLATTEN"),
+    ("OPTIONS", "OPTIONS"),
+    ("CLUSTER", "CLUSTER"),
+    ("CURRENT_DATE", "CURRENT_DATE"),
+    ("CURRENT_TIME", "CURRENT_TIME"),
+    ("CURRENT_TIMESTAMP", "CURRENT_TIMESTAMP"),
+
+    # Snowflake-specific
+    ("VARIANT", "VARIANT"),
+    ("OBJECT", "OBJECT"),
+    ("CONNECT", "CONNECT"),
+    ("NOCYCLE", "NOCYCLE"),
+    ("START_WITH", "START_WITH"),
+    ("CONNECT_BY", "CONNECT_BY"),
+    ("PRIOR", "PRIOR"),
+
+    # Postgres-specific
+    ("DO", "DO"),
+    ("LANGUAGE", "LANGUAGE"),
+    ("PLPGSQL", "PLPGSQL"),
+    ("DECLARE", "DECLARE"),
+    ("PERFORM", "PERFORM"),
+    ("GENERATE_SERIES", "GENERATE_SERIES"),
+    ("DELIMITER", "DELIMITER_KW"),
+
+    # Stored Procedures & Functions
+    ("FUNCTION", "FUNCTION"),
+    ("PROCEDURE", "PROCEDURE_KW"),
+    ("CALL", "CALL"),
+    ("RETURN", "RETURN_KW"),
+    ("RETURNS", "RETURNS"),
+    ("OUT", "OUT"),
+    ("INOUT", "INOUT"),
+    ("IF", "IF_KW"),
+    ("WHILE", "WHILE"),
+    ("LOOP", "LOOP"),
+    ("EACH", "EACH"),
+    ("ELSEIF", "ELSEIF"),
+    ("ENDIF", "ENDIF"),
+    ("ENDWHILE", "ENDWHILE"),
+    ("ENDLOOP", "ENDLOOP"),
+
+    # Triggers
+    ("TRIGGER", "TRIGGER"),
+    ("BEFORE", "BEFORE"),
+    ("AFTER", "AFTER"),
+    ("INSTEAD", "INSTEAD"),
+    ("OF", "OF"),
+    ("EACH_ROW", "EACH_ROW"),
+    ("EACH_STMT", "EACH_STMT"),
+    ("OLD", "OLD"),
+    ("NEW", "NEW"),
+
+    # Advanced DDL
+    ("TABLESPACE", "TABLESPACE"),
+    ("CONCURRENTLY", "CONCURRENTLY"),
+    ("HASH", "HASH"),
+    ("MAXVALUE", "MAXVALUE"),
+    ("MINVALUE", "MINVALUE"),
+
+    # TSQL-specific
+    ("TOP", "TOP"),
+    ("OUTPUT", "OUTPUT"),
+    ("INSERTED", "INSERTED"),
+    ("DELETED", "DELETED"),
+    ("GO", "GO"),
+    ("EXEC", "EXEC"),
+    ("EXECUTE", "EXECUTE"),
+    ("IDENTITY", "IDENTITY"),
+    ("SCOPE_IDENTITY", "SCOPE_IDENTITY"),
+
+    # MySQL-specific
+    ("AUTO_INCREMENT", "AUTO_INCREMENT"),
+    ("UNSIGNED", "UNSIGNED"),
+    ("ZEROFILL", "ZEROFILL"),
+    ("ENGINE", "ENGINE"),
+    ("CHARSET", "CHARSET"),
+    ("COLLATE", "COLLATE"),
+    ("STRAIGHT_JOIN", "STRAIGHT_JOIN"),
+    ("FORCE", "FORCE"),
+    ("USE_INDEX", "USE_INDEX"),
+
+    # Oracle-specific
+    ("DUAL", "DUAL"),
+    ("ROWNUM", "ROWNUM"),
+    ("ROWID", "ROWID"),
+    ("CONNECT_BY_ROOT", "CONNECT_BY_ROOT"),
+    ("SYS_CONNECT_BY_PATH", "SYS_CONNECT_BY_PATH"),
+
+    # Clickhouse-specific
+    ("PARTITION_BY", "PARTITION_BY"),
+    ("ORDER_BY", "ORDER_BY"),
+    ("FINAL", "FINAL"),
+    ("PREWHERE", "PREWHERE"),
+    ("SETTINGS", "SETTINGS"),
 ]
 
 def perfect_hash(keyword):
@@ -106,17 +363,36 @@ for kw, token_type in keywords:
     h = perfect_hash(kw)
     hash_table[h].append((kw, token_type))
 
+# Find maximum collisions to determine array size
+max_collisions = max(len(entries) for entries in hash_table)
+if max_collisions > 4:
+    print(f"// ERROR: Maximum collisions ({max_collisions}) exceeds capacity (4)", file=__import__('sys').stderr)
+    print(f"// Slots with >4 collisions:", file=__import__('sys').stderr)
+    for i, entries in enumerate(hash_table):
+        if len(entries) > 4:
+            kws = ", ".join([kw for kw, _ in entries])
+            print(f"//   Slot {i} ({len(entries)} entries): {kws}", file=__import__('sys').stderr)
+    print(f"// Using 8-entry slots to accommodate all keywords", file=__import__('sys').stderr)
+    SLOT_SIZE = 8
+else:
+    SLOT_SIZE = 4
+
 # Generate C++ code
-print("static constexpr KeywordEntry keyword_table[128] = {")
+print(f"static constexpr KeywordEntry keyword_table[128] = {{")
 for i, entries in enumerate(hash_table):
     if not entries:
-        print(f"    {{{{nullptr, nullptr, nullptr, nullptr}}, {{0, 0, 0, 0}}, {{TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}}}},")
+        nulls = ", ".join(["nullptr"] * SLOT_SIZE)
+        zeros = ", ".join(["0"] * SLOT_SIZE)
+        idents = ", ".join(["TokenType::IDENTIFIER"] * SLOT_SIZE)
+        print(f"    {{{{{nulls}}}, {{{zeros}}}, {{{idents}}}}},")
     else:
-        keywords_str = ", ".join([f'"{kw}"' if kw else "nullptr" for kw, _ in entries] + ["nullptr"] * (4 - len(entries)))
-        lengths_str = ", ".join([str(len(kw)) for kw, _ in entries] + ["0"] * (4 - len(entries)))
-        types_str = ", ".join([f"TokenType::{tt}" for _, tt in entries] + ["TokenType::IDENTIFIER"] * (4 - len(entries)))
+        # Take only first SLOT_SIZE entries
+        limited_entries = entries[:SLOT_SIZE]
+        keywords_str = ", ".join([f'"{kw}"' for kw, _ in limited_entries] + ["nullptr"] * (SLOT_SIZE - len(limited_entries)))
+        lengths_str = ", ".join([str(len(kw)) for kw, _ in limited_entries] + ["0"] * (SLOT_SIZE - len(limited_entries)))
+        types_str = ", ".join([f"TokenType::{tt}" for _, tt in limited_entries] + ["TokenType::IDENTIFIER"] * (SLOT_SIZE - len(limited_entries)))
 
-        comment = ", ".join([f"{kw} (hash={i})" for kw, _ in entries])
+        comment = ", ".join([f"{kw} (hash={i})" for kw, _ in limited_entries])
         print(f"    {{{{{keywords_str}}}, {{{lengths_str}}}, {{{types_str}}}}},  // {comment}")
 
 print("};")
@@ -126,4 +402,4 @@ print("\n// Hash collision report:")
 for i, entries in enumerate(hash_table):
     if len(entries) > 1:
         kws = ", ".join([kw for kw, _ in entries])
-        print(f"// Slot {i}: {kws}")
+        print(f"// Slot {i} ({len(entries)} entries): {kws}")

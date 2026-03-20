@@ -154,6 +154,7 @@ enum class TokenType : uint16_t {
     RETURNING_KW, DO, LANGUAGE,
     PLPGSQL, DECLARE, PERFORM,
     GENERATE_SERIES,
+    DELIMITER_KW,  // DELIMITER for MySQL
 
     // Stored Procedures & Functions
     FUNCTION, PROCEDURE_KW,  // PROCEDURE_KW to distinguish from PROCEDURE already defined

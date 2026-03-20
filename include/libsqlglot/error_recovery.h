@@ -231,7 +231,7 @@ public:
 
 private:
     ErrorCollector& collector_;
-    const char* context_name_;
+    [[maybe_unused]] const char* context_name_;
     size_t start_error_count_;
 };
 

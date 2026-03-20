@@ -121,12 +121,16 @@ private:
 };
 
 int main() {
+    std::cout << "[DEBUG] Starting fuzz_generator main()\n" << std::flush;
     std::signal(SIGINT, signal_handler);
     std::signal(SIGTERM, signal_handler);
 
+    std::cout << "[DEBUG] Creating GeneratorFuzzer\n" << std::flush;
     GeneratorFuzzer fuzzer;
+    std::cout << "[DEBUG] GeneratorFuzzer created\n" << std::flush;
 
     // Corpus for generator testing
+    std::cout << "[DEBUG] Creating corpus vector\n" << std::flush;
     std::vector<std::string> corpus = {
         "SELECT * FROM table1",
         "SELECT a, b, c FROM t WHERE x > 100",
@@ -140,6 +144,7 @@ int main() {
         "CREATE TABLE test (id INT PRIMARY KEY, name VARCHAR(100))",
         "SELECT CASE WHEN score >= 90 THEN 'A' WHEN score >= 80 THEN 'B' ELSE 'C' END AS grade FROM students"
     };
+    std::cout << "[DEBUG] Corpus created with " << corpus.size() << " items\n" << std::flush;
 
     uint64_t iterations = 0;
     uint64_t crashes = 0;
@@ -148,10 +153,20 @@ int main() {
 
     std::cout << "Starting generator fuzzer...\n";
     std::cout << "Press Ctrl+C to stop\n\n";
+    std::cout << "[DEBUG] Entering main fuzzing loop\n" << std::flush;
 
     while (running) {
+        if (iterations < 5) {
+            std::cout << "[DEBUG] Iteration " << iterations << "\n" << std::flush;
+        }
         std::string seed = corpus[iterations % corpus.size()];
+        if (iterations < 5) {
+            std::cout << "[DEBUG] Got seed: " << seed.substr(0, 50) << "...\n" << std::flush;
+        }
         std::string mutated = fuzzer.mutate(seed);
+        if (iterations < 5) {
+            std::cout << "[DEBUG] Mutated\n" << std::flush;
+        }
 
         try {
             libsqlglot::Arena arena;

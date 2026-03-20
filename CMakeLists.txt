@@ -19,7 +19,7 @@ option(LIBSQLGLOT_PGO_USE "Use PGO profile data for optimization" OFF)
 set(LIBSQLGLOT_CXX_FLAGS -Wall -Wextra -Wpedantic -Werror -fno-rtti)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    list(APPEND LIBSQLGLOT_CXX_FLAGS -O3 -march=native -flto -ffast-math -fmerge-all-constants -fvisibility=hidden)
+    list(APPEND LIBSQLGLOT_CXX_FLAGS -O3 -march=native -flto -fmerge-all-constants -fvisibility=hidden)
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)  # Enable LTO
 
     # Profile-Guided Optimization (PGO)

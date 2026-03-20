@@ -10,7 +10,7 @@ Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot) parser/tr
 
 #### What is this for?
 
-For proxies, linters, migration tools, query rewriters, and anything else that needs to parse or transpile SQL at volume. If latency matters, use this. If it doesn't, sqlglot is great.
+DB proxies, linters, migration tools, query rewriters, anything else that needs to parse/transpile SQL at volume. If latency matters, use this. If it doesn't, sqlglot is great.
 
 ## Contents
 

@@ -453,15 +453,55 @@ See `benchmarks/bench_complete_comparison.py` to reproduce.
 
 ## Supported SQL dialects
 
-31+ dialects with full parse and generation support:
+31+ dialects with full parse and generation support. Use `Dialect::Name` in C++ or `sqlglot.Dialect.Name` in Python.
 
-**Production RDBMS**: PostgreSQL, MySQL, MariaDB, SQLite, Oracle, SQL Server, DB2
+### Production RDBMS
+| Database       | Dialect       |
+|----------------|---------------|
+| PostgreSQL     | PostgreSQL    |
+| MySQL          | MySQL         |
+| MariaDB        | MariaDB       |
+| SQLite         | SQLite        |
+| Oracle         | Oracle        |
+| SQL Server     | SQLServer     |
 
-**Data warehousing**: BigQuery, Snowflake, Redshift, Athena, Databricks
+### Data warehousing
+| Database       | Dialect       |
+|----------------|---------------|
+| BigQuery       | BigQuery      |
+| Snowflake      | Snowflake     |
+| Redshift       | Redshift      |
+| Athena         | Athena        |
+| Databricks     | Databricks    |
 
-**Analytics**: DuckDB, ClickHouse, Presto, Trino, Hive, Spark, Impala, Drill
+### Analytics
+| Database       | Dialect       |
+|----------------|---------------|
+| DuckDB         | DuckDB        |
+| ClickHouse     | ClickHouse    |
+| Presto         | Presto        |
+| Trino          | Trino         |
+| Hive           | Hive          |
+| Spark          | Spark         |
+| Impala         | Impala        |
+| Drill          | Drill         |
 
-**Specialised**: CockroachDB, TimescaleDB, Greenplum, Vertica, Teradata, Netezza, Phoenix, Calcite, Dremio, Pinot, StarRocks, Doris
+### Specialised
+| Database       | Dialect       |
+|----------------|---------------|
+| CockroachDB    | CockroachDB   |
+| TimescaleDB    | TimescaleDB   |
+| Greenplum      | Greenplum     |
+| Vertica        | Vertica       |
+| Teradata       | Teradata      |
+| Netezza        | Netezza       |
+| Phoenix        | Phoenix       |
+| Calcite        | Calcite       |
+| Dremio         | Dremio        |
+| Pinot          | Pinot         |
+| StarRocks      | StarRocks     |
+| Doris          | Doris         |
+| ANSI SQL       | ANSI          |
 
 Each dialect includes proper identifier quoting, keyword handling, function name translation, and syntax transformations (e.g. LIMIT vs TOP vs FETCH FIRST).
 

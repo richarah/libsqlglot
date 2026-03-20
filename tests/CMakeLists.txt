@@ -34,6 +34,7 @@ add_executable(libsqlglot_tests
     test_mad_queries.cpp
     test_unbounded_following.cpp
     test_dialect_transpilation.cpp
+    test_all_dialects_comprehensive.cpp
     test_main.cpp
 )
 

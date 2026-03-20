@@ -18,7 +18,7 @@ std::string read_file(const std::string& path) {
 }
 
 TEST_CASE("Mad Queries - Stress Tests", "[mad_queries][stress]") {
-    const std::string base_path = "../../benchmarks/mad_queries/";
+    const std::string base_path = "benchmarks/mad_queries/";
 
     SECTION("Query 1: Deep CTEs with windows") {
         auto sql = read_file(base_path + "query1_deep_ctes_windows.sql");

@@ -62,9 +62,9 @@ fi
 
 # Test metrics (requires build)
 if [[ -f "build/tests/libsqlglot_tests" ]]; then
-    test_output=$(build/tests/libsqlglot_tests --reporter compact 2>&1 | tail -1)
-    num_assertions=$(echo "$test_output" | grep -oP '\d+(?= assertions)' || echo "0")
-    num_tests=$(echo "$test_output" | grep -oP '\d+(?= test cases)' || echo "0")
+    test_output=$(build/tests/libsqlglot_tests --reporter compact 2>&1)
+    num_tests=$(echo "$test_output" | grep -oP '\d+(?= test cases)' | head -1 || echo "0")
+    num_assertions=$(echo "$test_output" | grep -oP '\d+(?= assertions)' | head -1 || echo "0")
     num_assertions_fmt=$(echo "$num_assertions" | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta')
     num_tests_fmt=$(echo "$num_tests" | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta')
     has_tests=true

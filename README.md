@@ -178,7 +178,7 @@ cmake -B build -DCMAKE_BUILD_TYPE=Release -DLIBSQLGLOT_PGO_USE=ON
 cmake --build build
 ```
 
-**Compiler optimizations enabled** (Release builds): Link-Time Optimization (LTO), fast math, constant merging, symbol visibility optimization.
+**Compiler optimizations enabled** (Release builds): Link-Time Optimization (LTO), constant merging, symbol visibility optimization.
 
 ## Architecture
 

@@ -10,7 +10,7 @@ Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which di
 
 #### What is this for?
 
-DB proxies, linters, migration tools, query rewriters, and a proper replacement for every regex that's pretending to parse SQL in your codebase right now. If latency matters, use this. If it doesn't, sqlglot is great.
+DB proxies, linters, migration tools, query rewriters, and a proper replacement for every regex that's pretending to parse SQL in your codebase. If latency matters, use this. If it doesn't, sqlglot is great.
 
 ## Contents
 

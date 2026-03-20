@@ -15,8 +15,9 @@ DB proxies, linters, migration tools, query rewriters, anything else that needs 
 ## Contents
 
 - [Functionality](#functionality)
-- [C++ API](#c-api)
-- [Python bindings](#python-bindings)
+- [Quickstart](#quickstart)
+  - [C++](#c)
+  - [Python](#python)
 - [Differences from original sqlglot](#differences-from-original-sqlglot)
 - [Building](#building)
 - [Architecture](#architecture)
@@ -31,9 +32,11 @@ Transpiles between 31+ SQL dialects via sqlglot AST. Full stored procedure suppo
 
 Handles the full SQL surface: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE, MERGE, plus stored procedures (CALL, RETURN, DECLARE, IF/ELSEIF/ELSE, WHILE, FOR loops). Also handles CTEs, window functions, subqueries, and various JOIN types.
 
-Compatible with 31+ dialects.
+Compatible with 31+ dialects (see [Supported SQL dialects](#supported-sql-dialects) for the full list).
 
-## C++ API
+## Quickstart
+
+### C++
 
 ```cpp
 #include <libsqlglot/transpiler.h>
@@ -62,9 +65,11 @@ std::string sql = Transpiler::generate(stmt, Dialect::PostgreSQL);
 // Returns: SELECT users.name FROM users WHERE users.age > 18
 ```
 
-## Python bindings
+See [Supported SQL dialects](#supported-sql-dialects) for all available `Dialect::` values.
 
-Available on pypi: `pip install libsqlglot`
+### Python
+
+Available on PyPI: `pip install libsqlglot`
 
 ```python
 import libsqlglot as sqlglot
@@ -101,6 +106,8 @@ optimized = sqlglot.optimize(stmt)
 sql = optimized.sql()
 # Returns: 'SELECT users.id, users.name FROM users WHERE users.active = TRUE'
 ```
+
+See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot.Dialect.` values.
 
 **Python API**: `parse()`, `parse_one()`, `generate()`, `transpile()`, `optimize()`, `diff()`, `.sql()`, `.find_all()`, `.walk()`, `select()` builder, as seen in Python sqlglot.
 

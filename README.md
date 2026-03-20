@@ -492,9 +492,6 @@ Each dialect includes proper identifier quoting, keyword handling, function name
 
 </td>
 </tr>
-</table>
-
-<table>
 <tr>
 <td valign="top">
 

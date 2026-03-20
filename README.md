@@ -40,18 +40,26 @@ Compatible with 31+ dialects.
 
 using namespace libsqlglot;
 
-// Transpile between dialects
+// Transpile between dialects (MySQL → PostgreSQL)
 std::string output = Transpiler::transpile(
-    "SELECT * FROM users WHERE age > 18",
+    "SELECT `id`, `name` FROM `users` LIMIT 10",
     Dialect::MySQL,
     Dialect::PostgreSQL
 );
+// Returns: SELECT "id", "name" FROM "users" LIMIT 10
 
-// Parse, optimise, generate
+// Parse SQL into AST
 Arena arena;
-auto stmt = Transpiler::parse(arena, "SELECT name FROM users");
+auto stmt = Transpiler::parse(arena, "SELECT name FROM users WHERE age > 18");
+// Returns: AST with SelectStmt node
+
+// Optimize AST (column qualification, predicate pushdown, constant folding)
 Transpiler::optimize(arena, stmt);
-std::string sql = Transpiler::generate(stmt, Dialect::DuckDB);
+// Modifies AST: name → users.name, age → users.age
+
+// Generate SQL from AST
+std::string sql = Transpiler::generate(stmt, Dialect::PostgreSQL);
+// Returns: SELECT users.name FROM users WHERE users.age > 18
 ```
 
 ## Python bindings
@@ -59,23 +67,37 @@ std::string sql = Transpiler::generate(stmt, Dialect::DuckDB);
 ```python
 import libsqlglot as sqlglot
 
-# Transpile
+# Transpile between dialects (MySQL → PostgreSQL)
 sql = sqlglot.transpile(
-    "SELECT * FROM users LIMIT 10",
+    "SELECT `id`, `name` FROM `users` LIMIT 10",
     sqlglot.Dialect.MySQL,
     sqlglot.Dialect.PostgreSQL
 )
+# Returns: 'SELECT "id", "name" FROM "users" LIMIT 10'
 
-# Parse and generate
-stmt = sqlglot.parse("SELECT id, name FROM users")
-sql = stmt.sql(dialect=sqlglot.Dialect.DuckDB, pretty=True)
+# Parse SQL into AST
+stmt = sqlglot.parse("SELECT id, name FROM users WHERE active = TRUE")
+# Returns: Statement object (AST)
 
-# AST traversal
+# Generate SQL for different dialects
+sql_postgres = stmt.sql(dialect=sqlglot.Dialect.PostgreSQL, pretty=True)
+# Returns: 'SELECT id, name FROM users WHERE active = TRUE'
+
+sql_sqlserver = stmt.sql(dialect=sqlglot.Dialect.SQLServer)
+# Returns: 'SELECT id, name FROM users WHERE active = 1'  (TRUE → 1)
+
+# AST traversal - find all column references
 columns = stmt.find_all(sqlglot.ExprType.COLUMN)
-stmt.walk(lambda node: print(node.type))
+# Returns: [Column(id), Column(name), Column(active)]
 
-# Optimise
+# AST traversal - walk all nodes
+stmt.walk(lambda node: print(node.type))
+# Prints: SELECT, COLUMN, COLUMN, TABLE, WHERE, COLUMN, LITERAL
+
+# Optimize query (column qualification, predicate pushdown)
 optimized = sqlglot.optimize(stmt)
+sql = optimized.sql()
+# Returns: 'SELECT users.id, users.name FROM users WHERE users.active = TRUE'
 ```
 
 **Python API**: `parse()`, `parse_one()`, `generate()`, `transpile()`, `optimize()`, `diff()`, `.sql()`, `.find_all()`, `.walk()`, `select()` builder, as seen in Python sqlglot.

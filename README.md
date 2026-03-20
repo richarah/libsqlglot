@@ -93,7 +93,7 @@ optimized = sqlglot.optimize(stmt)
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
 | **Optimizer** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
 | **Codebase** | 7,319 lines C++ | 50,000+ lines Python |
-| **Binary** | 15KB lib + 258KB Python extension | N/A |
+| **Binary** | 15KB lib, optional 258KB Python extension | N/A |
 
 Everything else (SQL coverage, 31+ dialects, no runtime deps) is the same.
 

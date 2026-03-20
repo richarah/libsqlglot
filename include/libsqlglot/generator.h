@@ -107,6 +107,7 @@ private:
             case ExprType::MOD:
             case ExprType::AND:
             case ExprType::OR:
+            case ExprType::CONCAT:
                 visit_binary_op(static_cast<const BinaryOp*>(expr));
                 break;
             case ExprType::NOT:
@@ -1629,6 +1630,7 @@ private:
             case ExprType::MOD: return "%";
             case ExprType::AND: return "AND";
             case ExprType::OR: return "OR";
+            case ExprType::CONCAT: return "||";
             default: return "?";
         }
     }

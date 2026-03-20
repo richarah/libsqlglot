@@ -763,6 +763,11 @@ public:
             return stmt;
         }
 
+        // If at EOF or semicolon, it's a standalone BEGIN (transaction)
+        if (is_at_end() || check(TokenType::SEMICOLON)) {
+            return arena_.create<BeginStmt>();
+        }
+
         // Otherwise, it's a BEGIN...END procedural block
         return parse_begin_end_block();
     }
@@ -863,7 +868,7 @@ public:
 
         // Parse variable assignments
         do {
-            if (current().type == TokenType::IDENTIFIER) {
+            if (current().type == TokenType::IDENTIFIER || current().type == TokenType::PARAMETER) {
                 std::string var_name(current().text);
                 advance();
 
@@ -989,16 +994,15 @@ public:
     Expression* parse_declare() {
         expect(TokenType::DECLARE);
 
-        // Variable/cursor name
-        if (current().type != TokenType::IDENTIFIER) {
+        // Variable/cursor name - can be identifier, keyword, or parameter (@name for T-SQL)
+        if (!current().text) {
             error_expected_after("variable or cursor name", "DECLARE");
         }
         std::string var_name(current().text);
         advance();
 
         // Check if it's a cursor declaration
-        if (current().type == TokenType::CURSOR ||
-            (current().type == TokenType::IDENTIFIER && std::string(current().text) == "SCROLL")) {
+        if (current().type == TokenType::CURSOR || current().type == TokenType::SCROLL) {
             return parse_declare_cursor(var_name);
         }
 
@@ -1025,9 +1029,12 @@ public:
             type_str += ")";
         }
 
-        // Optional DEFAULT value
+        // Optional DEFAULT value or = value (T-SQL uses = instead of DEFAULT)
         Expression* default_value = nullptr;
         if (match(TokenType::DEFAULT)) {
+            default_value = parse_expression();
+        } else if (match(TokenType::EQ)) {
+            // T-SQL syntax: DECLARE @var INT = 0
             default_value = parse_expression();
         }
 
@@ -1088,13 +1095,32 @@ public:
         return stmt;
     }
 
-    /// Parse WHILE loop: WHILE condition DO statements END WHILE
+    /// Parse WHILE loop: WHILE condition DO statements END WHILE (standard)
+    ///                or WHILE condition BEGIN statements END (T-SQL)
     WhileLoop* parse_while() {
         auto stmt = arena_.create<WhileLoop>();
         expect(TokenType::WHILE);
 
         // WHILE condition
         stmt->condition = parse_expression();
+
+        // T-SQL style: WHILE condition BEGIN ... END
+        if (check(TokenType::BEGIN)) {
+            auto* begin_block = parse_begin();
+
+            // Extract statements from the BEGIN...END block
+            if (begin_block->type == ExprType::BEGIN_END_BLOCK) {
+                auto* block = static_cast<BeginEndBlock*>(begin_block);
+                stmt->body = block->statements;
+            } else {
+                // If it's not a BEGIN...END block (e.g., BEGIN TRANSACTION), add it as a single statement
+                stmt->body.push_back(begin_block);
+            }
+
+            return stmt;
+        }
+
+        // Standard style: WHILE condition DO ... END WHILE
         expect(TokenType::DO);
 
         // Loop body (parse until END or ENDWHILE)
@@ -1221,21 +1247,21 @@ public:
     /// Parse assignment: SET var = value OR var := value
     AssignmentStmt* parse_assignment() {
         auto stmt = arena_.create<AssignmentStmt>();
-        
-        // Variable name must be identifier
-        if (current().type != TokenType::IDENTIFIER) {
+
+        // Variable name can be identifier or parameter (@name for T-SQL)
+        if (current().type != TokenType::IDENTIFIER && current().type != TokenType::PARAMETER) {
             error("Expected variable name for assignment");
         }
         stmt->variable_name = std::string(current().text);
         advance();
-        
+
         // := operator
         expect(TokenType::COLON_EQUALS);
         stmt->use_colon_equals = true;
-        
+
         // Value expression
         stmt->value = parse_expression();
-        
+
         return stmt;
     }
 
@@ -1394,18 +1420,19 @@ public:
         
         // For SIGNAL (MySQL), expect SQLSTATE
         if (is_signal) {
-            if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "SQLSTATE") {
+            // SQLSTATE keyword or identifier
+            if (current().text && std::string(current().text) == "SQLSTATE") {
                 advance();
             }
-            // Error code
+            // Error code string
             if (current().type == TokenType::STRING) {
                 stmt->error_code = std::string(current().text);
                 advance();
             }
             // Optional SET MESSAGE_TEXT =
-            if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "SET") {
-                advance();
-                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "MESSAGE_TEXT") {
+            if (match(TokenType::SET)) {  // SET is a keyword token
+                // MESSAGE_TEXT is an identifier
+                if (current().text && std::string(current().text) == "MESSAGE_TEXT") {
                     advance();
                     expect(TokenType::EQ);
                     if (current().type == TokenType::STRING) {
@@ -1416,12 +1443,14 @@ public:
             }
         } else {
             // RAISE (PostgreSQL) - level and message
-            if (current().type == TokenType::IDENTIFIER) {
+            // Level can be EXCEPTION (keyword) or NOTICE/WARNING/INFO/LOG/DEBUG (identifiers)
+            if (match(TokenType::EXCEPTION)) {
+                stmt->level = RaiseStmt::Level::EXCEPTION;
+            } else if (current().type == TokenType::IDENTIFIER) {
                 std::string level(current().text);
-                if (level == "EXCEPTION" || level == "NOTICE" || level == "WARNING" ||
+                if (level == "NOTICE" || level == "WARNING" ||
                     level == "INFO" || level == "LOG" || level == "DEBUG") {
-                    if (level == "EXCEPTION") stmt->level = RaiseStmt::Level::EXCEPTION;
-                    else if (level == "NOTICE") stmt->level = RaiseStmt::Level::NOTICE;
+                    if (level == "NOTICE") stmt->level = RaiseStmt::Level::NOTICE;
                     else if (level == "WARNING") stmt->level = RaiseStmt::Level::WARNING;
                     else if (level == "INFO") stmt->level = RaiseStmt::Level::INFO;
                     else if (level == "LOG") stmt->level = RaiseStmt::Level::LOG;
@@ -1429,7 +1458,7 @@ public:
                     advance();
                 }
             }
-            
+
             // Message
             if (current().type == TokenType::STRING) {
                 stmt->message = std::string(current().text);
@@ -1655,8 +1684,9 @@ public:
             return parse_close_cursor();
         } else if (check(TokenType::RAISE) || check(TokenType::SIGNAL)) {
             return parse_raise();
-        } else if (current().type == TokenType::IDENTIFIER && peek().type == TokenType::COLON_EQUALS) {
-            // Assignment statement: var := value
+        } else if ((current().type == TokenType::IDENTIFIER || current().type == TokenType::PARAMETER) &&
+                   peek().type == TokenType::COLON_EQUALS) {
+            // Assignment statement: var := value or @var := value
             return parse_assignment();
         }
         error("Unexpected token - expected SQL statement (SELECT, INSERT, UPDATE, DELETE, CREATE, etc.)");
@@ -1865,7 +1895,8 @@ private:
                 error_expected_after("SELECT subquery", "opening parenthesis");
             }
         } else {
-            if (current().type != TokenType::IDENTIFIER) {
+            // Allow identifiers and special keywords like DUAL (Oracle pseudo-table)
+            if (current().type != TokenType::IDENTIFIER && current().type != TokenType::DUAL) {
                 error("Expected table name or (SELECT ...) subquery in FROM clause");
             }
 
@@ -2297,6 +2328,14 @@ private:
             return lit;
         }
 
+        // Parameter (@name, :name, $1, ?)
+        if (current().type == TokenType::PARAMETER) {
+            std::string param_name(current().text);
+            advance();
+            // Treat as a column/variable reference
+            return arena_.create<Column>(param_name);
+        }
+
         // Special keyword functions
         if (match(TokenType::COALESCE)) {
             expect(TokenType::LPAREN);
@@ -2388,8 +2427,10 @@ private:
 
         // Function call or column
         // Allow keywords as function names (SUM, COUNT, SQRT, MAX, MIN, etc.)
+        // Also allow identifiers and certain safe keywords as column/variable names
         if (current().type == TokenType::IDENTIFIER ||
-            (current().text && peek().type == TokenType::LPAREN)) {
+            (current().text && peek().type == TokenType::LPAREN) ||
+            (current().text && !is_statement_keyword(current().type) && is_valid_identifier(current().text))) {
             std::string name(current().text);
             advance();
 
@@ -2508,6 +2549,40 @@ private:
         // If we get here, unhandled token
         error("Unexpected token in expression - expected literal, identifier, function, or subquery");
     }
+
+    /// Check if a token is a core SQL statement keyword that should not be used as an identifier
+    static bool is_statement_keyword(TokenType type) {
+        // Only exclude core statement keywords that should never be column/variable names
+        return type == TokenType::SELECT || type == TokenType::FROM || type == TokenType::WHERE ||
+               type == TokenType::INSERT || type == TokenType::UPDATE || type == TokenType::DELETE ||
+               type == TokenType::CREATE || type == TokenType::DROP || type == TokenType::ALTER ||
+               type == TokenType::GRANT || type == TokenType::REVOKE;
+    }
+
+    /// Validate identifier is ASCII-only alphanumeric/underscore (rejects backticks, UTF-8)
+    static bool is_valid_identifier(const char* text) {
+        if (!text || !*text) return false;
+
+        // First character must be letter or underscore (ASCII only)
+        if (!((*text >= 'a' && *text <= 'z') ||
+              (*text >= 'A' && *text <= 'Z') ||
+              *text == '_')) {
+            return false;  // Rejects backticks, UTF-8, digits at start
+        }
+
+        // Remaining characters must be alphanumeric or underscore (ASCII only)
+        for (const char* p = text + 1; *p; ++p) {
+            if (!((*p >= 'a' && *p <= 'z') ||
+                  (*p >= 'A' && *p <= 'Z') ||
+                  (*p >= '0' && *p <= '9') ||
+                  *p == '_')) {
+                return false;  // Rejects backticks, UTF-8, special chars
+            }
+        }
+
+        return true;
+    }
+
     // Note: is_keyword() is provided by tokens.h
 };
 

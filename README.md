@@ -4,7 +4,7 @@
 
 sqlglot, in C++. 31+ dialects, 126× faster on benchmark SQL, 235× on the kind your ORM generates when nobody's looking. Performance gap scales with query complexity, see [Benchmarks](#benchmarks).
 
-Also supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls back to passthrough, libsqlglot parses them into the AST.
+Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls back to passthrough, libsqlglot parses them into the AST.
 
 Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it. The algorithm was already O(n), the runtime was O(python).
 
@@ -124,7 +124,7 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
 | **Optimizer** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
-| **Codebase** | 7,363 lines C++ | 50,000+ lines Python |
+| **Codebase** | 8,567 lines C++ | 50,000+ lines Python |
 | **Binary** | 15KB lib, optional 258KB Python extension | N/A |
 
 Everything else (SQL coverage, 31+ dialects, no runtime deps) is the same.
@@ -159,7 +159,7 @@ ctest --test-dir build
 
 **Compiled sizes** (stripped, `-O3`): C++ library 15KB, Python extension 258KB.
 
-**Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes  assertions across  test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
+**Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes 26,860 assertions across 342 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
 
 ### Advanced optimizations
 
@@ -182,7 +182,7 @@ cmake --build build
 
 ## Architecture
 
-7,363 lines of C++ headers, 16 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (975, 89 expression types). Entry point is `transpiler.h` (86 lines).
+8,567 lines of C++ headers, 16 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (2589 lines), `generator.h` (1639), `expression.h` (1064, 97 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 
@@ -210,7 +210,7 @@ Arena allocation: all AST nodes allocated in contiguous chunks, freed together i
 
 ## Testing
 
- test cases,  assertions, all passing.
+342 test cases, 26,860 assertions, all passing.
 
 ```bash
 cd build
@@ -231,7 +231,7 @@ ctest --output-on-failure
 
 ## Security
 
- assertions covering SQL injection, buffer overflow, stack overflow (recursion depth at 256, adjustable via `Parser::kMaxRecursionDepth` in `parser.h`), memory corruption (arena prevents use-after-free and double-free), integer overflow, and encoding attacks (UTF-8 identifiers rejected, UTF-8 string literals accepted). All pass.
+26,860 assertions covering SQL injection, buffer overflow, stack overflow (recursion depth at 256, adjustable via `Parser::kMaxRecursionDepth` in `parser.h`), memory corruption (arena prevents use-after-free and double-free), integer overflow, and encoding attacks (UTF-8 identifiers rejected, UTF-8 string literals accepted). All pass.
 
 ## Fuzzing
 

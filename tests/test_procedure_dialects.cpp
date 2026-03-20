@@ -167,8 +167,8 @@ TEST_CASE("What IS supported - Generic procedural constructs", "[procedures][sup
     }
 }
 
-TEST_CASE("Cross-dialect transpilation - NOT dialect-aware", "[procedures][transpilation]") {
-    // Test if the generator produces dialect-specific syntax
+TEST_CASE("Cross-dialect transpilation - Dialect-aware FOR loops", "[procedures][transpilation]") {
+    // Test that the generator produces dialect-specific syntax for FOR loops
     std::string generic_for_loop = "FOR i IN 1..10 LOOP RETURN i END LOOP";
 
     Arena arena;
@@ -187,11 +187,15 @@ TEST_CASE("Cross-dialect transpilation - NOT dialect-aware", "[procedures][trans
     INFO("SQL Server output: " << sqlserver_output);
     INFO("MySQL output: " << mysql_output);
 
-    // All outputs should be IDENTICAL (not dialect-aware)
+    // Dialects that support FOR loops should preserve syntax
     REQUIRE(ansi_output == generic_for_loop);
     REQUIRE(postgres_output == generic_for_loop);
-    REQUIRE(sqlserver_output == generic_for_loop);
     REQUIRE(mysql_output == generic_for_loop);
 
-    INFO("RESULT: Generator outputs GENERIC syntax for all dialects - NOT dialect-aware");
+    // T-SQL doesn't support FOR loops, should transpile to WHILE
+    REQUIRE(sqlserver_output != generic_for_loop);
+    REQUIRE(sqlserver_output.find("DECLARE") != std::string::npos);
+    REQUIRE(sqlserver_output.find("WHILE") != std::string::npos);
+
+    INFO("RESULT: Generator is dialect-aware - transpiles FOR to WHILE for T-SQL");
 }

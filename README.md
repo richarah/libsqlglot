@@ -462,53 +462,75 @@ See `benchmarks/bench_complete_comparison.py` to reproduce.
 
 31+ dialects with full parse and generation support. Use `Dialect::Name` in C++ or `sqlglot.Dialect.Name` in Python.
 
-### Production RDBMS
-| Database       | Dialect       |
-|----------------|---------------|
-| PostgreSQL     | PostgreSQL    |
-| MySQL          | MySQL         |
-| MariaDB        | MariaDB       |
-| SQLite         | SQLite        |
-| Oracle         | Oracle        |
-| SQL Server     | SQLServer     |
+<table>
+<tr>
+<td valign="top">
 
-### Data warehousing
-| Database       | Dialect       |
-|----------------|---------------|
-| BigQuery       | BigQuery      |
-| Snowflake      | Snowflake     |
-| Redshift       | Redshift      |
-| Athena         | Athena        |
-| Databricks     | Databricks    |
+**Production RDBMS**
+| Database | Dialect |
+|----------|---------|
+| PostgreSQL | PostgreSQL |
+| MySQL | MySQL |
+| MariaDB | MariaDB |
+| SQLite | SQLite |
+| Oracle | Oracle |
+| SQL Server | SQLServer |
 
-### Analytics
-| Database       | Dialect       |
-|----------------|---------------|
-| DuckDB         | DuckDB        |
-| ClickHouse     | ClickHouse    |
-| Presto         | Presto        |
-| Trino          | Trino         |
-| Hive           | Hive          |
-| Spark          | Spark         |
-| Impala         | Impala        |
-| Drill          | Drill         |
+</td>
+<td valign="top">
 
-### Specialised
-| Database       | Dialect       |
-|----------------|---------------|
-| CockroachDB    | CockroachDB   |
-| TimescaleDB    | TimescaleDB   |
-| Greenplum      | Greenplum     |
-| Vertica        | Vertica       |
-| Teradata       | Teradata      |
-| Netezza        | Netezza       |
-| Phoenix        | Phoenix       |
-| Calcite        | Calcite       |
-| Dremio         | Dremio        |
-| Pinot          | Pinot         |
-| StarRocks      | StarRocks     |
-| Doris          | Doris         |
-| ANSI SQL       | ANSI          |
+**Data warehousing**
+| Database | Dialect |
+|----------|---------|
+| BigQuery | BigQuery |
+| Snowflake | Snowflake |
+| Redshift | Redshift |
+| Athena | Athena |
+| Databricks | Databricks |
+
+</td>
+</tr>
+</table>
+
+<table>
+<tr>
+<td valign="top">
+
+**Analytics**
+| Database | Dialect |
+|----------|---------|
+| DuckDB | DuckDB |
+| ClickHouse | ClickHouse |
+| Presto | Presto |
+| Trino | Trino |
+| Hive | Hive |
+| Spark | Spark |
+| Impala | Impala |
+| Drill | Drill |
+
+</td>
+<td valign="top">
+
+**Specialised**
+| Database | Dialect |
+|----------|---------|
+| CockroachDB | CockroachDB |
+| TimescaleDB | TimescaleDB |
+| Greenplum | Greenplum |
+| Vertica | Vertica |
+| Teradata | Teradata |
+| Netezza | Netezza |
+| Phoenix | Phoenix |
+| Calcite | Calcite |
+| Dremio | Dremio |
+| Pinot | Pinot |
+| StarRocks | StarRocks |
+| Doris | Doris |
+| ANSI SQL | ANSI |
+
+</td>
+</tr>
+</table>
 
 Each dialect includes proper identifier quoting, keyword handling, function name translation, and syntax transformations (e.g. LIMIT vs TOP vs FETCH FIRST).
 

@@ -64,6 +64,8 @@ std::string sql = Transpiler::generate(stmt, Dialect::PostgreSQL);
 
 ## Python bindings
 
+Available on pypi: `pip install libsqlglot`
+
 ```python
 import libsqlglot as sqlglot
 

@@ -14,12 +14,14 @@ public:
             return TokenType::IDENTIFIER;
         }
 
-        // Convert to uppercase inline
+        // Convert to uppercase inline (branchless optimization)
         char upper[17];
         size_t len = text.size();
         for (size_t i = 0; i < len; ++i) {
             char c = text[i];
-            upper[i] = (c >= 'a' && c <= 'z') ? (c - 32) : c;
+            // Branchless: subtract 32 if lowercase (avoids branch misprediction)
+            // (c >= 'a') & (c <= 'z') evaluates to 0 or 1, shift left 5 bits = 0 or 32
+            upper[i] = c - (((c >= 'a') & (c <= 'z')) << 5);
         }
         upper[len] = '\0';
 

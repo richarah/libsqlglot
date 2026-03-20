@@ -1289,19 +1289,18 @@ public:
     DeclareCursorStmt* parse_declare_cursor(const std::string& cursor_name) {
         auto stmt = arena_.create<DeclareCursorStmt>();
         stmt->cursor_name = cursor_name;
-        
-        // Optional SCROLL
-        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "SCROLL") {
+
+        // Optional SCROLL (it's a keyword token now)
+        if (match(TokenType::SCROLL)) {
             stmt->scroll = true;
-            advance();
         }
-        
+
         expect(TokenType::CURSOR);
         expect(TokenType::FOR);
-        
+
         // Query
         stmt->query = static_cast<SelectStmt*>(parse_select());
-        
+
         return stmt;
     }
 
@@ -1333,47 +1332,39 @@ public:
     FetchCursorStmt* parse_fetch_cursor() {
         auto stmt = arena_.create<FetchCursorStmt>();
         expect(TokenType::FETCH);
-        
+
         // Direction (NEXT, PRIOR, FIRST, LAST, etc.) - defaults to NEXT
+        // These are now keywords, not identifiers
         if (match(TokenType::NEXT)) {
             stmt->direction = FetchCursorStmt::Direction::NEXT;
-        } else if (current().type == TokenType::IDENTIFIER) {
-            std::string dir(current().text);
-            if (dir == "PRIOR") {
-                stmt->direction = FetchCursorStmt::Direction::PRIOR;
-                advance();
-            } else if (dir == "FIRST") {
-                stmt->direction = FetchCursorStmt::Direction::FIRST;
-                advance();
-            } else if (dir == "LAST") {
-                stmt->direction = FetchCursorStmt::Direction::LAST;
-                advance();
-            }
+        } else if (match(TokenType::PRIOR)) {
+            stmt->direction = FetchCursorStmt::Direction::PRIOR;
+        } else if (match(TokenType::FIRST)) {
+            stmt->direction = FetchCursorStmt::Direction::FIRST;
+        } else if (match(TokenType::LAST)) {
+            stmt->direction = FetchCursorStmt::Direction::LAST;
         }
-        
+
         // Optional FROM keyword
-        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FROM") {
-            advance();
-        }
-        
-        // Cursor name
-        if (current().type != TokenType::IDENTIFIER) {
+        match(TokenType::FROM);  // FROM is now a keyword token
+
+        // Cursor name - can be identifier or keyword (allow keywords as cursor names)
+        if (!current().text) {
             error_expected_after("cursor name", "FETCH");
         }
         stmt->cursor_name = std::string(current().text);
         advance();
-        
+
         // INTO variables
-        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "INTO") {
-            advance();
+        if (match(TokenType::INTO)) {  // INTO is a keyword token
             do {
-                if (current().type == TokenType::IDENTIFIER) {
+                if (current().text) {  // Allow keywords as variable names
                     stmt->into_variables.push_back(std::string(current().text));
                     advance();
                 }
             } while (match(TokenType::COMMA));
         }
-        
+
         return stmt;
     }
 

@@ -118,11 +118,19 @@ enum class ExprType : uint16_t {
     DROP_FUNCTION,      // DROP FUNCTION
     CALL_PROCEDURE,     // CALL procedure_name
     DECLARE_VAR,        // DECLARE variable
+    DECLARE_CURSOR,     // DECLARE CURSOR
     IF_STMT,            // IF condition THEN ... END IF
     WHILE_LOOP,         // WHILE condition DO ... END WHILE
     FOR_LOOP,           // FOR var IN ... LOOP ... END LOOP
     RETURN_STMT,        // RETURN expression
     BEGIN_END_BLOCK,    // BEGIN ... END block (T-SQL, MySQL, PL/SQL)
+    EXCEPTION_BLOCK,    // EXCEPTION block (PL/pgSQL, PL/SQL)
+    ASSIGNMENT_STMT,    // Variable assignment (SET var = val, var := val)
+    DELIMITER_STMT,     // DELIMITER command (MySQL)
+    RAISE_STMT,         // RAISE/SIGNAL statement (error handling)
+    OPEN_CURSOR,        // OPEN cursor
+    FETCH_CURSOR,       // FETCH cursor
+    CLOSE_CURSOR,       // CLOSE cursor
 
     // Triggers
     CREATE_TRIGGER,     // CREATE TRIGGER
@@ -884,6 +892,87 @@ struct BeginEndBlock : Expression {
 
     BeginEndBlock()
         : Expression(ExprType::BEGIN_END_BLOCK) {}
+};
+
+/// EXCEPTION block (PL/pgSQL, PL/SQL)
+struct ExceptionBlock : Expression {
+    struct ExceptionHandler {
+        std::string exception_name;               // Exception name (e.g., "no_data_found")
+        std::vector<Expression*> statements;      // Handler statements
+    };
+
+    std::vector<Expression*> try_statements;      // Statements in try block
+    std::vector<ExceptionHandler> handlers;       // Exception handlers
+
+    ExceptionBlock()
+        : Expression(ExprType::EXCEPTION_BLOCK) {}
+};
+
+/// Assignment statement (SET var = val, var := val)
+struct AssignmentStmt : Expression {
+    std::string variable_name;
+    Expression* value;
+    bool use_colon_equals = false;                // true for :=, false for SET ... =
+
+    AssignmentStmt()
+        : Expression(ExprType::ASSIGNMENT_STMT), value(nullptr) {}
+};
+
+/// DELIMITER statement (MySQL)
+struct DelimiterStmt : Expression {
+    std::string delimiter;                        // New delimiter (e.g., "$$", "//")
+
+    DelimiterStmt()
+        : Expression(ExprType::DELIMITER_STMT) {}
+};
+
+/// RAISE/SIGNAL statement (error handling)
+struct RaiseStmt : Expression {
+    enum class Level { EXCEPTION, NOTICE, WARNING, INFO, LOG, DEBUG } level = Level::EXCEPTION;
+    std::string error_code;                       // SQL state code (e.g., "23505")
+    std::string message;                          // Error message
+    std::vector<Expression*> arguments;           // Message arguments
+
+    RaiseStmt()
+        : Expression(ExprType::RAISE_STMT) {}
+};
+
+/// DECLARE CURSOR statement
+struct DeclareCursorStmt : Expression {
+    std::string cursor_name;
+    SelectStmt* query;                            // Cursor query
+    bool scroll = false;                          // SCROLL cursor
+
+    DeclareCursorStmt()
+        : Expression(ExprType::DECLARE_CURSOR), query(nullptr) {}
+};
+
+/// OPEN cursor statement
+struct OpenCursorStmt : Expression {
+    std::string cursor_name;
+    std::vector<Expression*> arguments;           // For parameterized cursors
+
+    OpenCursorStmt()
+        : Expression(ExprType::OPEN_CURSOR) {}
+};
+
+/// FETCH cursor statement
+struct FetchCursorStmt : Expression {
+    enum class Direction { NEXT, PRIOR, FIRST, LAST, ABSOLUTE, RELATIVE } direction = Direction::NEXT;
+    Expression* count = nullptr;                  // For ABSOLUTE/RELATIVE
+    std::string cursor_name;
+    std::vector<std::string> into_variables;      // INTO variable list
+
+    FetchCursorStmt()
+        : Expression(ExprType::FETCH_CURSOR) {}
+};
+
+/// CLOSE cursor statement
+struct CloseCursorStmt : Expression {
+    std::string cursor_name;
+
+    CloseCursorStmt()
+        : Expression(ExprType::CLOSE_CURSOR) {}
 };
 
 // ============================================================================

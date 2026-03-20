@@ -22,13 +22,13 @@ public:
         // Create arena for AST
         Arena arena;
 
-        // Parse SQL
+        // Parse SQL (supports all statement types)
         Parser parser(arena, sql);
-        auto expr = parser.parse_select();
-        auto stmt = static_cast<SelectStmt*>(expr);  // Assume it's a SELECT for now
+        auto expr = parser.parse();
 
-        // Apply optimizations
-        if (optimize && stmt) {
+        // Apply optimizations only to SELECT statements
+        if (optimize && expr && expr->type == ExprType::SELECT_STMT) {
+            auto stmt = static_cast<SelectStmt*>(expr);
             Optimizer::qualify_columns(stmt);
             if (stmt->where) {
                 stmt->where = Optimizer::normalize(stmt->where);
@@ -44,7 +44,7 @@ public:
     /// Parse SQL and return AST
     static Expression* parse(Arena& arena, const std::string& sql) {
         Parser parser(arena, sql);
-        return parser.parse_select();
+        return parser.parse();
     }
 
     /// Generate SQL from AST

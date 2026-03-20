@@ -269,6 +269,36 @@ private:
             case ExprType::FOR_LOOP:
                 visit_for_loop(static_cast<const ForLoop*>(expr));
                 break;
+            case ExprType::BEGIN_END_BLOCK:
+                visit_begin_end_block(static_cast<const BeginEndBlock*>(expr));
+                break;
+            case ExprType::CREATE_PROCEDURE:
+                visit_create_procedure(static_cast<const CreateProcedureStmt*>(expr));
+                break;
+            case ExprType::DELIMITER_STMT:
+                visit_delimiter(static_cast<const DelimiterStmt*>(expr));
+                break;
+            case ExprType::ASSIGNMENT_STMT:
+                visit_assignment(static_cast<const AssignmentStmt*>(expr));
+                break;
+            case ExprType::EXCEPTION_BLOCK:
+                visit_exception_block(static_cast<const ExceptionBlock*>(expr));
+                break;
+            case ExprType::DECLARE_CURSOR:
+                visit_declare_cursor(static_cast<const DeclareCursorStmt*>(expr));
+                break;
+            case ExprType::OPEN_CURSOR:
+                visit_open_cursor(static_cast<const OpenCursorStmt*>(expr));
+                break;
+            case ExprType::FETCH_CURSOR:
+                visit_fetch_cursor(static_cast<const FetchCursorStmt*>(expr));
+                break;
+            case ExprType::CLOSE_CURSOR:
+                visit_close_cursor(static_cast<const CloseCursorStmt*>(expr));
+                break;
+            case ExprType::RAISE_STMT:
+                visit_raise(static_cast<const RaiseStmt*>(expr));
+                break;
             default:
                 // Unsupported node types are silently ignored to avoid breaking existing functionality
                 break;
@@ -1246,6 +1276,13 @@ private:
     }
 
     void visit_for_loop(const ForLoop* stmt) {
+        // Check if target dialect supports FOR loops
+        if (!features_.supports_for_loops) {
+            // Transpile FOR loop to WHILE loop for T-SQL
+            visit_for_as_while(stmt);
+            return;
+        }
+
         sql_ << "FOR " << stmt->variable << " IN ";
         visit(stmt->start_value);
         sql_ << "..";
@@ -1260,6 +1297,318 @@ private:
 
         sql_ << " END LOOP";
     }
+
+    /// Transpile FOR loop to WHILE loop (for T-SQL which doesn't support FOR)
+    void visit_for_as_while(const ForLoop* stmt) {
+        // DECLARE @variable INT = start_value
+        sql_ << "DECLARE " << features_.variable_prefix << stmt->variable << " INT = ";
+        visit(stmt->start_value);
+        sql_ << "; ";
+
+        // WHILE @variable <= end_value
+        sql_ << "WHILE " << features_.variable_prefix << stmt->variable << " <= ";
+        visit(stmt->end_value);
+        sql_ << " BEGIN ";
+
+        // Loop body
+        for (auto* body_stmt : stmt->body) {
+            visit(body_stmt);
+            sql_ << "; ";
+        }
+
+        // SET @variable = @variable + 1
+        sql_ << "SET " << features_.variable_prefix << stmt->variable << " = "
+             << features_.variable_prefix << stmt->variable << " + 1; ";
+
+        sql_ << "END";
+    }
+
+    /// Visit BEGIN...END procedural block (dialect-aware)
+    void visit_begin_end_block(const BeginEndBlock* block) {
+        // Only generate BEGIN...END if dialect supports it
+        if (!features_.supports_begin_end_blocks) {
+            // For dialects without BEGIN...END, just output statements sequentially
+            for (size_t i = 0; i < block->statements.size(); ++i) {
+                if (i > 0) sql_ << "; ";
+                visit(block->statements[i]);
+            }
+            return;
+        }
+
+        sql_ << "BEGIN";
+
+        if (options_.pretty) {
+            indent();
+        }
+
+        // Generate statements inside the block
+        for (auto* stmt : block->statements) {
+            if (options_.pretty) {
+                newline();
+            } else {
+                sql_ << " ";
+            }
+            visit(stmt);
+            sql_ << ";";
+        }
+
+        if (options_.pretty) {
+            dedent();
+            newline();
+        } else {
+            sql_ << " ";
+        }
+
+        sql_ << "END";
+    }
+    /// Visit CREATE PROCEDURE or CREATE FUNCTION statement
+    void visit_create_procedure(const CreateProcedureStmt* stmt) {
+        sql_ << "CREATE ";
+        if (stmt->or_replace) {
+            sql_ << "OR REPLACE ";
+        }
+        
+        if (stmt->is_function) {
+            sql_ << "FUNCTION ";
+        } else {
+            sql_ << "PROCEDURE ";
+        }
+        
+        sql_ << stmt->name;
+        
+        // Parameters
+        sql_ << "(";
+        for (size_t i = 0; i < stmt->parameters.size(); ++i) {
+            if (i > 0) sql_ << ", ";
+            
+            const auto& param = stmt->parameters[i];
+            
+            // Parameter mode (IN, OUT, INOUT)
+            switch (param.mode) {
+                case ProcedureParam::Mode::IN: 
+                    if (dialect_ == Dialect::Oracle || dialect_ == Dialect::PostgreSQL) {
+                        sql_ << "IN ";
+                    }
+                    break;
+                case ProcedureParam::Mode::OUT: sql_ << "OUT "; break;
+                case ProcedureParam::Mode::INOUT: sql_ << "INOUT "; break;
+            }
+            
+            sql_ << param.name << " " << param.type;
+            
+            if (param.default_value) {
+                sql_ << " DEFAULT ";
+                visit(param.default_value);
+            }
+        }
+        sql_ << ")";
+        
+        // RETURNS clause (for functions)
+        if (stmt->is_function && !stmt->return_type.empty()) {
+            sql_ << " RETURNS " << stmt->return_type;
+        }
+        
+        // LANGUAGE clause (PostgreSQL style)
+        if (!stmt->language.empty()) {
+            sql_ << " LANGUAGE " << stmt->language;
+        }
+        
+        // AS clause
+        if (!stmt->body.empty() || !stmt->declarations.empty()) {
+            sql_ << " AS";
+            
+            if (options_.pretty) {
+                newline();
+            } else {
+                sql_ << " ";
+            }
+            
+            sql_ << "BEGIN";
+            
+            if (options_.pretty) {
+                indent();
+            }
+            
+            // Declarations
+            for (auto* decl : stmt->declarations) {
+                if (options_.pretty) {
+                    newline();
+                } else {
+                    sql_ << " ";
+                }
+                visit(decl);
+                sql_ << ";";
+            }
+            
+            // Body statements
+            for (auto* body_stmt : stmt->body) {
+                if (options_.pretty) {
+                    newline();
+                } else {
+                    sql_ << " ";
+                }
+                visit(body_stmt);
+                sql_ << ";";
+            }
+            
+            if (options_.pretty) {
+                dedent();
+                newline();
+            } else {
+                sql_ << " ";
+            }
+            
+            sql_ << "END";
+        }
+    }
+
+    void visit_delimiter(const DelimiterStmt* stmt) {
+        sql_ << "DELIMITER " << stmt->delimiter;
+    }
+
+    void visit_assignment(const AssignmentStmt* stmt) {
+        // Dialect-aware assignment
+        if (dialect_ == Dialect::SQLServer || dialect_ == Dialect::MySQL) {
+            sql_ << "SET " << stmt->variable_name << " = ";
+        } else {
+            // PostgreSQL, Oracle use :=
+            sql_ << stmt->variable_name << " := ";
+        }
+        visit(stmt->value);
+    }
+
+    void visit_exception_block(const ExceptionBlock* block) {
+        sql_ << "BEGIN";
+        if (options_.pretty) {
+            indent();
+        }
+
+        // Try statements
+        for (auto* stmt : block->try_statements) {
+            if (options_.pretty) {
+                newline();
+            } else {
+                sql_ << " ";
+            }
+            visit(stmt);
+            sql_ << ";";
+        }
+
+        // Exception handlers
+        if (!block->handlers.empty()) {
+            if (options_.pretty) {
+                dedent();
+                newline();
+            } else {
+                sql_ << " ";
+            }
+            sql_ << "EXCEPTION";
+            if (options_.pretty) {
+                indent();
+            }
+
+            for (const auto& handler : block->handlers) {
+                if (options_.pretty) {
+                    newline();
+                } else {
+                    sql_ << " ";
+                }
+                sql_ << "WHEN " << handler.exception_name << " THEN";
+                if (options_.pretty) {
+                    indent();
+                }
+                for (auto* stmt : handler.statements) {
+                    if (options_.pretty) {
+                        newline();
+                    } else {
+                        sql_ << " ";
+                    }
+                    visit(stmt);
+                    sql_ << ";";
+                }
+                if (options_.pretty) {
+                    dedent();
+                }
+            }
+        }
+
+        if (options_.pretty) {
+            dedent();
+            newline();
+        } else {
+            sql_ << " ";
+        }
+        sql_ << "END";
+    }
+
+    void visit_declare_cursor(const DeclareCursorStmt* stmt) {
+        sql_ << "DECLARE " << stmt->cursor_name << " ";
+        if (stmt->scroll) {
+            sql_ << "SCROLL ";
+        }
+        sql_ << "CURSOR FOR ";
+        visit(stmt->query);
+    }
+
+    void visit_open_cursor(const OpenCursorStmt* stmt) {
+        sql_ << "OPEN " << stmt->cursor_name;
+        if (!stmt->arguments.empty()) {
+            sql_ << "(";
+            for (size_t i = 0; i < stmt->arguments.size(); ++i) {
+                if (i > 0) sql_ << ", ";
+                visit(stmt->arguments[i]);
+            }
+            sql_ << ")";
+        }
+    }
+
+    void visit_fetch_cursor(const FetchCursorStmt* stmt) {
+        sql_ << "FETCH ";
+        switch (stmt->direction) {
+            case FetchCursorStmt::Direction::NEXT: sql_ << "NEXT "; break;
+            case FetchCursorStmt::Direction::PRIOR: sql_ << "PRIOR "; break;
+            case FetchCursorStmt::Direction::FIRST: sql_ << "FIRST "; break;
+            case FetchCursorStmt::Direction::LAST: sql_ << "LAST "; break;
+            default: break;
+        }
+        sql_ << "FROM " << stmt->cursor_name;
+
+        if (!stmt->into_variables.empty()) {
+            sql_ << " INTO ";
+            for (size_t i = 0; i < stmt->into_variables.size(); ++i) {
+                if (i > 0) sql_ << ", ";
+                sql_ << stmt->into_variables[i];
+            }
+        }
+    }
+
+    void visit_close_cursor(const CloseCursorStmt* stmt) {
+        sql_ << "CLOSE " << stmt->cursor_name;
+    }
+
+    void visit_raise(const RaiseStmt* stmt) {
+        if (dialect_ == Dialect::MySQL) {
+            sql_ << "SIGNAL SQLSTATE '" << stmt->error_code << "'";
+            if (!stmt->message.empty()) {
+                sql_ << " SET MESSAGE_TEXT = " << stmt->message;
+            }
+        } else {
+            // PostgreSQL
+            sql_ << "RAISE ";
+            switch (stmt->level) {
+                case RaiseStmt::Level::EXCEPTION: sql_ << "EXCEPTION"; break;
+                case RaiseStmt::Level::NOTICE: sql_ << "NOTICE"; break;
+                case RaiseStmt::Level::WARNING: sql_ << "WARNING"; break;
+                case RaiseStmt::Level::INFO: sql_ << "INFO"; break;
+                case RaiseStmt::Level::LOG: sql_ << "LOG"; break;
+                case RaiseStmt::Level::DEBUG: sql_ << "DEBUG"; break;
+            }
+            if (!stmt->message.empty()) {
+                sql_ << " " << stmt->message;
+            }
+        }
+    }
+
 
     static std::string operator_string(ExprType type) {
         switch (type) {

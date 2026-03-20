@@ -36,6 +36,14 @@ add_executable(libsqlglot_tests
     test_dialect_transpilation.cpp
     test_all_dialects_comprehensive.cpp
     test_procedure_dialects.cpp
+    test_begin_end_blocks.cpp
+    test_for_while_transpile.cpp
+    test_create_procedure.cpp
+    test_delimiter.cpp
+    test_assignments.cpp
+    test_exceptions.cpp
+    test_cursors.cpp
+    test_raise.cpp
     test_main.cpp
 )
 

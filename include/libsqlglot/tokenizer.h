@@ -289,6 +289,7 @@ private:
         if (c == '<' && next == '=') { advance(); return make_token(TokenType::LTE, start_pos, pos_, start_line, start_col); }
         if (c == '>' && next == '=') { advance(); return make_token(TokenType::GTE, start_pos, pos_, start_line, start_col); }
         if (c == '!' && next == '=') { advance(); return make_token(TokenType::NEQ, start_pos, pos_, start_line, start_col); }
+        if (c == ':' && next == '=') { advance(); return make_token(TokenType::COLON_EQUALS, start_pos, pos_, start_line, start_col); }
         if (c == ':' && next == ':') { advance(); return make_token(TokenType::DOUBLE_COLON, start_pos, pos_, start_line, start_col); }
         if (c == '.' && next == '.') { advance(); return make_token(TokenType::DOUBLE_DOT, start_pos, pos_, start_line, start_col); }
         if (c == '-' && next == '>') {

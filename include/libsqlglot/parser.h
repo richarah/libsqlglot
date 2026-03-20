@@ -246,16 +246,22 @@ public:
         return stmt;
     }
 
-    /// Parse CREATE statement (dispatches to TABLE, VIEW, SCHEMA, DATABASE)
+    /// Parse CREATE statement (dispatches to TABLE, VIEW, SCHEMA, DATABASE, PROCEDURE, FUNCTION)
     Expression* parse_create_statement() {
         expect(TokenType::CREATE);
 
+        bool or_replace = false;
         if (match(TokenType::OR)) {
-            expect(TokenType::REPLACE);
+            expect(TokenType::REPLACE_KW);
+            or_replace = true;
             if (check(TokenType::VIEW)) {
                 return parse_create_view_impl(true);
+            } else if (check(TokenType::PROCEDURE) || check(TokenType::PROCEDURE_KW)) {
+                return parse_create_procedure(true, or_replace);
+            } else if (check(TokenType::FUNCTION)) {
+                return parse_create_procedure(false, or_replace);
             }
-            error("CREATE OR REPLACE is only supported for VIEW (found after OR REPLACE)");
+            error("CREATE OR REPLACE is only supported for VIEW, PROCEDURE, or FUNCTION");
         }
 
         if (check(TokenType::TABLE)) {
@@ -266,9 +272,13 @@ public:
             return parse_create_schema();
         } else if (check(TokenType::DATABASE)) {
             return parse_create_database();
+        } else if (check(TokenType::PROCEDURE) || check(TokenType::PROCEDURE_KW)) {
+            return parse_create_procedure(true, or_replace);
+        } else if (check(TokenType::FUNCTION)) {
+            return parse_create_procedure(false, or_replace);
         }
 
-        error_expected_after("TABLE, VIEW, SCHEMA, or DATABASE", "CREATE");
+        error_expected_after("TABLE, VIEW, SCHEMA, DATABASE, PROCEDURE, or FUNCTION", "CREATE");
     }
 
     /// Parse CREATE TABLE statement
@@ -311,8 +321,8 @@ public:
                 col.name = std::string(current().text);
                 advance();
 
-                // Data type
-                if (current().type == TokenType::IDENTIFIER) {
+                // Data type - can be identifier or keyword (INT, VARCHAR, etc.)
+                if (current().text) {
                     col.type = std::string(current().text);
                     advance();
 
@@ -432,6 +442,169 @@ public:
         return stmt;
     }
 
+    /// Parse CREATE PROCEDURE or CREATE FUNCTION
+    CreateProcedureStmt* parse_create_procedure(bool is_procedure, bool or_replace) {
+        auto stmt = arena_.create<CreateProcedureStmt>();
+        stmt->or_replace = or_replace;
+        stmt->is_function = !is_procedure;
+        
+        // Consume PROCEDURE or FUNCTION keyword
+        if (is_procedure) {
+            if (!match(TokenType::PROCEDURE) && !match(TokenType::PROCEDURE_KW)) {
+                error_expected_after("PROCEDURE", "CREATE");
+            }
+        } else {
+            expect(TokenType::FUNCTION);
+        }
+        
+        // Procedure/Function name - can be identifier or keyword
+        if (!current().text) {
+            error_expected_after(is_procedure ? "procedure name" : "function name",
+                               is_procedure ? "CREATE PROCEDURE" : "CREATE FUNCTION");
+        }
+        stmt->name = std::string(current().text);
+        advance();
+        
+        // Parameters: (param1 type, param2 type, ...)
+        if (match(TokenType::LPAREN)) {
+            if (!check(TokenType::RPAREN)) {
+                do {
+                    ProcedureParam param;
+
+                    // Try to parse parameter mode first (PostgreSQL/MySQL style: IN param INT)
+                    bool mode_parsed = false;
+                    if (current().type == TokenType::IN) {
+                        param.mode = ProcedureParam::Mode::IN;
+                        advance();
+                        mode_parsed = true;
+                    } else if (current().type == TokenType::OUT) {
+                        param.mode = ProcedureParam::Mode::OUT;
+                        advance();
+                        mode_parsed = true;
+                    } else if (current().type == TokenType::INOUT) {
+                        param.mode = ProcedureParam::Mode::INOUT;
+                        advance();
+                        mode_parsed = true;
+                    }
+
+                    // Parameter name
+                    if (current().type != TokenType::IDENTIFIER) {
+                        error_expected_after("parameter name", "parameter mode or (");
+                    }
+                    param.name = std::string(current().text);
+                    advance();
+
+                    // Oracle style: parameter mode can come AFTER name (param IN INT)
+                    if (!mode_parsed) {
+                        if (current().type == TokenType::IN) {
+                            param.mode = ProcedureParam::Mode::IN;
+                            advance();
+                        } else if (current().type == TokenType::OUT) {
+                            param.mode = ProcedureParam::Mode::OUT;
+                            advance();
+                        } else if (current().type == TokenType::INOUT) {
+                            param.mode = ProcedureParam::Mode::INOUT;
+                            advance();
+                        }
+                    }
+
+                    // Parameter type - can be an identifier or a keyword like INT, VARCHAR, etc.
+                    if (!current().text) {
+                        error_expected_after("parameter type", "parameter name");
+                    }
+                    param.type = std::string(current().text);
+                    advance();
+                    
+                    // Type parameters: VARCHAR(255), DECIMAL(10,2), etc.
+                    if (match(TokenType::LPAREN)) {
+                        param.type += "(";
+                        while (!check(TokenType::RPAREN) && !is_at_end()) {
+                            if (current().text) {
+                                param.type += std::string(current().text);
+                            }
+                            advance();
+                        }
+                        expect(TokenType::RPAREN);
+                        param.type += ")";
+                    }
+                    
+                    // Default value (optional)
+                    if (match(TokenType::DEFAULT) || check(TokenType::EQ)) {
+                        if (check(TokenType::EQ)) advance();
+                        param.default_value = parse_expression();
+                    }
+                    
+                    stmt->parameters.push_back(param);
+                } while (match(TokenType::COMMA));
+            }
+            expect(TokenType::RPAREN);
+        }
+        
+        // RETURNS clause (for functions)
+        if (!is_procedure) {
+            if (current().type == TokenType::RETURNS) {
+                advance();
+
+                // Return type - can be keyword or identifier
+                if (!current().text) {
+                    error_expected_after("return type", "RETURNS");
+                }
+                stmt->return_type = std::string(current().text);
+                advance();
+                
+                // Type parameters
+                if (match(TokenType::LPAREN)) {
+                    stmt->return_type += "(";
+                    while (!check(TokenType::RPAREN) && !is_at_end()) {
+                        if (current().text) {
+                            stmt->return_type += std::string(current().text);
+                        }
+                        advance();
+                    }
+                    expect(TokenType::RPAREN);
+                    stmt->return_type += ")";
+                }
+            }
+        }
+        
+        // LANGUAGE clause (PostgreSQL, Oracle)
+        if (match(TokenType::LANGUAGE)) {
+            if (current().type == TokenType::IDENTIFIER || current().type == TokenType::PLPGSQL) {
+                stmt->language = std::string(current().text);
+                advance();
+            }
+        }
+        
+        // AS clause or body
+        bool has_as = match(TokenType::AS);
+        
+        // Handle string body (PostgreSQL style: AS $$ ... $$ or AS 'code')
+        if (has_as && current().type == TokenType::STRING) {
+            // String literal body - skip for now (simplified parsing)
+            advance();
+            return stmt;
+        }
+        
+        // BEGIN...END body (may contain EXCEPTION blocks)
+        if (check(TokenType::BEGIN)) {
+            // Use parse_begin() which handles BEGIN...EXCEPTION...END blocks
+            auto* begin_expr = parse_begin();
+
+            // Extract statements from the begin block
+            if (begin_expr->type == ExprType::BEGIN_END_BLOCK) {
+                auto* block = static_cast<BeginEndBlock*>(begin_expr);
+                stmt->body = block->statements;
+            } else if (begin_expr->type == ExprType::EXCEPTION_BLOCK) {
+                // If it's an EXCEPTION block, add it as the only body statement
+                stmt->body.push_back(begin_expr);
+            } else {
+                // Other BEGIN types (e.g., BEGIN TRANSACTION)
+                stmt->body.push_back(begin_expr);
+            }
+        }
+        
+        return stmt;
+    }
     /// Parse DROP statement (dispatches to TABLE, VIEW, SCHEMA, DATABASE)
     Expression* parse_drop_statement() {
         expect(TokenType::DROP);
@@ -578,12 +751,69 @@ public:
         return stmt;
     }
 
-    /// Parse BEGIN statement
-    BeginStmt* parse_begin() {
-        auto stmt = arena_.create<BeginStmt>();
+    /// Parse BEGIN statement or BEGIN...END block
+    Expression* parse_begin() {
         expect(TokenType::BEGIN);
-        match(TokenType::TRANSACTION) || match(TokenType::WORK);  // Optional
-        return stmt;
+
+        // Distinguish between BEGIN TRANSACTION and BEGIN...END procedural block
+        // If next token is TRANSACTION or WORK, it's a transaction statement
+        if (check(TokenType::TRANSACTION) || check(TokenType::WORK)) {
+            auto stmt = arena_.create<BeginStmt>();
+            match(TokenType::TRANSACTION) || match(TokenType::WORK);  // Optional
+            return stmt;
+        }
+
+        // Otherwise, it's a BEGIN...END procedural block
+        return parse_begin_end_block();
+    }
+
+    /// Parse BEGIN...END procedural block
+    Expression* parse_begin_end_block() {
+        // BEGIN was already consumed by parse_begin()
+
+        // Check if this is a BEGIN...EXCEPTION...END block
+        // We need to look ahead to see if EXCEPTION appears before END
+        size_t saved_pos = pos_;
+        int depth = 1; // We're already inside one BEGIN
+        bool has_exception = false;
+
+        // Look ahead for EXCEPTION keyword
+        while (depth > 0 && !is_at_end()) {
+            if (current().type == TokenType::BEGIN) {
+                depth++;
+            } else if (current().type == TokenType::END) {
+                depth--;
+            } else if (depth == 1 && current().type == TokenType::EXCEPTION) {
+                has_exception = true;
+                break;
+            }
+            advance();
+        }
+
+        // Restore position
+        pos_ = saved_pos;
+
+        // If EXCEPTION found, use ExceptionBlock parser
+        if (has_exception) {
+            return parse_exception_block();
+        }
+
+        // Otherwise, regular BEGIN...END block
+        auto* block = arena_.create<BeginEndBlock>();
+
+        // Parse statements until END
+        while (!check(TokenType::END) && !is_at_end()) {
+            auto* stmt = parse();
+            if (stmt) {
+                block->statements.push_back(stmt);
+            }
+
+            // Handle optional statement terminators (;)
+            match(TokenType::SEMICOLON);
+        }
+
+        expect(TokenType::END);
+        return block;
     }
 
     /// Parse COMMIT statement
@@ -756,18 +986,25 @@ public:
     }
 
     /// Parse DECLARE statement: DECLARE variable_name type [DEFAULT value]
-    DeclareStmt* parse_declare() {
+    Expression* parse_declare() {
         expect(TokenType::DECLARE);
 
-        // Variable name
+        // Variable/cursor name
         if (current().type != TokenType::IDENTIFIER) {
-            error_expected_after("variable name", "DECLARE");
+            error_expected_after("variable or cursor name", "DECLARE");
         }
         std::string var_name(current().text);
         advance();
 
-        // Data type
-        if (current().type != TokenType::IDENTIFIER) {
+        // Check if it's a cursor declaration
+        if (current().type == TokenType::CURSOR ||
+            (current().type == TokenType::IDENTIFIER && std::string(current().text) == "SCROLL")) {
+            return parse_declare_cursor(var_name);
+        }
+
+        // Regular variable declaration
+        // Data type - can be identifier or keyword
+        if (!current().text) {
             error_expected_after("data type", "variable name in DECLARE");
         }
         std::string type_str(current().text);
@@ -918,6 +1155,258 @@ public:
             expect(TokenType::LOOP);  // END LOOP (two tokens)
         }
 
+        return stmt;
+    }
+
+    /// Parse DELIMITER statement (MySQL): DELIMITER $$
+    DelimiterStmt* parse_delimiter() {
+        auto stmt = arena_.create<DelimiterStmt>();
+        expect(TokenType::DELIMITER_KW);
+        
+        // Security: Validate delimiter is not empty and reasonable length
+        if (!current().text) {
+            error_expected_after("delimiter string ($$, //, etc.)", "DELIMITER");
+        }
+        
+        std::string delim(current().text);
+        if (delim.length() > 10) {  // Security: prevent extremely long delimiters
+            error("DELIMITER string too long (max 10 characters)");
+        }
+        
+        stmt->delimiter = delim;
+        advance();
+        
+        return stmt;
+    }
+
+    /// Parse assignment: SET var = value OR var := value
+    AssignmentStmt* parse_assignment() {
+        auto stmt = arena_.create<AssignmentStmt>();
+        
+        // Variable name must be identifier
+        if (current().type != TokenType::IDENTIFIER) {
+            error("Expected variable name for assignment");
+        }
+        stmt->variable_name = std::string(current().text);
+        advance();
+        
+        // := operator
+        expect(TokenType::COLON_EQUALS);
+        stmt->use_colon_equals = true;
+        
+        // Value expression
+        stmt->value = parse_expression();
+        
+        return stmt;
+    }
+
+    /// Parse EXCEPTION block (PL/pgSQL, PL/SQL)  
+    ExceptionBlock* parse_exception_block() {
+        auto block = arena_.create<ExceptionBlock>();
+        
+        // BEGIN already consumed by caller
+        
+        // Try statements
+        while (!check(TokenType::EXCEPTION) && !check(TokenType::END) && !is_at_end()) {
+            auto* stmt = parse();
+            if (stmt) {
+                block->try_statements.push_back(stmt);
+            }
+            match(TokenType::SEMICOLON);
+        }
+        
+        // EXCEPTION handlers
+        if (match(TokenType::EXCEPTION)) {
+            while (match(TokenType::WHEN_KW) || match(TokenType::WHEN)) {
+                ExceptionBlock::ExceptionHandler handler;
+                
+                // Exception name
+                if (current().type == TokenType::IDENTIFIER) {
+                    handler.exception_name = std::string(current().text);
+                    advance();
+                }
+                
+                expect(TokenType::THEN);
+                
+                // Handler statements
+                while (!check(TokenType::WHEN_KW) && !check(TokenType::WHEN) && 
+                       !check(TokenType::END) && !is_at_end()) {
+                    auto* stmt = parse();
+                    if (stmt) {
+                        handler.statements.push_back(stmt);
+                    }
+                    match(TokenType::SEMICOLON);
+                }
+                
+                block->handlers.push_back(handler);
+            }
+        }
+        
+        expect(TokenType::END);
+        return block;
+    }
+
+    /// Parse DECLARE CURSOR
+    DeclareCursorStmt* parse_declare_cursor(const std::string& cursor_name) {
+        auto stmt = arena_.create<DeclareCursorStmt>();
+        stmt->cursor_name = cursor_name;
+        
+        // Optional SCROLL
+        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "SCROLL") {
+            stmt->scroll = true;
+            advance();
+        }
+        
+        expect(TokenType::CURSOR);
+        expect(TokenType::FOR);
+        
+        // Query
+        stmt->query = static_cast<SelectStmt*>(parse_select());
+        
+        return stmt;
+    }
+
+    /// Parse OPEN cursor
+    OpenCursorStmt* parse_open_cursor() {
+        auto stmt = arena_.create<OpenCursorStmt>();
+        expect(TokenType::OPEN);
+        
+        if (current().type != TokenType::IDENTIFIER) {
+            error_expected_after("cursor name", "OPEN");
+        }
+        stmt->cursor_name = std::string(current().text);
+        advance();
+        
+        // Optional parameters for parameterized cursors
+        if (match(TokenType::LPAREN)) {
+            if (!check(TokenType::RPAREN)) {
+                do {
+                    stmt->arguments.push_back(parse_expression());
+                } while (match(TokenType::COMMA));
+            }
+            expect(TokenType::RPAREN);
+        }
+        
+        return stmt;
+    }
+
+    /// Parse FETCH cursor
+    FetchCursorStmt* parse_fetch_cursor() {
+        auto stmt = arena_.create<FetchCursorStmt>();
+        expect(TokenType::FETCH);
+        
+        // Direction (NEXT, PRIOR, FIRST, LAST, etc.) - defaults to NEXT
+        if (match(TokenType::NEXT)) {
+            stmt->direction = FetchCursorStmt::Direction::NEXT;
+        } else if (current().type == TokenType::IDENTIFIER) {
+            std::string dir(current().text);
+            if (dir == "PRIOR") {
+                stmt->direction = FetchCursorStmt::Direction::PRIOR;
+                advance();
+            } else if (dir == "FIRST") {
+                stmt->direction = FetchCursorStmt::Direction::FIRST;
+                advance();
+            } else if (dir == "LAST") {
+                stmt->direction = FetchCursorStmt::Direction::LAST;
+                advance();
+            }
+        }
+        
+        // Optional FROM keyword
+        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FROM") {
+            advance();
+        }
+        
+        // Cursor name
+        if (current().type != TokenType::IDENTIFIER) {
+            error_expected_after("cursor name", "FETCH");
+        }
+        stmt->cursor_name = std::string(current().text);
+        advance();
+        
+        // INTO variables
+        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "INTO") {
+            advance();
+            do {
+                if (current().type == TokenType::IDENTIFIER) {
+                    stmt->into_variables.push_back(std::string(current().text));
+                    advance();
+                }
+            } while (match(TokenType::COMMA));
+        }
+        
+        return stmt;
+    }
+
+    /// Parse CLOSE cursor
+    CloseCursorStmt* parse_close_cursor() {
+        auto stmt = arena_.create<CloseCursorStmt>();
+        expect(TokenType::CLOSE);
+        
+        if (current().type != TokenType::IDENTIFIER) {
+            error_expected_after("cursor name", "CLOSE");
+        }
+        stmt->cursor_name = std::string(current().text);
+        advance();
+        
+        return stmt;
+    }
+
+    /// Parse RAISE or SIGNAL statement
+    RaiseStmt* parse_raise() {
+        auto stmt = arena_.create<RaiseStmt>();
+        
+        // RAISE or SIGNAL
+        bool is_signal = match(TokenType::SIGNAL);
+        if (!is_signal) {
+            expect(TokenType::RAISE);
+        }
+        
+        // For SIGNAL (MySQL), expect SQLSTATE
+        if (is_signal) {
+            if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "SQLSTATE") {
+                advance();
+            }
+            // Error code
+            if (current().type == TokenType::STRING) {
+                stmt->error_code = std::string(current().text);
+                advance();
+            }
+            // Optional SET MESSAGE_TEXT =
+            if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "SET") {
+                advance();
+                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "MESSAGE_TEXT") {
+                    advance();
+                    expect(TokenType::EQ);
+                    if (current().type == TokenType::STRING) {
+                        stmt->message = std::string(current().text);
+                        advance();
+                    }
+                }
+            }
+        } else {
+            // RAISE (PostgreSQL) - level and message
+            if (current().type == TokenType::IDENTIFIER) {
+                std::string level(current().text);
+                if (level == "EXCEPTION" || level == "NOTICE" || level == "WARNING" ||
+                    level == "INFO" || level == "LOG" || level == "DEBUG") {
+                    if (level == "EXCEPTION") stmt->level = RaiseStmt::Level::EXCEPTION;
+                    else if (level == "NOTICE") stmt->level = RaiseStmt::Level::NOTICE;
+                    else if (level == "WARNING") stmt->level = RaiseStmt::Level::WARNING;
+                    else if (level == "INFO") stmt->level = RaiseStmt::Level::INFO;
+                    else if (level == "LOG") stmt->level = RaiseStmt::Level::LOG;
+                    else if (level == "DEBUG") stmt->level = RaiseStmt::Level::DEBUG;
+                    advance();
+                }
+            }
+            
+            // Message
+            if (current().type == TokenType::STRING) {
+                stmt->message = std::string(current().text);
+                advance();
+            }
+        }
+        
         return stmt;
     }
 
@@ -1126,6 +1615,19 @@ public:
             return parse_while();
         } else if (check(TokenType::FOR)) {
             return parse_for();
+        } else if (check(TokenType::DELIMITER_KW)) {
+            return parse_delimiter();
+        } else if (check(TokenType::OPEN)) {
+            return parse_open_cursor();
+        } else if (check(TokenType::FETCH)) {
+            return parse_fetch_cursor();
+        } else if (check(TokenType::CLOSE)) {
+            return parse_close_cursor();
+        } else if (check(TokenType::RAISE) || check(TokenType::SIGNAL)) {
+            return parse_raise();
+        } else if (current().type == TokenType::IDENTIFIER && peek().type == TokenType::COLON_EQUALS) {
+            // Assignment statement: var := value
+            return parse_assignment();
         }
         error("Unexpected token - expected SQL statement (SELECT, INSERT, UPDATE, DELETE, CREATE, etc.)");
     }
@@ -1855,7 +2357,9 @@ private:
         }
 
         // Function call or column
-        if (current().type == TokenType::IDENTIFIER) {
+        // Allow keywords as function names (SUM, COUNT, SQRT, MAX, MIN, etc.)
+        if (current().type == TokenType::IDENTIFIER ||
+            (current().text && peek().type == TokenType::LPAREN)) {
             std::string name(current().text);
             advance();
 

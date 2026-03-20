@@ -294,6 +294,14 @@ keywords = [
     ("ENDIF", "ENDIF"),
     ("ENDWHILE", "ENDWHILE"),
     ("ENDLOOP", "ENDLOOP"),
+    ("EXCEPTION", "EXCEPTION"),
+    ("WHEN", "WHEN_KW"),
+    ("RAISE", "RAISE"),
+    ("SIGNAL", "SIGNAL"),
+    ("CURSOR", "CURSOR"),
+    ("OPEN", "OPEN"),
+    ("CLOSE", "CLOSE"),
+    ("SCROLL", "SCROLL"),
 
     # Triggers
     ("TRIGGER", "TRIGGER"),

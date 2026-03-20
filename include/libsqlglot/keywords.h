@@ -105,13 +105,13 @@ static constexpr KeywordEntry keyword_table[128] = {
     {{"QUALIFY", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {7, 0, 0, 0, 0, 0, 0, 0}, {TokenType::QUALIFY, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // QUALIFY (hash=47)
     {{"INTEGER", "EXPLAIN", "INOUT", nullptr, nullptr, nullptr, nullptr, nullptr}, {7, 7, 5, 0, 0, 0, 0, 0}, {TokenType::INTEGER, TokenType::EXPLAIN, TokenType::INOUT, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // INTEGER (hash=48), EXPLAIN (hash=48), INOUT (hash=48)
     {{"INSERT", "IMPORT", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 6, 0, 0, 0, 0, 0, 0}, {TokenType::INSERT, TokenType::IMPORT, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // INSERT (hash=49), IMPORT (hash=49)
-    {{"MODIFY", "ENDLOOP", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 7, 0, 0, 0, 0, 0, 0}, {TokenType::MODIFY, TokenType::ENDLOOP, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // MODIFY (hash=50), ENDLOOP (hash=50)
+    {{"MODIFY", "ENDLOOP", "EXCEPTION", nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 7, 9, 0, 0, 0, 0, 0}, {TokenType::MODIFY, TokenType::ENDLOOP, TokenType::EXCEPTION, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // MODIFY (hash=50), ENDLOOP (hash=50), EXCEPTION (hash=50)
     {{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {0, 0, 0, 0, 0, 0, 0, 0}, {TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},
     {{"INTERSECT", "AS", "EXISTS", "INDEX", nullptr, nullptr, nullptr, nullptr}, {9, 2, 6, 5, 0, 0, 0, 0}, {TokenType::INTERSECT, TokenType::AS, TokenType::EXISTS, TokenType::INDEX, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // INTERSECT (hash=52), AS (hash=52), EXISTS (hash=52), INDEX (hash=52)
     {{"EXCEPT", "ABS", "EXPORT", nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 3, 6, 0, 0, 0, 0, 0}, {TokenType::EXCEPT, TokenType::ABS, TokenType::EXPORT, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // EXCEPT (hash=53), ABS (hash=53), EXPORT (hash=53)
     {{"ALTER", "EXTRACT", "READ", "VERBOSE", "AFTER", nullptr, nullptr, nullptr}, {5, 7, 4, 7, 5, 0, 0, 0}, {TokenType::ALTER, TokenType::EXTRACT, TokenType::READ, TokenType::VERBOSE, TokenType::AFTER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // ALTER (hash=54), EXTRACT (hash=54), READ (hash=54), VERBOSE (hash=54), AFTER (hash=54)
     {{"ROUND", "ROWID", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {5, 5, 0, 0, 0, 0, 0, 0}, {TokenType::ROUND, TokenType::ROWID, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // ROUND (hash=55), ROWID (hash=55)
-    {{"RANGE", "RLIKE", "EACH_STMT", "IDENTITY", nullptr, nullptr, nullptr, nullptr}, {5, 5, 9, 8, 0, 0, 0, 0}, {TokenType::RANGE, TokenType::RLIKE, TokenType::EACH_STMT, TokenType::IDENTITY, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // RANGE (hash=56), RLIKE (hash=56), EACH_STMT (hash=56), IDENTITY (hash=56)
+    {{"RANGE", "RLIKE", "RAISE", "EACH_STMT", "IDENTITY", nullptr, nullptr, nullptr}, {5, 5, 5, 9, 8, 0, 0, 0}, {TokenType::RANGE, TokenType::RLIKE, TokenType::RAISE, TokenType::EACH_STMT, TokenType::IDENTITY, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // RANGE (hash=56), RLIKE (hash=56), RAISE (hash=56), EACH_STMT (hash=56), IDENTITY (hash=56)
     {{"RENAME", "REVOKE", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 6, 0, 0, 0, 0, 0, 0}, {TokenType::RENAME, TokenType::REVOKE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // RENAME (hash=57), REVOKE (hash=57)
     {{"REPLACE", "EACH_ROW", "ZEROFILL", nullptr, nullptr, nullptr, nullptr, nullptr}, {7, 8, 8, 0, 0, 0, 0, 0}, {TokenType::REPLACE_KW, TokenType::EACH_ROW, TokenType::ZEROFILL, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // REPLACE (hash=58), EACH_ROW (hash=58), ZEROFILL (hash=58)
     {{"ANY", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {3, 0, 0, 0, 0, 0, 0, 0}, {TokenType::ANY, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // ANY (hash=59)
@@ -146,19 +146,19 @@ static constexpr KeywordEntry keyword_table[128] = {
     {{"BIGINT", "WORK", "SAMPLE", "OLD", nullptr, nullptr, nullptr, nullptr}, {6, 4, 6, 3, 0, 0, 0, 0}, {TokenType::BIGINT, TokenType::WORK, TokenType::SAMPLE, TokenType::OLD, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // BIGINT (hash=88), WORK (hash=88), SAMPLE (hash=88), OLD (hash=88)
     {{"BY", "OF", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {2, 2, 0, 0, 0, 0, 0, 0}, {TokenType::BY, TokenType::OF, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // BY (hash=89), OF (hash=89)
     {{"STRING", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 0, 0, 0, 0, 0, 0, 0}, {TokenType::STRING_TYPE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // STRING (hash=90)
-    {{"WHEN", "SUMMARIZE", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 9, 0, 0, 0, 0, 0, 0}, {TokenType::WHEN, TokenType::SUMMARIZE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // WHEN (hash=91), SUMMARIZE (hash=91)
+    {{"WHEN", "SUMMARIZE", "WHEN", nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 9, 4, 0, 0, 0, 0, 0}, {TokenType::WHEN, TokenType::SUMMARIZE, TokenType::WHEN_KW, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // WHEN (hash=91), SUMMARIZE (hash=91), WHEN (hash=91)
     {{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {0, 0, 0, 0, 0, 0, 0, 0}, {TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},
     {{"BINARY", "SUM", "SUBSTRING", nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 3, 9, 0, 0, 0, 0, 0}, {TokenType::BINARY, TokenType::SUM, TokenType::SUBSTRING, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // BINARY (hash=93), SUM (hash=93), SUBSTRING (hash=93)
     {{"SERIALIZABLE", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {12, 0, 0, 0, 0, 0, 0, 0}, {TokenType::SERIALIZABLE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SERIALIZABLE (hash=94)
-    {{"OVERWRITE", "START_WITH", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {9, 10, 0, 0, 0, 0, 0, 0}, {TokenType::OVERWRITE, TokenType::START_WITH, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // OVERWRITE (hash=95), START_WITH (hash=95)
+    {{"OVERWRITE", "START_WITH", "SIGNAL", "SCROLL", nullptr, nullptr, nullptr, nullptr}, {9, 10, 6, 6, 0, 0, 0, 0}, {TokenType::OVERWRITE, TokenType::START_WITH, TokenType::SIGNAL, TokenType::SCROLL, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // OVERWRITE (hash=95), START_WITH (hash=95), SIGNAL (hash=95), SCROLL (hash=95)
     {{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {0, 0, 0, 0, 0, 0, 0, 0}, {TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},
     {{"ON", "SKIP", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {2, 4, 0, 0, 0, 0, 0, 0}, {TokenType::ON, TokenType::SKIP, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // ON (hash=97), SKIP (hash=97)
     {{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {0, 0, 0, 0, 0, 0, 0, 0}, {TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},
-    {{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {0, 0, 0, 0, 0, 0, 0, 0}, {TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},
+    {{"OPEN", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 0, 0, 0, 0, 0, 0, 0}, {TokenType::OPEN, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // OPEN (hash=99)
     {{"SET", "ORDINAL", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {3, 7, 0, 0, 0, 0, 0, 0}, {TokenType::SET, TokenType::ORDINAL, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SET (hash=100), ORDINAL (hash=100)
     {{"OR", "SUBSTR", "SQRT", nullptr, nullptr, nullptr, nullptr, nullptr}, {2, 6, 4, 0, 0, 0, 0, 0}, {TokenType::OR, TokenType::SUBSTR, TokenType::SQRT, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // OR (hash=101), SUBSTR (hash=101), SQRT (hash=101)
     {{"CASE", "SPLIT", "SIMILAR", nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 5, 7, 0, 0, 0, 0, 0}, {TokenType::CASE, TokenType::SPLIT, TokenType::SIMILAR, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // CASE (hash=102), SPLIT (hash=102), SIMILAR (hash=102)
-    {{"SELECT", "STRUCT", "OVER", nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 6, 4, 0, 0, 0, 0, 0}, {TokenType::SELECT, TokenType::STRUCT, TokenType::OVER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SELECT (hash=103), STRUCT (hash=103), OVER (hash=103)
+    {{"SELECT", "STRUCT", "OVER", "CLOSE", nullptr, nullptr, nullptr, nullptr}, {6, 6, 4, 5, 0, 0, 0, 0}, {TokenType::SELECT, TokenType::STRUCT, TokenType::OVER, TokenType::CLOSE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SELECT (hash=103), STRUCT (hash=103), OVER (hash=103), CLOSE (hash=103)
     {{"CREATE", "ORDER", "OUTER", "CHANGE", "SHOW", "OUT", "STRAIGHT_JOIN", "SYS_CONNECT_BY_PATH"}, {6, 5, 5, 6, 4, 3, 13, 19}, {TokenType::CREATE, TokenType::ORDER, TokenType::OUTER, TokenType::CHANGE, TokenType::SHOW, TokenType::OUT, TokenType::STRAIGHT_JOIN, TokenType::SYS_CONNECT_BY_PATH}},  // CREATE (hash=104), ORDER (hash=104), OUTER (hash=104), CHANGE (hash=104), SHOW (hash=104), OUT (hash=104), STRAIGHT_JOIN (hash=104), SYS_CONNECT_BY_PATH (hash=104)
     {{"SMALLINT", "COLLATE", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {8, 7, 0, 0, 0, 0, 0, 0}, {TokenType::SMALLINT, TokenType::COLLATE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SMALLINT (hash=105), COLLATE (hash=105)
     {{"COALESCE", "SAFE_CAST", "SAVEPOINT", "COMMITTED", "GO", nullptr, nullptr, nullptr}, {8, 9, 9, 9, 2, 0, 0, 0}, {TokenType::COALESCE, TokenType::SAFE_CAST, TokenType::SAVEPOINT, TokenType::COMMITTED, TokenType::GO, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // COALESCE (hash=106), SAFE_CAST (hash=106), SAVEPOINT (hash=106), COMMITTED (hash=106), GO (hash=106)
@@ -172,7 +172,7 @@ static constexpr KeywordEntry keyword_table[128] = {
     {{"GRANT", "ORDER_BY", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {5, 8, 0, 0, 0, 0, 0, 0}, {TokenType::GRANT, TokenType::ORDER_BY, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // GRANT (hash=114), ORDER_BY (hash=114)
     {{"CHAR", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 0, 0, 0, 0, 0, 0, 0}, {TokenType::CHAR, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // CHAR (hash=115)
     {{"SCOPE_IDENTITY", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {14, 0, 0, 0, 0, 0, 0, 0}, {TokenType::SCOPE_IDENTITY, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SCOPE_IDENTITY (hash=116)
-    {{"CROSS", "TRUE", "TIME", "CAST", nullptr, nullptr, nullptr, nullptr}, {5, 4, 4, 4, 0, 0, 0, 0}, {TokenType::CROSS, TokenType::TRUE, TokenType::TIME, TokenType::CAST, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // CROSS (hash=117), TRUE (hash=117), TIME (hash=117), CAST (hash=117)
+    {{"CROSS", "TRUE", "TIME", "CAST", "CURSOR", nullptr, nullptr, nullptr}, {5, 4, 4, 4, 6, 0, 0, 0}, {TokenType::CROSS, TokenType::TRUE, TokenType::TIME, TokenType::CAST, TokenType::CURSOR, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // CROSS (hash=117), TRUE (hash=117), TIME (hash=117), CAST (hash=117), CURSOR (hash=117)
     {{"TABLE", "COUNT", "CLUSTER", nullptr, nullptr, nullptr, nullptr, nullptr}, {5, 5, 7, 0, 0, 0, 0, 0}, {TokenType::TABLE, TokenType::COUNT, TokenType::CLUSTER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // TABLE (hash=118), COUNT (hash=118), CLUSTER (hash=118)
     {{"CONCAT", "COMMIT", "PRAGMA", "COLUMNS", nullptr, nullptr, nullptr, nullptr}, {6, 6, 6, 7, 0, 0, 0, 0}, {TokenType::CONCAT_KW, TokenType::COMMIT, TokenType::PRAGMA, TokenType::COLUMNS, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // CONCAT (hash=119), COMMIT (hash=119), PRAGMA (hash=119), COLUMNS (hash=119)
     {{"CONVERT", "CURRENT", "CONNECT", "CHARSET", nullptr, nullptr, nullptr, nullptr}, {7, 7, 7, 7, 0, 0, 0, 0}, {TokenType::CONVERT, TokenType::CURRENT, TokenType::CONNECT, TokenType::CHARSET, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // CONVERT (hash=120), CURRENT (hash=120), CONNECT (hash=120), CHARSET (hash=120)
@@ -184,6 +184,91 @@ static constexpr KeywordEntry keyword_table[128] = {
     {{"THEN", "LAG", "LOCKED", "CURRENT_TIMESTAMP", "PROCEDURE", nullptr, nullptr, nullptr}, {4, 3, 6, 17, 9, 0, 0, 0}, {TokenType::THEN, TokenType::LAG, TokenType::LOCKED, TokenType::CURRENT_TIMESTAMP, TokenType::PROCEDURE_KW, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // THEN (hash=126), LAG (hash=126), LOCKED (hash=126), CURRENT_TIMESTAMP (hash=126), PROCEDURE (hash=126)
     {{"TOP", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {3, 0, 0, 0, 0, 0, 0, 0}, {TokenType::TOP, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // TOP (hash=127)
 };
+
+// Hash collision report:
+// Slot 0 (4 entries): TEMP, PRECEDING, CONNECT_BY, CONNECT_BY_ROOT
+// Slot 2 (2 entries): LENGTH, CONCURRENTLY
+// Slot 3 (3 entries): DESC, LAST_VALUE, PLPGSQL
+// Slot 4 (3 entries): TEXT, PERFORM, HASH
+// Slot 5 (6 entries): HAVING, DATE, TIMESTAMP, TRANSACTION, LEVEL, TRIGGER
+// Slot 7 (8 entries): DELETE, TINYINT, DOUBLE, POWER, PARTITION, LATERAL, PRIOR, DELETED
+// Slot 8 (4 entries): TRY_CAST, DATE_ADD, DECLARE, LOOP
+// Slot 9 (4 entries): DATABASE, DATE_TRUNC, PIVOT, DESCRIBE
+// Slot 11 (2 entries): DATE_DIFF, LOWER
+// Slot 12 (4 entries): LEFT, LAST, LIST, DUAL
+// Slot 13 (3 entries): LIMIT, PRIVILEGES, DO
+// Slot 16 (2 entries): DROP, PRIMARY
+// Slot 17 (2 entries): TIMESTAMPTZ, DENSE_RANK
+// Slot 19 (3 entries): UUID, USE, HUGEINT
+// Slot 22 (2 entries): UPDATE, UNIQUE
+// Slot 23 (4 entries): USING, DEFAULT, DELIMITER, UNSIGNED
+// Slot 24 (2 entries): DISTINCT, UNBOUNDED
+// Slot 30 (2 entries): UNION, MATCHED
+// Slot 32 (2 entries): MAXVALUE, MINVALUE
+// Slot 34 (5 entries): END, UPPER, IGNORE, INSTEAD, EXEC
+// Slot 36 (2 entries): ELSE, MIN
+// Slot 37 (2 entries): ASC, UNNEST
+// Slot 38 (6 entries): AND, MAP, ADD, UNPIVOT, ENDIF, ENGINE
+// Slot 39 (6 entries): IN, UHUGEINT, EXCLUDE, EACH, ELSEIF, EXECUTE
+// Slot 41 (2 entries): AVG, IFNULL
+// Slot 43 (3 entries): MINUS, INTERVAL, ANALYZE
+// Slot 44 (2 entries): IS, USE_INDEX
+// Slot 46 (5 entries): INNER, ALL, INT, MAX, ISOLATION
+// Slot 48 (3 entries): INTEGER, EXPLAIN, INOUT
+// Slot 49 (2 entries): INSERT, IMPORT
+// Slot 50 (3 entries): MODIFY, ENDLOOP, EXCEPTION
+// Slot 52 (4 entries): INTERSECT, AS, EXISTS, INDEX
+// Slot 53 (3 entries): EXCEPT, ABS, EXPORT
+// Slot 54 (5 entries): ALTER, EXTRACT, READ, VERBOSE, AFTER
+// Slot 55 (2 entries): ROUND, ROWID
+// Slot 56 (5 entries): RANGE, RLIKE, RAISE, EACH_STMT, IDENTITY
+// Slot 57 (2 entries): RENAME, REVOKE
+// Slot 58 (3 entries): REPLACE, EACH_ROW, ZEROFILL
+// Slot 60 (3 entries): RECURSIVE, NUMERIC, NTILE
+// Slot 61 (6 entries): ARRAY, JSONB, RANK, APPLY, REPEATABLE, VACUUM
+// Slot 62 (4 entries): RETURNING, REAL, NULLIF, NOCYCLE
+// Slot 65 (4 entries): NVL, ROLLBACK, AUTO_INCREMENT, ROWNUM
+// Slot 66 (2 entries): NULL, RETURN
+// Slot 67 (2 entries): VALUES, VARCHAR
+// Slot 68 (4 entries): FALSE, BLOB, REGEXP, FORCE
+// Slot 69 (4 entries): NATURAL, VIEW, ROWS, VARIANT
+// Slot 71 (2 entries): RIGHT, FETCH
+// Slot 72 (4 entries): JOIN, JSON, ROW, RETURNS
+// Slot 73 (2 entries): NOT, BEFORE
+// Slot 74 (6 entries): FULL, NULLS, FOLLOWING, ROW_NUMBER, FIRST_VALUE, NEXT
+// Slot 75 (3 entries): FROM, REFERENCES, FINAL
+// Slot 76 (3 entries): VARBINARY, NOWAIT, NEW
+// Slot 79 (3 entries): FOREIGN, FOR, FLATTEN
+// Slot 81 (2 entries): FLOOR, BEGIN
+// Slot 83 (7 entries): WHERE, BETWEEN, FIRST, FLOAT, BOOLEAN, WRITE, WHILE
+// Slot 86 (2 entries): SOME, SAFE
+// Slot 88 (4 entries): BIGINT, WORK, SAMPLE, OLD
+// Slot 89 (2 entries): BY, OF
+// Slot 91 (3 entries): WHEN, SUMMARIZE, WHEN
+// Slot 93 (3 entries): BINARY, SUM, SUBSTRING
+// Slot 95 (4 entries): OVERWRITE, START_WITH, SIGNAL, SCROLL
+// Slot 97 (2 entries): ON, SKIP
+// Slot 100 (2 entries): SET, ORDINAL
+// Slot 101 (3 entries): OR, SUBSTR, SQRT
+// Slot 102 (3 entries): CASE, SPLIT, SIMILAR
+// Slot 103 (4 entries): SELECT, STRUCT, OVER, CLOSE
+// Slot 104 (9 entries): CREATE, ORDER, OUTER, CHANGE, SHOW, OUT, STRAIGHT_JOIN, SYS_CONNECT_BY_PATH, SETTINGS
+// Slot 105 (2 entries): SMALLINT, COLLATE
+// Slot 106 (5 entries): COALESCE, SAFE_CAST, SAVEPOINT, COMMITTED, GO
+// Slot 107 (5 entries): OFFSET, CATALOG, OPTIONS, OBJECT, OUTPUT
+// Slot 109 (3 entries): CHECK, CEIL, CALL
+// Slot 110 (4 entries): GROUP, ONLY, CURRENT_DATE, CURRENT_TIME
+// Slot 113 (2 entries): COLUMN, KEY
+// Slot 114 (2 entries): GRANT, ORDER_BY
+// Slot 117 (5 entries): CROSS, TRUE, TIME, CAST, CURSOR
+// Slot 118 (3 entries): TABLE, COUNT, CLUSTER
+// Slot 119 (4 entries): CONCAT, COMMIT, PRAGMA, COLUMNS
+// Slot 120 (4 entries): CONVERT, CURRENT, CONNECT, CHARSET
+// Slot 121 (2 entries): TRUNCATE, CONCAT_WS
+// Slot 123 (3 entries): CONSTRAINT, GENERATE_SERIES, TABLESPACE
+// Slot 124 (3 entries): LEAD, TABLESAMPLE, LOAD
+// Slot 125 (3 entries): LIKE, TRIM, PREWHERE
+// Slot 126 (5 entries): THEN, LAG, LOCKED, CURRENT_TIMESTAMP, PROCEDURE
 };
 
 } // namespace libsqlglot

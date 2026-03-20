@@ -162,6 +162,9 @@ enum class TokenType : uint16_t {
     OUT, INOUT,
     IF, WHILE, LOOP, EACH,
     ELSEIF, ENDIF, ENDWHILE, ENDLOOP,
+    EXCEPTION, WHEN_KW, RAISE, SIGNAL,  // Exception handling
+    CURSOR, OPEN, CLOSE, SCROLL,  // Cursor operations
+    COLON_EQUALS,  // := (assignment operator)
 
     // Triggers
     TRIGGER, BEFORE, AFTER, INSTEAD, OF,

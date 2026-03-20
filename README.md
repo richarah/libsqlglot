@@ -10,7 +10,7 @@ Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which di
 
 #### What is this for?
 
-DB proxies, linters, migration tools, query rewriters, anything else that needs to parse/transpile SQL fast. If latency matters, use this. If it doesn't, sqlglot is great.
+DB proxies, linters, migration tools, query rewriters, and a proper replacement for every regex that's pretending to parse SQL in your codebase right now. If latency matters, use this. If it doesn't, sqlglot is great.
 
 ## Contents
 
@@ -463,7 +463,6 @@ See `benchmarks/bench_complete_comparison.py` to reproduce.
 31+ dialects with full parse and generation support. Use `Dialect::Name` in C++ or `sqlglot.Dialect.Name` in Python.
 
 Each dialect includes proper identifier quoting, keyword handling, function name translation, and syntax transformations (e.g. LIMIT vs TOP vs FETCH FIRST).
-
 
 <table>
 <tr>

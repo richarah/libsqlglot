@@ -2,7 +2,7 @@
 
 #### What is this?
 
-sqlglot, in C++. 31+ dialects, 126× faster on benchmark SQL, 235× on the kind your ORM generates when nobody's looking. Speedup scales with query complexity, see [Benchmarks](#benchmarks).
+sqlglot, in C++. 31+ dialects, 126× faster on benchmark SQL, 235× on the kind your ORM generates when nobody's looking. Performance gap scales with query complexity, see [Benchmarks](#benchmarks).
 
 Also supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls back to passthrough, libsqlglot parses them into the AST.
 

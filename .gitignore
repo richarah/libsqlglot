@@ -38,3 +38,6 @@ dist/
 *.a
 *.dylib
 *.dll
+
+# Misc
+README.md.bak

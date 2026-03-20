@@ -23,33 +23,41 @@ error() { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
 info "Collecting codebase metrics..."
 
-# Count header files
-num_files=$(find "$INCLUDE_DIR" -name "*.h" | wc -l)
-total_lines=$(find "$INCLUDE_DIR" -name "*.h" -exec cat {} \; | wc -l)
-# Format with commas
-total_lines_fmt=$(echo "$total_lines" | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta')
-num_cpp=$(find "$INCLUDE_DIR" -name "*.cpp" | wc -l)
+# Single find for all headers
+mapfile -t header_files < <(find "$INCLUDE_DIR" -name "*.h")
+num_files=${#header_files[@]}
+num_cpp=$(find "$INCLUDE_DIR" -name "*.cpp" -print -quit | wc -l)
 
-# Specific file line counts
-parser_lines=$(wc -l < "$INCLUDE_DIR/parser.h")
-generator_lines=$(wc -l < "$INCLUDE_DIR/generator.h")
-expression_lines=$(wc -l < "$INCLUDE_DIR/expression.h")
-transpiler_lines=$(wc -l < "$INCLUDE_DIR/transpiler.h")
+# Count total lines in one wc call
+total_lines=$(cat "${header_files[@]}" | wc -l)
+total_lines_fmt=$(echo "$total_lines" | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta')
+
+# Specific file line counts (single wc call with all files)
+wc_output=$(wc -l "$INCLUDE_DIR/parser.h" "$INCLUDE_DIR/generator.h" \
+                 "$INCLUDE_DIR/expression.h" "$INCLUDE_DIR/transpiler.h")
+parser_lines=$(echo "$wc_output" | awk 'NR==1 {print $1}')
+generator_lines=$(echo "$wc_output" | awk 'NR==2 {print $1}')
+expression_lines=$(echo "$wc_output" | awk 'NR==3 {print $1}')
+transpiler_lines=$(echo "$wc_output" | awk 'NR==4 {print $1}')
 
 # Count expression types (enum class ExprType)
-expr_types=$(grep -A 200 "enum class ExprType" "$INCLUDE_DIR/expression.h" | grep -c "^    [A-Z]" || true)
+expr_types=$(awk '/enum class ExprType/,/^};/ {if (/^    [A-Z]/) count++} END {print count}' "$INCLUDE_DIR/expression.h")
 
-# Mad queries metrics
+# Mad queries metrics (cat once, count lines and bytes)
 if [[ -d "$MAD_QUERIES_DIR" ]]; then
-    mad_lines=$(find "$MAD_QUERIES_DIR" -name "*.sql" -exec cat {} \; | wc -l)
-    mad_lines_fmt=$(echo "$mad_lines" | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta')
-    mad_bytes=$(find "$MAD_QUERIES_DIR" -name "*.sql" -exec cat {} \; | wc -c)
-    mad_kb=$((mad_bytes / 1024))
+    mapfile -t mad_files < <(find "$MAD_QUERIES_DIR" -name "*.sql")
+    if [[ ${#mad_files[@]} -gt 0 ]]; then
+        mad_content=$(cat "${mad_files[@]}")
+        mad_lines=$(echo "$mad_content" | wc -l)
+        mad_bytes=$(echo "$mad_content" | wc -c)
+        mad_lines_fmt=$(echo "$mad_lines" | sed ':a;s/\B[0-9]\{3\}\>/,&/;ta')
+        mad_kb=$((mad_bytes / 1024))
+    else
+        mad_lines=0; mad_lines_fmt="0"; mad_kb=0
+    fi
 else
     warn "Mad queries directory not found, skipping"
-    mad_lines=0
-    mad_lines_fmt="0"
-    mad_kb=0
+    mad_lines=0; mad_lines_fmt="0"; mad_kb=0
 fi
 
 # Test metrics (requires build)

@@ -123,7 +123,7 @@ ctest --test-dir build
 
 ## Architecture
 
-7,319 lines of C++ headers, 16 files, no `.cpp` files. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (966, 97 expression types). Entry point is `transpiler.h` (86 lines).
+7,319 lines of C++ headers, 16 files, no `.cpp` files. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (966, 88 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 

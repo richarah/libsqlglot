@@ -72,7 +72,7 @@ optimized = sqlglot.optimize(stmt)
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
 | **Optimizer** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
-| **Codebase** | 7,245 lines C++ | 50,000+ lines Python |
+| **Codebase** | 7,319 lines C++ | 50,000+ lines Python |
 | **Binary** | 15KB lib + 258KB Python extension | N/A |
 
 Everything else (SQL coverage, 31+ dialects, no runtime deps) is the same.
@@ -107,11 +107,11 @@ ctest --test-dir build
 
 **Compiled sizes** (stripped, `-O3`): C++ library 15KB, Python extension 258KB.
 
-**Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. Zero runtime dependencies. No RTTI. Passes 26,037 assertions across 240 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
+**Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. Zero runtime dependencies. No RTTI. Passes 26,182 assertions across 268 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
 
 ## Architecture
 
-7,245 lines of C++ headers, 15 files, no `.cpp` files. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1924 lines), `generator.h` (1286), `expression.h` (965, 118 expression types). Entry point is `transpiler.h` (86 lines).
+7,319 lines of C++ headers, 16 files, no `.cpp` files. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (966, 107 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 
@@ -139,7 +139,7 @@ Arena allocation: all AST nodes allocated in contiguous chunks, freed together i
 
 ## Testing
 
-240 test cases, 26,037 assertions, all passing.
+268 test cases, 26,182 assertions, all passing.
 
 ```bash
 cd build
@@ -160,11 +160,11 @@ ctest --output-on-failure
 
 ## Security
 
-26,037 assertions covering SQL injection, buffer overflow, stack overflow (recursion depth at 256, adjustable via `Parser::kMaxRecursionDepth` in `parser.h`), memory corruption (arena prevents use-after-free and double-free), integer overflow, and encoding attacks (UTF-8 identifiers rejected, UTF-8 string literals accepted). All pass.
+26,182 assertions covering SQL injection, buffer overflow, stack overflow (recursion depth at 256, adjustable via `Parser::kMaxRecursionDepth` in `parser.h`), memory corruption (arena prevents use-after-free and double-free), integer overflow, and encoding attacks (UTF-8 identifiers rejected, UTF-8 string literals accepted). All pass.
 
 ## Fuzzing
 
-There is a libFuzzer target in `fuzzing/fuzz_parser.cpp`:
+There is a `libFuzzer` target in `fuzzing/fuzz_parser.cpp`:
 
 ```bash
 cd fuzzing
@@ -345,7 +345,7 @@ Benchmarks run on x86-64 Linux with `-O3` optimisation. libsqlglot compared agai
 
 **Measurement:** `std::chrono::high_resolution_clock` with 1000 iterations per query, averaged. Nanosecond precision displayed as sub-microsecond values.
 
-Times in microseconds (μs). The 16 standard queries are the official benchmark. The 8 stress tests are supplementary and not included in the headline average.
+The 16 standard queries are sqlglot's benchmark. The 8 stress tests are ours, excluded from the average. They're here to show the scaling doesn't stop: 178.6× on benchmarks, 235× on these. What happens past 235× is left as an exercise for the reader."
 
 ### Standard benchmarks (16 queries)
 
@@ -374,7 +374,7 @@ libsqlglot achieves this through arena allocation (O(1) cleanup), perfect hash k
 
 ### Stress tests (8 queries, supplementary)
 
-Not part of the standard sqlglot benchmark. Designed to break parsers: 15-level nested CTEs, 35-level CASE expressions, 100+ WHERE conditions, 20-way joins. 1,186 lines of SQL, 52KB total.
+Designed to break parsers: 15-level nested CTEs, 35-level CASE expressions, 100+ WHERE conditions, 20-way joins. 1,186 lines of SQL, 52KB total.
 
 | Query                    | sqlglot (μs) | libsqlglot (μs) | Speedup  |
 |--------------------------|--------------|-----------------|----------|
@@ -389,11 +389,7 @@ Not part of the standard sqlglot benchmark. Designed to break parsers: 15-level 
 
 **Average: 172.8× faster** (range: 90.6× to 235.0×). A million queries: 91 seconds vs 4 hours.
 
-The stress tests are excluded from the headline number, as they are not part of the benchmark used by the original sqlglot. They're here because benchmarks end but SQL doesn't: 178.6× on the polite queries, 235× on the rude ones. We suspect production is somewhere past that.
-
 ### Validation
-
-Same query, same procedure, same output:
 
 ```python
 # Python sqlglot: 3,917 μs

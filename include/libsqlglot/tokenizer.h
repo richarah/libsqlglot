@@ -12,7 +12,7 @@
 namespace libsqlglot {
 
 /// Tokenizer - converts SQL source text into tokens
-/// Uses SIMD for fast whitespace skipping and string scanning
+/// Fast scalar implementation with branchless optimizations and perfect hash keyword lookup
 /// Thread-safe (stateless), uses LocalStringPool for interning
 class Tokenizer {
 public:
@@ -283,47 +283,54 @@ private:
         char c = advance();
         char next = peek();
 
-        // Two-character operators
-        if (c == '|' && next == '|') { advance(); return make_token(TokenType::CONCAT, start_pos, pos_, start_line, start_col); }
-        if (c == '<' && next == '>') { advance(); return make_token(TokenType::NEQ, start_pos, pos_, start_line, start_col); }
-        if (c == '<' && next == '=') { advance(); return make_token(TokenType::LTE, start_pos, pos_, start_line, start_col); }
-        if (c == '>' && next == '=') { advance(); return make_token(TokenType::GTE, start_pos, pos_, start_line, start_col); }
-        if (c == '!' && next == '=') { advance(); return make_token(TokenType::NEQ, start_pos, pos_, start_line, start_col); }
-        if (c == ':' && next == '=') { advance(); return make_token(TokenType::COLON_EQUALS, start_pos, pos_, start_line, start_col); }
-        if (c == ':' && next == ':') { advance(); return make_token(TokenType::DOUBLE_COLON, start_pos, pos_, start_line, start_col); }
-        if (c == '.' && next == '.') { advance(); return make_token(TokenType::DOUBLE_DOT, start_pos, pos_, start_line, start_col); }
+        // Two-character operators (with text for DELIMITER parsing)
+        std::string_view text;
+        if (c == '|' && next == '|') { advance(); text = source_.substr(start_pos, pos_ - start_pos); return make_token(TokenType::CONCAT, start_pos, pos_, start_line, start_col, pool_->intern(text)); }
+        if (c == '<' && next == '>') { advance(); text = source_.substr(start_pos, pos_ - start_pos); return make_token(TokenType::NEQ, start_pos, pos_, start_line, start_col, pool_->intern(text)); }
+        if (c == '<' && next == '=') { advance(); text = source_.substr(start_pos, pos_ - start_pos); return make_token(TokenType::LTE, start_pos, pos_, start_line, start_col, pool_->intern(text)); }
+        if (c == '>' && next == '=') { advance(); text = source_.substr(start_pos, pos_ - start_pos); return make_token(TokenType::GTE, start_pos, pos_, start_line, start_col, pool_->intern(text)); }
+        if (c == '!' && next == '=') { advance(); text = source_.substr(start_pos, pos_ - start_pos); return make_token(TokenType::NEQ, start_pos, pos_, start_line, start_col, pool_->intern(text)); }
+        if (c == ':' && next == '=') { advance(); text = source_.substr(start_pos, pos_ - start_pos); return make_token(TokenType::COLON_EQUALS, start_pos, pos_, start_line, start_col, pool_->intern(text)); }
+        if (c == ':' && next == ':') { advance(); text = source_.substr(start_pos, pos_ - start_pos); return make_token(TokenType::DOUBLE_COLON, start_pos, pos_, start_line, start_col, pool_->intern(text)); }
+        if (c == '.' && next == '.') { advance(); text = source_.substr(start_pos, pos_ - start_pos); return make_token(TokenType::DOUBLE_DOT, start_pos, pos_, start_line, start_col, pool_->intern(text)); }
         if (c == '-' && next == '>') {
             advance();
-            if (peek() == '>') { advance(); return make_token(TokenType::LONG_ARROW, start_pos, pos_, start_line, start_col); }
-            return make_token(TokenType::ARROW, start_pos, pos_, start_line, start_col);
+            if (peek() == '>') { advance(); text = source_.substr(start_pos, pos_ - start_pos); return make_token(TokenType::LONG_ARROW, start_pos, pos_, start_line, start_col, pool_->intern(text)); }
+            text = source_.substr(start_pos, pos_ - start_pos); return make_token(TokenType::ARROW, start_pos, pos_, start_line, start_col, pool_->intern(text));
         }
 
-        // Single-character operators
+        // Single-character operators (with text for DELIMITER parsing)
+        text = source_.substr(start_pos, pos_ - start_pos);
+        const char* interned = pool_->intern(text);
         switch (c) {
-            case '+': return make_token(TokenType::PLUS, start_pos, pos_, start_line, start_col);
-            case '-': return make_token(TokenType::MINUS, start_pos, pos_, start_line, start_col);
-            case '*': return make_token(TokenType::STAR, start_pos, pos_, start_line, start_col);
-            case '/': return make_token(TokenType::SLASH, start_pos, pos_, start_line, start_col);
-            case '%': return make_token(TokenType::PERCENT, start_pos, pos_, start_line, start_col);
-            case '^': return make_token(TokenType::CARET, start_pos, pos_, start_line, start_col);
-            case '&': return make_token(TokenType::AMPERSAND, start_pos, pos_, start_line, start_col);
-            case '|': return make_token(TokenType::PIPE, start_pos, pos_, start_line, start_col);
-            case '~': return make_token(TokenType::TILDE, start_pos, pos_, start_line, start_col);
-            case '=': return make_token(TokenType::EQ, start_pos, pos_, start_line, start_col);
-            case '<': return make_token(TokenType::LT, start_pos, pos_, start_line, start_col);
-            case '>': return make_token(TokenType::GT, start_pos, pos_, start_line, start_col);
-            case '(': return make_token(TokenType::LPAREN, start_pos, pos_, start_line, start_col);
-            case ')': return make_token(TokenType::RPAREN, start_pos, pos_, start_line, start_col);
-            case '[': return make_token(TokenType::LBRACKET, start_pos, pos_, start_line, start_col);
-            case ']': return make_token(TokenType::RBRACKET, start_pos, pos_, start_line, start_col);
-            case '{': return make_token(TokenType::LBRACE, start_pos, pos_, start_line, start_col);
-            case '}': return make_token(TokenType::RBRACE, start_pos, pos_, start_line, start_col);
-            case ',': return make_token(TokenType::COMMA, start_pos, pos_, start_line, start_col);
-            case ';': return make_token(TokenType::SEMICOLON, start_pos, pos_, start_line, start_col);
-            case '.': return make_token(TokenType::DOT, start_pos, pos_, start_line, start_col);
-            case ':': return make_token(TokenType::COLON, start_pos, pos_, start_line, start_col);
-            case '?': return make_token(TokenType::QUESTION, start_pos, pos_, start_line, start_col);
-            default: return make_token(TokenType::ERROR, start_pos, pos_, start_line, start_col);
+            case '+': return make_token(TokenType::PLUS, start_pos, pos_, start_line, start_col, interned);
+            case '-': return make_token(TokenType::MINUS, start_pos, pos_, start_line, start_col, interned);
+            case '*': return make_token(TokenType::STAR, start_pos, pos_, start_line, start_col, interned);
+            case '/': return make_token(TokenType::SLASH, start_pos, pos_, start_line, start_col, interned);
+            case '%': return make_token(TokenType::PERCENT, start_pos, pos_, start_line, start_col, interned);
+            case '^': return make_token(TokenType::CARET, start_pos, pos_, start_line, start_col, interned);
+            case '&': return make_token(TokenType::AMPERSAND, start_pos, pos_, start_line, start_col, interned);
+            case '|': return make_token(TokenType::PIPE, start_pos, pos_, start_line, start_col, interned);
+            case '~': return make_token(TokenType::TILDE, start_pos, pos_, start_line, start_col, interned);
+            case '=': return make_token(TokenType::EQ, start_pos, pos_, start_line, start_col, interned);
+            case '<': return make_token(TokenType::LT, start_pos, pos_, start_line, start_col, interned);
+            case '>': return make_token(TokenType::GT, start_pos, pos_, start_line, start_col, interned);
+            case '(': return make_token(TokenType::LPAREN, start_pos, pos_, start_line, start_col, interned);
+            case ')': return make_token(TokenType::RPAREN, start_pos, pos_, start_line, start_col, interned);
+            case '[': return make_token(TokenType::LBRACKET, start_pos, pos_, start_line, start_col, interned);
+            case ']': return make_token(TokenType::RBRACKET, start_pos, pos_, start_line, start_col, interned);
+            case '{': return make_token(TokenType::LBRACE, start_pos, pos_, start_line, start_col, interned);
+            case '}': return make_token(TokenType::RBRACE, start_pos, pos_, start_line, start_col, interned);
+            case ',': return make_token(TokenType::COMMA, start_pos, pos_, start_line, start_col, interned);
+            case ';': return make_token(TokenType::SEMICOLON, start_pos, pos_, start_line, start_col, interned);
+            case '.': return make_token(TokenType::DOT, start_pos, pos_, start_line, start_col, interned);
+            case ':': return make_token(TokenType::COLON, start_pos, pos_, start_line, start_col, interned);
+            case '?': return make_token(TokenType::QUESTION, start_pos, pos_, start_line, start_col, interned);
+            default: {
+                // Unknown character - return ERROR token with text for debugging
+                text = source_.substr(start_pos, pos_ - start_pos);
+                return make_token(TokenType::ERROR, start_pos, pos_, start_line, start_col, pool_->intern(text));
+            }
         }
     }
 

@@ -1162,20 +1162,59 @@ public:
     DelimiterStmt* parse_delimiter() {
         auto stmt = arena_.create<DelimiterStmt>();
         expect(TokenType::DELIMITER_KW);
-        
-        // Security: Validate delimiter is not empty and reasonable length
-        if (!current().text) {
+
+        // Delimiter can be any non-whitespace token(s): $$, //, |, ;, etc.
+        // The tokenizer may generate ERROR tokens for $ or other unrecognized chars
+        // Strategy: Consume consecutive non-keyword tokens to build the delimiter
+
+        if (is_at_end()) {
             error_expected_after("delimiter string ($$, //, etc.)", "DELIMITER");
         }
-        
-        std::string delim(current().text);
-        if (delim.length() > 10) {  // Security: prevent extremely long delimiters
+
+        // Build delimiter by reading consecutive punctuation/operator/error tokens
+        std::string delim;
+
+        // Read up to 3 consecutive tokens that could form a delimiter
+        // Examples: $ + $ = $$, / + / = //, | = |, ; = ;
+        // Note: $ may tokenize as ERROR, so we accept ERROR tokens here
+        for (int i = 0; i < 3 && !is_at_end() && current().text; ++i) {
+            TokenType t = current().type;
+
+            // Stop if we hit keywords, identifiers, numbers, or strings
+            // But allow ERROR tokens (for $), and operator tokens (/, ;, |, etc.)
+            if (t == TokenType::IDENTIFIER ||
+                t == TokenType::NUMBER ||
+                t == TokenType::STRING ||
+                (t >= TokenType::SELECT && t < TokenType::EOF_TOKEN)) {  // Keywords range
+                break;
+            }
+
+            // Accumulate the token text
+            delim += std::string(current().text);
+            advance();
+
+            // Check if next token would form a reasonable delimiter continuation
+            // For single-char delimiters like ; or |, stop after one token
+            if (delim == ";" || delim == "|") break;
+
+            // For two-char delimiters, check if we've got a complete one
+            if (delim.length() >= 2 &&
+                (delim == "$$" || delim == "//" || delim == "@@" || delim == "!!")) {
+                break;
+            }
+        }
+
+        if (delim.empty()) {
+            error_expected_after("delimiter string ($$, //, etc.)", "DELIMITER");
+        }
+
+        // Security: prevent extremely long delimiters
+        if (delim.length() > 10) {
             error("DELIMITER string too long (max 10 characters)");
         }
-        
+
         stmt->delimiter = delim;
-        advance();
-        
+
         return stmt;
     }
 

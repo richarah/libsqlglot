@@ -6,7 +6,7 @@ sqlglot, in C++. 126× faster on benchmark SQL, 235× on the kind your ORM gener
 
 Also supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls back to passthrough, libsqlglot parses them comprehensively.
 
-Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot) parser/transpiler, which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it. The algorithm was already O(n), the runtime was O(python).
+Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it. The algorithm was already O(n), the runtime was O(python).
 
 #### What is this for?
 

@@ -17,6 +17,7 @@ For proxies, linters, migration tools, query rewriters, and anything else that n
 - [Functionality](#functionality)
 - [C++ API](#c-api)
 - [Python bindings](#python-bindings)
+- [Differences from original sqlglot](#differences-from-original-sqlglot)
 - [Building](#building)
 - [Architecture](#architecture)
 - [Benchmarks](#benchmarks)
@@ -83,7 +84,7 @@ optimized = sqlglot.optimize(stmt)
 
 **Memory**: Thread-local arenas, zero runtime dependencies.
 
-### Where libsqlglot differs from Python sqlglot
+## Differences from original sqlglot
 
 | | libsqlglot | Python sqlglot |
 |---|---|---|

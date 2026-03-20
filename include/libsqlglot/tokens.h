@@ -158,10 +158,11 @@ enum class TokenType : uint16_t {
 
     // Stored Procedures & Functions
     FUNCTION, PROCEDURE_KW,  // PROCEDURE_KW to distinguish from PROCEDURE already defined
-    CALL, RETURN_KW, RETURNS,  // RETURN_KW for RETURN statement, RETURNS for function return type
+    CALL, RETURN_KW, RETURNS, SETOF,  // RETURN_KW for RETURN statement, RETURNS for function return type, SETOF for set-returning functions
     OUT, INOUT,
     IF, WHILE, LOOP, EACH,
     ELSEIF, ENDIF, ENDWHILE, ENDLOOP,
+    BREAK, CONTINUE, EXIT,  // Loop control statements
     EXCEPTION, WHEN_KW, RAISE, SIGNAL,  // Exception handling
     CURSOR, OPEN, CLOSE, SCROLL,  // Cursor operations
     COLON_EQUALS,  // := (assignment operator)

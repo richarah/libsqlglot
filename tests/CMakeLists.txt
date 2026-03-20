@@ -44,6 +44,10 @@ add_executable(libsqlglot_tests
     test_exceptions.cpp
     test_cursors.cpp
     test_raise.cpp
+    test_fk_check_constraints.cpp
+    test_scalar_functions.cpp
+    test_loop_break_continue.cpp
+    test_returns_comprehensive.cpp
     test_main.cpp
 )
 

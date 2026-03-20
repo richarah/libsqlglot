@@ -122,6 +122,9 @@ enum class ExprType : uint16_t {
     IF_STMT,            // IF condition THEN ... END IF
     WHILE_LOOP,         // WHILE condition DO ... END WHILE
     FOR_LOOP,           // FOR var IN ... LOOP ... END LOOP
+    LOOP_STMT,          // LOOP ... END LOOP (infinite loop with EXIT)
+    BREAK_STMT,         // BREAK/EXIT statement
+    CONTINUE_STMT,      // CONTINUE statement
     RETURN_STMT,        // RETURN expression
     BEGIN_END_BLOCK,    // BEGIN ... END block (T-SQL, MySQL, PL/SQL)
     EXCEPTION_BLOCK,    // EXCEPTION block (PL/pgSQL, PL/SQL)
@@ -324,6 +327,15 @@ struct ColumnDef {
     bool auto_increment = false;
     Expression* default_value = nullptr;
     std::string check_constraint;             // CHECK constraint expression
+
+    // Foreign key constraint (column-level)
+    struct ForeignKeyConstraint {
+        std::string ref_table;                // Referenced table name
+        std::string ref_column;               // Referenced column (empty = infer from PK)
+        std::string on_delete_action;         // CASCADE, SET NULL, RESTRICT, NO ACTION
+        std::string on_update_action;         // CASCADE, SET NULL, RESTRICT, NO ACTION
+    };
+    ForeignKeyConstraint* fk_constraint = nullptr;
 };
 
 /// CREATE TABLE statement
@@ -876,6 +888,30 @@ struct ForLoop : Expression {
 
     ForLoop()
         : Expression(ExprType::FOR_LOOP), start_value(nullptr), end_value(nullptr) {}
+};
+
+/// LOOP statement (infinite loop with EXIT/BREAK)
+struct LoopStmt : Expression {
+    std::vector<Expression*> body;
+
+    LoopStmt()
+        : Expression(ExprType::LOOP_STMT) {}
+};
+
+/// BREAK/EXIT statement
+struct BreakStmt : Expression {
+    std::string label;                        // Optional loop label to break from
+
+    BreakStmt(std::string lbl = "")
+        : Expression(ExprType::BREAK_STMT), label(std::move(lbl)) {}
+};
+
+/// CONTINUE statement
+struct ContinueStmt : Expression {
+    std::string label;                        // Optional loop label to continue
+
+    ContinueStmt(std::string lbl = "")
+        : Expression(ExprType::CONTINUE_STMT), label(std::move(lbl)) {}
 };
 
 /// RETURN statement

@@ -1,3 +1,23 @@
+// ERROR: Maximum collisions (9) exceeds capacity (4)
+// Slots with >4 collisions:
+//   Slot 5 (6 entries): HAVING, DATE, TIMESTAMP, TRANSACTION, LEVEL, TRIGGER
+//   Slot 7 (8 entries): DELETE, TINYINT, DOUBLE, POWER, PARTITION, LATERAL, PRIOR, DELETED
+//   Slot 34 (5 entries): END, UPPER, IGNORE, INSTEAD, EXEC
+//   Slot 38 (6 entries): AND, MAP, ADD, UNPIVOT, ENDIF, ENGINE
+//   Slot 39 (6 entries): IN, UHUGEINT, EXCLUDE, EACH, ELSEIF, EXECUTE
+//   Slot 46 (5 entries): INNER, ALL, INT, MAX, ISOLATION
+//   Slot 54 (5 entries): ALTER, EXTRACT, READ, VERBOSE, AFTER
+//   Slot 56 (5 entries): RANGE, RLIKE, RAISE, EACH_STMT, IDENTITY
+//   Slot 61 (6 entries): ARRAY, JSONB, RANK, APPLY, REPEATABLE, VACUUM
+//   Slot 74 (6 entries): FULL, NULLS, FOLLOWING, ROW_NUMBER, FIRST_VALUE, NEXT
+//   Slot 83 (7 entries): WHERE, BETWEEN, FIRST, FLOAT, BOOLEAN, WRITE, WHILE
+//   Slot 88 (5 entries): BIGINT, WORK, SAMPLE, SETOF, OLD
+//   Slot 104 (9 entries): CREATE, ORDER, OUTER, CHANGE, SHOW, OUT, STRAIGHT_JOIN, SYS_CONNECT_BY_PATH, SETTINGS
+//   Slot 106 (6 entries): COALESCE, SAFE_CAST, SAVEPOINT, COMMITTED, CONTINUE, GO
+//   Slot 107 (5 entries): OFFSET, CATALOG, OPTIONS, OBJECT, OUTPUT
+//   Slot 117 (5 entries): CROSS, TRUE, TIME, CAST, CURSOR
+//   Slot 126 (5 entries): THEN, LAG, LOCKED, CURRENT_TIMESTAMP, PROCEDURE
+// Using 8-entry slots to accommodate all keywords
 #pragma once
 
 #include "tokens.h"
@@ -53,7 +73,6 @@ private:
         TokenType types[8];
     };
 
-    
 static constexpr KeywordEntry keyword_table[128] = {
     {{"TEMP", "PRECEDING", "CONNECT_BY", "CONNECT_BY_ROOT", nullptr, nullptr, nullptr, nullptr}, {4, 9, 10, 15, 0, 0, 0, 0}, {TokenType::TEMP, TokenType::PRECEDING, TokenType::CONNECT_BY, TokenType::CONNECT_BY_ROOT, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // TEMP (hash=0), PRECEDING (hash=0), CONNECT_BY (hash=0), CONNECT_BY_ROOT (hash=0)
     {{"LANGUAGE", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {8, 0, 0, 0, 0, 0, 0, 0}, {TokenType::LANGUAGE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // LANGUAGE (hash=1)
@@ -106,7 +125,7 @@ static constexpr KeywordEntry keyword_table[128] = {
     {{"INTEGER", "EXPLAIN", "INOUT", nullptr, nullptr, nullptr, nullptr, nullptr}, {7, 7, 5, 0, 0, 0, 0, 0}, {TokenType::INTEGER, TokenType::EXPLAIN, TokenType::INOUT, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // INTEGER (hash=48), EXPLAIN (hash=48), INOUT (hash=48)
     {{"INSERT", "IMPORT", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 6, 0, 0, 0, 0, 0, 0}, {TokenType::INSERT, TokenType::IMPORT, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // INSERT (hash=49), IMPORT (hash=49)
     {{"MODIFY", "ENDLOOP", "EXCEPTION", nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 7, 9, 0, 0, 0, 0, 0}, {TokenType::MODIFY, TokenType::ENDLOOP, TokenType::EXCEPTION, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // MODIFY (hash=50), ENDLOOP (hash=50), EXCEPTION (hash=50)
-    {{nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {0, 0, 0, 0, 0, 0, 0, 0}, {TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},
+    {{"EXIT", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 0, 0, 0, 0, 0, 0, 0}, {TokenType::EXIT, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // EXIT (hash=51)
     {{"INTERSECT", "AS", "EXISTS", "INDEX", nullptr, nullptr, nullptr, nullptr}, {9, 2, 6, 5, 0, 0, 0, 0}, {TokenType::INTERSECT, TokenType::AS, TokenType::EXISTS, TokenType::INDEX, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // INTERSECT (hash=52), AS (hash=52), EXISTS (hash=52), INDEX (hash=52)
     {{"EXCEPT", "ABS", "EXPORT", nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 3, 6, 0, 0, 0, 0, 0}, {TokenType::EXCEPT, TokenType::ABS, TokenType::EXPORT, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // EXCEPT (hash=53), ABS (hash=53), EXPORT (hash=53)
     {{"ALTER", "EXTRACT", "READ", "VERBOSE", "AFTER", nullptr, nullptr, nullptr}, {5, 7, 4, 7, 5, 0, 0, 0}, {TokenType::ALTER, TokenType::EXTRACT, TokenType::READ, TokenType::VERBOSE, TokenType::AFTER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // ALTER (hash=54), EXTRACT (hash=54), READ (hash=54), VERBOSE (hash=54), AFTER (hash=54)
@@ -133,7 +152,7 @@ static constexpr KeywordEntry keyword_table[128] = {
     {{"FROM", "REFERENCES", "FINAL", nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 10, 5, 0, 0, 0, 0, 0}, {TokenType::FROM, TokenType::REFERENCES, TokenType::FINAL, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // FROM (hash=75), REFERENCES (hash=75), FINAL (hash=75)
     {{"VARBINARY", "NOWAIT", "NEW", nullptr, nullptr, nullptr, nullptr, nullptr}, {9, 6, 3, 0, 0, 0, 0, 0}, {TokenType::VARBINARY, TokenType::NOWAIT, TokenType::NEW, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // VARBINARY (hash=76), NOWAIT (hash=76), NEW (hash=76)
     {{"REINDEX", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {7, 0, 0, 0, 0, 0, 0, 0}, {TokenType::REINDEX, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // REINDEX (hash=77)
-    {{"BOOL", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 0, 0, 0, 0, 0, 0, 0}, {TokenType::BOOL, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // BOOL (hash=78)
+    {{"BOOL", "BREAK", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 5, 0, 0, 0, 0, 0, 0}, {TokenType::BOOL, TokenType::BREAK, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // BOOL (hash=78), BREAK (hash=78)
     {{"FOREIGN", "FOR", "FLATTEN", nullptr, nullptr, nullptr, nullptr, nullptr}, {7, 3, 7, 0, 0, 0, 0, 0}, {TokenType::FOREIGN, TokenType::FOR, TokenType::FLATTEN, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // FOREIGN (hash=79), FOR (hash=79), FLATTEN (hash=79)
     {{"FUNCTION", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {8, 0, 0, 0, 0, 0, 0, 0}, {TokenType::FUNCTION, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // FUNCTION (hash=80)
     {{"FLOOR", "BEGIN", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {5, 5, 0, 0, 0, 0, 0, 0}, {TokenType::FLOOR, TokenType::BEGIN, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // FLOOR (hash=81), BEGIN (hash=81)
@@ -143,7 +162,7 @@ static constexpr KeywordEntry keyword_table[128] = {
     {{"WITH", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 0, 0, 0, 0, 0, 0, 0}, {TokenType::WITH, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // WITH (hash=85)
     {{"SOME", "SAFE", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 4, 0, 0, 0, 0, 0, 0}, {TokenType::SOME, TokenType::SAFE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SOME (hash=86), SAFE (hash=86)
     {{"SHARE", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {5, 0, 0, 0, 0, 0, 0, 0}, {TokenType::SHARE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SHARE (hash=87)
-    {{"BIGINT", "WORK", "SAMPLE", "OLD", nullptr, nullptr, nullptr, nullptr}, {6, 4, 6, 3, 0, 0, 0, 0}, {TokenType::BIGINT, TokenType::WORK, TokenType::SAMPLE, TokenType::OLD, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // BIGINT (hash=88), WORK (hash=88), SAMPLE (hash=88), OLD (hash=88)
+    {{"BIGINT", "WORK", "SAMPLE", "SETOF", "OLD", nullptr, nullptr, nullptr}, {6, 4, 6, 5, 3, 0, 0, 0}, {TokenType::BIGINT, TokenType::WORK, TokenType::SAMPLE, TokenType::SETOF, TokenType::OLD, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // BIGINT (hash=88), WORK (hash=88), SAMPLE (hash=88), SETOF (hash=88), OLD (hash=88)
     {{"BY", "OF", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {2, 2, 0, 0, 0, 0, 0, 0}, {TokenType::BY, TokenType::OF, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // BY (hash=89), OF (hash=89)
     {{"STRING", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {6, 0, 0, 0, 0, 0, 0, 0}, {TokenType::STRING_TYPE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // STRING (hash=90)
     {{"WHEN", "SUMMARIZE", "WHEN", nullptr, nullptr, nullptr, nullptr, nullptr}, {4, 9, 4, 0, 0, 0, 0, 0}, {TokenType::WHEN, TokenType::SUMMARIZE, TokenType::WHEN_KW, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // WHEN (hash=91), SUMMARIZE (hash=91), WHEN (hash=91)
@@ -161,7 +180,7 @@ static constexpr KeywordEntry keyword_table[128] = {
     {{"SELECT", "STRUCT", "OVER", "CLOSE", nullptr, nullptr, nullptr, nullptr}, {6, 6, 4, 5, 0, 0, 0, 0}, {TokenType::SELECT, TokenType::STRUCT, TokenType::OVER, TokenType::CLOSE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SELECT (hash=103), STRUCT (hash=103), OVER (hash=103), CLOSE (hash=103)
     {{"CREATE", "ORDER", "OUTER", "CHANGE", "SHOW", "OUT", "STRAIGHT_JOIN", "SYS_CONNECT_BY_PATH"}, {6, 5, 5, 6, 4, 3, 13, 19}, {TokenType::CREATE, TokenType::ORDER, TokenType::OUTER, TokenType::CHANGE, TokenType::SHOW, TokenType::OUT, TokenType::STRAIGHT_JOIN, TokenType::SYS_CONNECT_BY_PATH}},  // CREATE (hash=104), ORDER (hash=104), OUTER (hash=104), CHANGE (hash=104), SHOW (hash=104), OUT (hash=104), STRAIGHT_JOIN (hash=104), SYS_CONNECT_BY_PATH (hash=104)
     {{"SMALLINT", "COLLATE", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {8, 7, 0, 0, 0, 0, 0, 0}, {TokenType::SMALLINT, TokenType::COLLATE, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SMALLINT (hash=105), COLLATE (hash=105)
-    {{"COALESCE", "SAFE_CAST", "SAVEPOINT", "COMMITTED", "GO", nullptr, nullptr, nullptr}, {8, 9, 9, 9, 2, 0, 0, 0}, {TokenType::COALESCE, TokenType::SAFE_CAST, TokenType::SAVEPOINT, TokenType::COMMITTED, TokenType::GO, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // COALESCE (hash=106), SAFE_CAST (hash=106), SAVEPOINT (hash=106), COMMITTED (hash=106), GO (hash=106)
+    {{"COALESCE", "SAFE_CAST", "SAVEPOINT", "COMMITTED", "CONTINUE", "GO", nullptr, nullptr}, {8, 9, 9, 9, 8, 2, 0, 0}, {TokenType::COALESCE, TokenType::SAFE_CAST, TokenType::SAVEPOINT, TokenType::COMMITTED, TokenType::CONTINUE, TokenType::GO, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // COALESCE (hash=106), SAFE_CAST (hash=106), SAVEPOINT (hash=106), COMMITTED (hash=106), CONTINUE (hash=106), GO (hash=106)
     {{"OFFSET", "CATALOG", "OPTIONS", "OBJECT", "OUTPUT", nullptr, nullptr, nullptr}, {6, 7, 7, 6, 6, 0, 0, 0}, {TokenType::OFFSET, TokenType::CATALOG, TokenType::OPTIONS, TokenType::OBJECT, TokenType::OUTPUT, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // OFFSET (hash=107), CATALOG (hash=107), OPTIONS (hash=107), OBJECT (hash=107), OUTPUT (hash=107)
     {{"SAFE_OFFSET", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {11, 0, 0, 0, 0, 0, 0, 0}, {TokenType::SAFE_OFFSET, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // SAFE_OFFSET (hash=108)
     {{"CHECK", "CEIL", "CALL", nullptr, nullptr, nullptr, nullptr, nullptr}, {5, 4, 4, 0, 0, 0, 0, 0}, {TokenType::CHECK, TokenType::CEIL, TokenType::CALL, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // CHECK (hash=109), CEIL (hash=109), CALL (hash=109)
@@ -184,6 +203,10 @@ static constexpr KeywordEntry keyword_table[128] = {
     {{"THEN", "LAG", "LOCKED", "CURRENT_TIMESTAMP", "PROCEDURE", nullptr, nullptr, nullptr}, {4, 3, 6, 17, 9, 0, 0, 0}, {TokenType::THEN, TokenType::LAG, TokenType::LOCKED, TokenType::CURRENT_TIMESTAMP, TokenType::PROCEDURE_KW, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // THEN (hash=126), LAG (hash=126), LOCKED (hash=126), CURRENT_TIMESTAMP (hash=126), PROCEDURE (hash=126)
     {{"TOP", nullptr, nullptr, nullptr, nullptr, nullptr, nullptr, nullptr}, {3, 0, 0, 0, 0, 0, 0, 0}, {TokenType::TOP, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER, TokenType::IDENTIFIER}},  // TOP (hash=127)
 };
+
+};
+
+} // namespace libsqlglot
 
 // Hash collision report:
 // Slot 0 (4 entries): TEMP, PRECEDING, CONNECT_BY, CONNECT_BY_ROOT
@@ -238,11 +261,12 @@ static constexpr KeywordEntry keyword_table[128] = {
 // Slot 74 (6 entries): FULL, NULLS, FOLLOWING, ROW_NUMBER, FIRST_VALUE, NEXT
 // Slot 75 (3 entries): FROM, REFERENCES, FINAL
 // Slot 76 (3 entries): VARBINARY, NOWAIT, NEW
+// Slot 78 (2 entries): BOOL, BREAK
 // Slot 79 (3 entries): FOREIGN, FOR, FLATTEN
 // Slot 81 (2 entries): FLOOR, BEGIN
 // Slot 83 (7 entries): WHERE, BETWEEN, FIRST, FLOAT, BOOLEAN, WRITE, WHILE
 // Slot 86 (2 entries): SOME, SAFE
-// Slot 88 (4 entries): BIGINT, WORK, SAMPLE, OLD
+// Slot 88 (5 entries): BIGINT, WORK, SAMPLE, SETOF, OLD
 // Slot 89 (2 entries): BY, OF
 // Slot 91 (3 entries): WHEN, SUMMARIZE, WHEN
 // Slot 93 (3 entries): BINARY, SUM, SUBSTRING
@@ -254,7 +278,7 @@ static constexpr KeywordEntry keyword_table[128] = {
 // Slot 103 (4 entries): SELECT, STRUCT, OVER, CLOSE
 // Slot 104 (9 entries): CREATE, ORDER, OUTER, CHANGE, SHOW, OUT, STRAIGHT_JOIN, SYS_CONNECT_BY_PATH, SETTINGS
 // Slot 105 (2 entries): SMALLINT, COLLATE
-// Slot 106 (5 entries): COALESCE, SAFE_CAST, SAVEPOINT, COMMITTED, GO
+// Slot 106 (6 entries): COALESCE, SAFE_CAST, SAVEPOINT, COMMITTED, CONTINUE, GO
 // Slot 107 (5 entries): OFFSET, CATALOG, OPTIONS, OBJECT, OUTPUT
 // Slot 109 (3 entries): CHECK, CEIL, CALL
 // Slot 110 (4 entries): GROUP, ONLY, CURRENT_DATE, CURRENT_TIME
@@ -269,6 +293,3 @@ static constexpr KeywordEntry keyword_table[128] = {
 // Slot 124 (3 entries): LEAD, TABLESAMPLE, LOAD
 // Slot 125 (3 entries): LIKE, TRIM, PREWHERE
 // Slot 126 (5 entries): THEN, LAG, LOCKED, CURRENT_TIMESTAMP, PROCEDURE
-};
-
-} // namespace libsqlglot

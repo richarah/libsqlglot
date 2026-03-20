@@ -1,452 +1,565 @@
-# Remaining Stored Procedure Features Implementation Plan
+# Implementation Plan for 100% Coverage
 
-## Status: Infrastructure Complete, Implementing Features
+## Goal
+Achieve 100% feature coverage across:
+1. Universal SQL: 95% → 100%
+2. Stored Procedures: 95% → 100%  
+3. Dialect-Specific Features: 30% → 100%
 
-### Completed ✅
-- Expression types defined in expression.h
-- Token types defined in tokens.h
-- Keywords regenerated in keywords.h
-- CREATE PROCEDURE/FUNCTION fully working with tests
+---
 
-### Implementation Order (Optimized for Dependencies)
+## IMMEDIATE ACTION ITEMS (Next 2 Hours)
 
-## 1. DELIMITER Command (MySQL) - SIMPLE
-**Priority**: HIGH - Required for MySQL procedure definitions
+### Phase 1A: Universal SQL Completion (CRITICAL)
+**Status**: 5% gap to close
+**Estimated Time**: 2-3 hours
 
-**Parser** (`parser.h` - add after parse_for(), before parse_case_expression()):
-```cpp
-/// Parse DELIMITER statement (MySQL): DELIMITER $$
-DelimiterStmt* parse_delimiter() {
-    auto stmt = arena_.create<DelimiterStmt>();
-    expect(TokenType::DELIMITER_KW);
+#### 1. Foreign Key Constraints (30 min)
+- Tokenizer: Already has FOREIGN, KEY, REFERENCES
+- Parser changes needed in `parse_create_table()`:
+  - Add FOREIGN KEY (col) REFERENCES table (col)
+  - Support ON DELETE/UPDATE CASCADE|SET NULL|RESTRICT
+- Generator: Output FK clauses
+- Tests: Create 5 test cases
 
-    // Security: Validate delimiter is not empty and reasonable length
-    if (!current().text) {
-        error_expected_after("delimiter string ($$, //, etc.)", "DELIMITER");
-    }
+#### 2. Check Constraints (20 min)
+- Tokenizer: Already has CHECK
+- Parser: Add CHECK (expression) in column constraints
+- Generator: Output CHECK
+- Tests: Create 3 test cases
 
-    std::string delim(current().text);
-    if (delim.length() > 10) {  // Security: prevent extremely long delimiters
-        error("DELIMITER string too long (max 10 characters)");
-    }
+#### 3. Table-Level Constraints (20 min)
+- Parser: After column defs, parse PRIMARY KEY (cols), UNIQUE (cols)
+- Generator: Output table constraints
+- Tests: Create 3 test cases
 
-    stmt->delimiter = delim;
-    advance();
+#### 4. DROP TABLE (10 min)
+- Parser: Replace error stub with implementation
+- Generator: Output DROP TABLE
+- Tests: Create 2 test cases
 
-    return stmt;
-}
+#### 5. Scalar Functions - Phase 1 (60 min)
+**String Functions** (30 min):
+- SUBSTRING(str, start, len)
+- CONCAT(str1, str2, ...)
+- LENGTH(str)
+- UPPER(str), LOWER(str)
+
+**Math Functions** (30 min):
+- ROUND(num, decimals)
+- FLOOR(num), CEIL(num)
+- ABS(num)
+
+Implementation approach:
+- Parser: Add function name recognition
+- Generator: Dialect-aware output (SUBSTRING vs SUBSTR, LENGTH vs LEN)
+- Tests: 2 per function = 14 tests
+
+---
+
+## Phase 1B: Stored Procedures Completion (1 hour)
+
+#### 1. LOOP...END LOOP Support (20 min)
+- Parser: Add LOOP keyword handling (infinite loop)
+- Add EXIT WHEN condition
+- Tests: 3 test cases
+
+#### 2. BREAK/CONTINUE in Loops (20 min)
+- Parser: Add BREAK, CONTINUE keywords
+- Map to EXIT, CONTINUE in PL/pgSQL
+- Tests: 3 test cases
+
+#### 3. Function RETURNS Testing (20 min)
+- Already parsed, comprehensive testing needed
+- Tests: 5 test cases for CREATE FUNCTION
+
+---
+
+## Phase 2: PostgreSQL 100% (HIGH PRIORITY)
+
+### Estimated Time: 4-6 hours
+
+#### 2.1 LATERAL JOIN (60 min)
+```sql
+-- Parser implementation
+FROM table1
+LATERAL JOIN LATERAL (SELECT ... WHERE table1.id = ...) t2
+```
+- Add LATERAL keyword check before JOIN parsing
+- Tests: 4 test cases
+
+#### 2.2 ON CONFLICT (Upsert) (90 min)
+```sql
+INSERT INTO table (...) VALUES (...)
+ON CONFLICT (id) DO UPDATE SET col = EXCLUDED.col
+ON CONFLICT DO NOTHING
+```
+- Parser: After INSERT VALUES, check for ON CONFLICT
+- Add EXCLUDED keyword support
+- Tests: 6 test cases
+
+#### 2.3 RETURNING Complete (30 min)
+- Extend current basic support to all DML
+- Tests: INSERT/UPDATE/DELETE RETURNING, 4 tests
+
+#### 2.4 FILTER in Aggregates (30 min)
+```sql
+COUNT(*) FILTER (WHERE condition)
+```
+- Parser: After aggregate function, check for FILTER
+- Tests: 3 test cases
+
+#### 2.5 TABLESAMPLE (30 min)
+```sql
+FROM table TABLESAMPLE BERNOULLI (10)
+```
+- Parser: After table reference, check for TABLESAMPLE
+- Tests: 2 test cases
+
+#### 2.6 DO Blocks (30 min)
+```sql
+DO $$ BEGIN ... END $$
+```
+- Parser: Add DO statement type
+- Tests: 2 test cases
+
+#### 2.7 Array Slicing (30 min)
+```sql
+array[1:3]
+```
+- Parser: In array index, check for : operator
+- Tests: 3 test cases
+
+#### 2.8 Minor Features (60 min)
+- EXCLUDE in SELECT
+- Composite types ROW(...)
+- ENUM types
+- Tests: 2-3 each
+
+---
+
+## Phase 3: MySQL 100% (HIGH PRIORITY)
+
+### Estimated Time: 5-7 hours
+
+#### 3.1 Backtick Identifiers (90 min) **SECURITY CRITICAL**
+```sql
+`column name with spaces`
+`table_name`
+```
+- Tokenizer: Handle backticks in `tokenize_identifier()`
+- Security: Validate content, prevent injection
+- Limit: Max 64 chars (MySQL limit)
+- Tests: 10 test cases including security tests
+
+**Security measures**:
+- No nested backticks
+- No escape sequences
+- ASCII only (no UTF-8)
+- Length validation
+
+#### 3.2 ON DUPLICATE KEY UPDATE (60 min)
+```sql
+INSERT INTO table (...) VALUES (...)
+ON DUPLICATE KEY UPDATE col = VALUES(col)
+```
+- Parser: After INSERT VALUES
+- Tests: 5 test cases
+
+#### 3.3 INSERT IGNORE (15 min)
+```sql
+INSERT IGNORE INTO table ...
+```
+- Parser: Match IGNORE after INSERT
+- Tests: 2 test cases
+
+#### 3.4 REPLACE INTO (20 min)
+```sql
+REPLACE INTO table ...
+```
+- Parser: Like INSERT but with REPLACE keyword
+- Tests: 2 test cases
+
+#### 3.5 Index Hints (45 min)
+```sql
+FROM table FORCE INDEX (idx) USE INDEX (idx) IGNORE INDEX (idx)
+```
+- Parser: After table name, check for hint keywords
+- Tests: 4 test cases
+
+#### 3.6 GROUP_CONCAT (60 min)
+```sql
+GROUP_CONCAT(expr SEPARATOR ',' ORDER BY expr)
+```
+- Parser: Special aggregate with SEPARATOR
+- Generator: Convert to STRING_AGG for others
+- Tests: 5 test cases
+
+#### 3.7 LOAD DATA INFILE (90 min) **SECURITY CRITICAL**
+```sql
+LOAD DATA LOCAL INFILE 'file.csv' INTO TABLE t
+FIELDS TERMINATED BY ',' LINES TERMINATED BY '\n'
+```
+- Parser: LOAD DATA statement
+- Security: Validate file paths, prevent traversal
+- Tests: 6 tests (3 functional, 3 security)
+
+**Security measures**:
+- Whitelist directories only
+- No ../ or absolute paths from untrusted sources
+- Filename length limit
+
+---
+
+## Phase 4: T-SQL 100% (HIGH PRIORITY)
+
+### Estimated Time: 4-5 hours
+
+#### 4.1 TOP n Clause (60 min)
+```sql
+SELECT TOP 10 * FROM table
+SELECT TOP 10 PERCENT * FROM table
+SELECT TOP 10 WITH TIES * FROM table ORDER BY col
+```
+- Parser: After SELECT, check for TOP
+- Generator: Convert to LIMIT for other dialects
+- Tests: 6 test cases
+
+#### 4.2 OUTPUT Clause (90 min)
+```sql
+INSERT INTO table OUTPUT INSERTED.* VALUES (...)
+DELETE FROM table OUTPUT DELETED.* WHERE ...
+UPDATE table SET ... OUTPUT INSERTED.*, DELETED.*
+```
+- Parser: After DML verb, check for OUTPUT
+- Generator: Convert to RETURNING for PostgreSQL
+- Tests: 6 test cases
+
+#### 4.3 TRY...CATCH (60 min)
+```sql
+BEGIN TRY
+  ...
+END TRY
+BEGIN CATCH
+  SELECT ERROR_MESSAGE()
+END CATCH
+```
+- Parser: New statement type
+- Generator: Convert to EXCEPTION blocks
+- Tests: 4 test cases
+
+#### 4.4 GO Batch Separator (20 min)
+- Parser: Treat as statement terminator
+- Tests: 2 test cases
+
+#### 4.5 System Variables (30 min)
+```sql
+@@IDENTITY, @@ROWCOUNT, @@ERROR
+```
+- Tokenizer: Handle @@ prefix
+- Parser: System variable references
+- Tests: 3 test cases
+
+#### 4.6 THROW Statement (20 min)
+```sql
+THROW 50000, 'Error message', 1
+```
+- Parser: THROW statement
+- Tests: 2 test cases
+
+#### 4.7 PIVOT/UNPIVOT Fix (40 min)
+- Current: Parsed but generation broken
+- Fix generator implementation
+- Tests: 4 test cases
+
+---
+
+## Phase 5: BigQuery 70% Target (MEDIUM PRIORITY)
+
+### Estimated Time: 5-6 hours
+
+#### 5.1 QUALIFY Clause (90 min) **HIGH VALUE**
+```sql
+SELECT col, ROW_NUMBER() OVER (...) as rn
+FROM table
+QUALIFY rn = 1
+```
+- Parser: After HAVING/ORDER BY, check for QUALIFY
+- Generator: Wrap in subquery for other dialects
+- Tests: 5 test cases
+
+#### 5.2 Backtick Identifiers (reuse MySQL, 30 min)
+```sql
+`project.dataset.table`
+```
+- Extend MySQL implementation
+- Handle 3-part names
+- Tests: 4 test cases
+
+#### 5.3 Struct Literals (90 min)
+```sql
+STRUCT(1 AS a, 'text' AS b, [1,2,3] AS c)
+```
+- Parser: STRUCT keyword with field list
+- Tests: 5 test cases
+
+#### 5.4 SAFE_CAST (30 min)
+```sql
+SAFE_CAST(expr AS type)
+```
+- Parser: Like CAST but SAFE_CAST keyword
+- Generator: Convert to TRY_CAST or COALESCE
+- Tests: 3 test cases
+
+#### 5.5 Array OFFSET/ORDINAL (60 min)
+```sql
+array[OFFSET(0)]  -- 0-based
+array[ORDINAL(1)] -- 1-based
+```
+- Parser: OFFSET() and ORDINAL() in array access
+- Tests: 4 test cases
+
+#### 5.6 Table Wildcards (60 min) **SECURITY CRITICAL**
+```sql
+SELECT * FROM `project.dataset.table_*`
+WHERE _TABLE_SUFFIX = '20240101'
+```
+- Parser: Allow * in table names
+- Security: Validate patterns
+- Tests: 4 tests (2 functional, 2 security)
+
+---
+
+## Phase 6: Oracle 70% Target (MEDIUM PRIORITY)
+
+### Estimated Time: 8-10 hours
+
+#### 6.1 ROWNUM in Queries (90 min)
+```sql
+SELECT * FROM table WHERE ROWNUM <= 10
+```
+- Parser: ROWNUM as special column
+- Generator: Convert to LIMIT for others
+- Tests: 5 test cases
+
+#### 6.2 CONNECT BY (4-5 hours) **COMPLEX**
+```sql
+SELECT employee, manager
+FROM employees
+START WITH manager IS NULL
+CONNECT BY PRIOR employee = manager
+```
+- Parser: START WITH, CONNECT BY PRIOR clauses
+- Generator: Convert to recursive CTE
+- **Complexity**: Requires AST transformation
+- Tests: 8-10 test cases
+
+Implementation approach:
+1. Parse hierarchical clauses
+2. Build recursive CTE structure
+3. Transform PRIOR references
+4. Test extensively
+
+#### 6.3 MERGE Complete (90 min)
+- Fix existing MERGE parsing
+- Add all clause variations
+- Tests: 5 test cases
+
+#### 6.4 Sequences (60 min)
+```sql
+CREATE SEQUENCE seq_name
+SELECT seq_name.NEXTVAL, seq_name.CURRVAL FROM DUAL
+```
+- Parser: CREATE SEQUENCE
+- Parser: .NEXTVAL, .CURRVAL accessors
+- Tests: 4 test cases
+
+#### 6.5 (+) Outer Join (60 min)
+```sql
+WHERE table1.col = table2.col(+)
+```
+- Parser: Detect (+) in WHERE clause
+- Generator: Convert to LEFT JOIN
+- Tests: 3 test cases
+
+---
+
+## Implementation Order (Optimized)
+
+### Sprint 1 (8 hours): Foundation
+**Goal**: Universal SQL 100%, Stored Procedures 100%
+
+1. Hour 1-2: Universal SQL DDL (FK, CHECK, DROP TABLE)
+2. Hour 3-4: Universal SQL Functions (strings, math)
+3. Hour 5-6: Stored Procedures (LOOP, BREAK/CONTINUE)
+4. Hour 7-8: Testing, verification, documentation
+
+**Deliverables**:
+- 30+ new test cases
+- Documentation updates
+- All Universal SQL at 100%
+- All Stored Procedures at 100%
+
+### Sprint 2 (10 hours): Security-Critical Features
+**Goal**: Backtick identifiers, file paths
+
+1. Hour 1-3: MySQL backtick identifiers (with security)
+2. Hour 4-5: BigQuery backtick identifiers (extend MySQL)
+3. Hour 6-8: MySQL LOAD DATA INFILE (with security)
+4. Hour 9-10: Security testing, penetration tests
+
+**Deliverables**:
+- 25+ new test cases (15 functional, 10 security)
+- Security audit documentation
+- MySQL 70%+
+- BigQuery 50%+
+
+### Sprint 3 (10 hours): High-Value Features
+**Goal**: TOP, OUTPUT, QUALIFY, LATERAL
+
+1. Hour 1-2: T-SQL TOP clause
+2. Hour 3-4: T-SQL OUTPUT clause
+3. Hour 5-6: BigQuery QUALIFY clause
+4. Hour 7-8: PostgreSQL LATERAL JOIN
+5. Hour 9-10: PostgreSQL ON CONFLICT
+
+**Deliverables**:
+- 30+ new test cases
+- T-SQL 90%+
+- BigQuery 65%+
+- PostgreSQL 80%+
+
+### Sprint 4 (12 hours): Complex Features
+**Goal**: CONNECT BY, TRY-CATCH, GROUP_CONCAT
+
+1. Hour 1-5: Oracle CONNECT BY (complex)
+2. Hour 6-7: T-SQL TRY...CATCH
+3. Hour 8-9: MySQL GROUP_CONCAT
+4. Hour 10-11: Oracle ROWNUM
+5. Hour 12: Integration testing
+
+**Deliverables**:
+- 25+ new test cases
+- Oracle 70%+
+- T-SQL 100%
+- MySQL 85%+
+
+### Sprint 5 (8 hours): Remaining Features
+**Goal**: Fill remaining gaps
+
+1. Hour 1-2: PostgreSQL remaining (FILTER, TABLESAMPLE, DO, array slicing)
+2. Hour 3-4: MySQL remaining (INSERT IGNORE, REPLACE, hints)
+3. Hour 5-6: BigQuery remaining (STRUCT, SAFE_CAST, arrays)
+4. Hour 7-8: Oracle remaining (sequences, outer join syntax, MERGE)
+
+**Deliverables**:
+- 20+ new test cases
+- PostgreSQL 100%
+- MySQL 100%
+- BigQuery 90%+
+- Oracle 85%+
+
+### Sprint 6 (8 hours): Long Tail
+**Goal**: Snowflake, DuckDB, ClickHouse basics
+
+1. Hour 1-3: Snowflake high-priority (FLATTEN, stages, VARIANT)
+2. Hour 4-6: DuckDB high-priority (EXCLUDE, REPLACE, file reading)
+3. Hour 7-8: ClickHouse basics (ENGINE, PARTITION BY)
+
+**Deliverables**:
+- 25+ new test cases  
+- Snowflake 60%+
+- DuckDB 75%+
+- ClickHouse 50%+
+
+### Sprint 7 (4 hours): Final Testing & Documentation
+**Goal**: 100% verification
+
+1. Hour 1-2: Full regression testing
+2. Hour 3: Performance benchmarks
+3. Hour 4: Documentation completion
+
+**Deliverables**:
+- 1000+ total test cases
+- 100% pass rate
+- Performance report
+- Complete documentation
+
+---
+
+## TOTAL ESTIMATED TIME: 60 hours (1.5 weeks full-time)
+
+---
+
+## Success Criteria (Final Verification)
+
+### Coverage Verification
+```bash
+# Run all tests
+./tests/libsqlglot_tests
+
+# Expected: 1000+ tests, 100% pass rate
+
+# Verify coverage by category
+./tests/libsqlglot_tests "[universal]" # All pass
+./tests/libsqlglot_tests "[procedures]" # All pass
+./tests/libsqlglot_tests "[postgres]" # All pass
+./tests/libsqlglot_tests "[mysql]" # All pass
+./tests/libsqlglot_tests "[tsql]" # All pass
+./tests/libsqlglot_tests "[oracle]" # All pass
+./tests/libsqlglot_tests "[bigquery]" # All pass
 ```
 
-**Generator** (`generator.h` - add in visit() switch and implementation):
-```cpp
-// In visit() switch:
-case ExprType::DELIMITER_STMT:
-    visit_delimiter(static_cast<const DelimiterStmt*>(expr));
-    break;
+### Security Verification
+```bash
+# Run security-specific tests
+./tests/libsqlglot_tests "[security]" # All pass
 
-// Implementation:
-void visit_delimiter(const DelimiterStmt* stmt) {
-    sql_ << "DELIMITER " << stmt->delimiter;
-}
+# Manual security audit:
+# - Backtick injection tests
+# - Path traversal tests
+# - SQL injection tests
+# - Buffer overflow tests
+# - Malformed input tests
 ```
 
-**Update parse() dispatch** (line ~1230):
-```cpp
-} else if (check(TokenType::DELIMITER_KW)) {
-    return parse_delimiter();
-```
+### Performance Verification
+```bash
+# Run performance benchmarks
+./tests/libsqlglot_tests "[performance]"
 
-**Test**:
-```cpp
-TEST_CASE("DELIMITER command", "[delimiter]") {
-    std::string sql = "DELIMITER $$";
-    auto result = Transpiler::transpile(sql, Dialect::MySQL, Dialect::MySQL);
-    REQUIRE(result == "DELIMITER $$");
-}
+# Verify no regressions:
+# - Parse time < 10ms for typical queries
+# - Generate time < 5ms for typical queries
+# - Memory usage < 100MB for typical workload
 ```
 
 ---
 
-## 2. Assignment Statements - MODERATE
-**Priority**: HIGH - Core procedural programming feature
+## Risk Mitigation
 
-**Parser**:
-```cpp
-/// Parse assignment: SET var = value OR var := value
-AssignmentStmt* parse_assignment() {
-    auto stmt = arena_.create<AssignmentStmt>();
+### Security Risks
+1. **Backtick Identifiers**: Implemented first, security-reviewed
+2. **File Paths**: Whitelist approach, strict validation
+3. **Dynamic SQL**: Not implemented (too risky)
 
-    // Two forms:
-    // 1. SET var = value (T-SQL, MySQL)
-    // 2. var := value (PL/pgSQL, PL/SQL)
+### Complexity Risks
+1. **CONNECT BY**: Allocate 5 hours, allow for iteration
+2. **Dialect Conversions**: Test exhaustively, verify semantics
+3. **AST Transformations**: Code review required
 
-    if (check(TokenType::SET)) {
-        advance();  // consume SET
-        stmt->use_colon_equals = false;
-
-        // Variable name
-        if (current().type != TokenType::IDENTIFIER) {
-            error_expected_after("variable name", "SET");
-        }
-        stmt->variable_name = std::string(current().text);
-        advance();
-
-        // = or :=
-        if (match(TokenType::COLON_EQUALS)) {
-            stmt->use_colon_equals = true;
-        } else {
-            expect(TokenType::EQ);
-        }
-
-        // Value
-        stmt->value = parse_expression();
-    } else {
-        // Direct assignment: var := value
-        if (current().type != TokenType::IDENTIFIER) {
-            error("Expected variable name for assignment");
-        }
-        stmt->variable_name = std::string(current().text);
-        advance();
-
-        expect(TokenType::COLON_EQUALS);
-        stmt->use_colon_equals = true;
-        stmt->value = parse_expression();
-    }
-
-    return stmt;
-}
-```
-
-**Generator**:
-```cpp
-void visit_assignment(const AssignmentStmt* stmt) {
-    // Dialect-aware assignment
-    if (dialect_ == Dialect::TSQL || dialect_ == Dialect::MySQL) {
-        sql_ << "SET " << stmt->variable_name << " = ";
-    } else {
-        // PostgreSQL, Oracle use :=
-        sql_ << stmt->variable_name << " := ";
-    }
-    visit(stmt->value);
-}
-```
+### Schedule Risks
+1. **Buffer**: 60h estimate + 20% = 72h total
+2. **Parallel work**: Some sprints can overlap
+3. **Incremental delivery**: Each sprint delivers value
 
 ---
 
-## 3. EXCEPTION Blocks - MODERATE
-**Priority**: MEDIUM - Error handling
+## Next Immediate Actions
 
-**Parser**:
-```cpp
-/// Parse EXCEPTION block (PL/pgSQL, PL/SQL)
-ExceptionBlock* parse_exception_block() {
-    auto block = arena_.create<ExceptionBlock>();
+1. ✅ Review this plan (DONE - you're reading it!)
+2. ⏭️ **START Sprint 1, Hour 1: Foreign Key Constraints**
+3. Set up test tracking spreadsheet
+4. Begin implementation
 
-    // BEGIN
-    expect(TokenType::BEGIN);
-
-    // Try statements
-    while (!check(TokenType::EXCEPTION) && !check(TokenType::END) && !is_at_end()) {
-        block->try_statements.push_back(parse());
-        match(TokenType::SEMICOLON);
-    }
-
-    // EXCEPTION handlers
-    if (match(TokenType::EXCEPTION)) {
-        while (match(TokenType::WHEN)) {
-            ExceptionBlock::ExceptionHandler handler;
-
-            // Exception name
-            if (current().type == TokenType::IDENTIFIER) {
-                handler.exception_name = std::string(current().text);
-                advance();
-            }
-
-            expect(TokenType::THEN);
-
-            // Handler statements
-            while (!check(TokenType::WHEN) && !check(TokenType::END) && !is_at_end()) {
-                handler.statements.push_back(parse());
-                match(TokenType::SEMICOLON);
-            }
-
-            block->handlers.push_back(handler);
-        }
-    }
-
-    expect(TokenType::END);
-    return block;
-}
-```
-
-**Generator**:
-```cpp
-void visit_exception_block(const ExceptionBlock* block) {
-    sql_ << "BEGIN";
-    indent();
-
-    // Try statements
-    for (auto* stmt : block->try_statements) {
-        newline();
-        visit(stmt);
-        sql_ << ";";
-    }
-
-    // Exception handlers
-    if (!block->handlers.empty()) {
-        dedent();
-        newline();
-        sql_ << "EXCEPTION";
-        indent();
-
-        for (const auto& handler : block->handlers) {
-            newline();
-            sql_ << "WHEN " << handler.exception_name << " THEN";
-            indent();
-            for (auto* stmt : handler.statements) {
-                newline();
-                visit(stmt);
-                sql_ << ";";
-            }
-            dedent();
-        }
-    }
-
-    dedent();
-    newline();
-    sql_ << "END";
-}
-```
-
----
-
-## 4. CURSOR Support - COMPLEX
-**Priority**: MEDIUM - Advanced procedural feature
-
-**Parsers**:
-```cpp
-/// Parse DECLARE CURSOR
-DeclareCursorStmt* parse_declare_cursor() {
-    auto stmt = arena_.create<DeclareCursorStmt>();
-    expect(TokenType::DECLARE);
-
-    // Cursor name
-    if (current().type != TokenType::IDENTIFIER) {
-        error_expected_after("cursor name", "DECLARE");
-    }
-    stmt->cursor_name = std::string(current().text);
-    advance();
-
-    // Optional SCROLL
-    if (match(TokenType::SCROLL)) {
-        stmt->scroll = true;
-    }
-
-    expect(TokenType::CURSOR);
-    expect(TokenType::FOR);
-
-    // Query
-    stmt->query = static_cast<SelectStmt*>(parse_select());
-
-    return stmt;
-}
-
-/// Parse OPEN cursor
-OpenCursorStmt* parse_open_cursor() {
-    auto stmt = arena_.create<OpenCursorStmt>();
-    expect(TokenType::OPEN);
-
-    if (current().type != TokenType::IDENTIFIER) {
-        error_expected_after("cursor name", "OPEN");
-    }
-    stmt->cursor_name = std::string(current().text);
-    advance();
-
-    // Optional parameters
-    if (match(TokenType::LPAREN)) {
-        if (!check(TokenType::RPAREN)) {
-            do {
-                stmt->arguments.push_back(parse_expression());
-            } while (match(TokenType::COMMA));
-        }
-        expect(TokenType::RPAREN);
-    }
-
-    return stmt;
-}
-
-/// Parse FETCH cursor
-FetchCursorStmt* parse_fetch_cursor() {
-    auto stmt = arena_.create<FetchCursorStmt>();
-    expect(TokenType::FETCH);
-
-    // Direction (NEXT, PRIOR, FIRST, LAST, etc.)
-    if (match(TokenType::NEXT)) {
-        stmt->direction = FetchCursorStmt::Direction::NEXT;
-    } else if (current().type == TokenType::IDENTIFIER) {
-        std::string dir(current().text);
-        if (dir == "PRIOR") {
-            stmt->direction = FetchCursorStmt::Direction::PRIOR;
-            advance();
-        } else if (dir == "FIRST") {
-            stmt->direction = FetchCursorStmt::Direction::FIRST;
-            advance();
-        } else if (dir == "LAST") {
-            stmt->direction = FetchCursorStmt::Direction::LAST;
-            advance();
-        }
-    }
-
-    // FROM keyword (optional)
-    if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FROM") {
-        advance();
-    }
-
-    // Cursor name
-    if (current().type != TokenType::IDENTIFIER) {
-        error_expected_after("cursor name", "FETCH");
-    }
-    stmt->cursor_name = std::string(current().text);
-    advance();
-
-    // INTO variables
-    if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "INTO") {
-        advance();
-        do {
-            if (current().type == TokenType::IDENTIFIER) {
-                stmt->into_variables.push_back(std::string(current().text));
-                advance();
-            }
-        } while (match(TokenType::COMMA));
-    }
-
-    return stmt;
-}
-
-/// Parse CLOSE cursor
-CloseCursorStmt* parse_close_cursor() {
-    auto stmt = arena_.create<CloseCursorStmt>();
-    expect(TokenType::CLOSE);
-
-    if (current().type != TokenType::IDENTIFIER) {
-        error_expected_after("cursor name", "CLOSE");
-    }
-    stmt->cursor_name = std::string(current().text);
-    advance();
-
-    return stmt;
-}
-```
-
----
-
-## 5. RAISE/SIGNAL - SIMPLE
-**Priority**: MEDIUM - Error raising
-
-**Parser**:
-```cpp
-/// Parse RAISE or SIGNAL statement
-RaiseStmt* parse_raise() {
-    auto stmt = arena_.create<RaiseStmt>();
-
-    // RAISE or SIGNAL
-    bool is_signal = match(TokenType::SIGNAL);
-    if (!is_signal) {
-        expect(TokenType::RAISE);
-    }
-
-    // Level (EXCEPTION, NOTICE, WARNING, etc.) - PostgreSQL only
-    if (!is_signal && current().type == TokenType::IDENTIFIER) {
-        std::string level(current().text);
-        if (level == "EXCEPTION") {
-            stmt->level = RaiseStmt::Level::EXCEPTION;
-            advance();
-        } else if (level == "NOTICE") {
-            stmt->level = RaiseStmt::Level::NOTICE;
-            advance();
-        } else if (level == "WARNING") {
-            stmt->level = RaiseStmt::Level::WARNING;
-            advance();
-        }
-    }
-
-    // Error code or message
-    if (current().type == TokenType::STRING) {
-        stmt->message = std::string(current().text);
-        advance();
-    } else if (current().type == TokenType::IDENTIFIER) {
-        stmt->error_code = std::string(current().text);
-        advance();
-    }
-
-    return stmt;
-}
-```
-
-**Generator**:
-```cpp
-void visit_raise(const RaiseStmt* stmt) {
-    if (dialect_ == Dialect::MySQL) {
-        sql_ << "SIGNAL SQLSTATE '" << stmt->error_code << "'";
-        if (!stmt->message.empty()) {
-            sql_ << " SET MESSAGE_TEXT = " << stmt->message;
-        }
-    } else {
-        // PostgreSQL
-        sql_ << "RAISE ";
-        switch (stmt->level) {
-            case RaiseStmt::Level::EXCEPTION: sql_ << "EXCEPTION"; break;
-            case RaiseStmt::Level::NOTICE: sql_ << "NOTICE"; break;
-            case RaiseStmt::Level::WARNING: sql_ << "WARNING"; break;
-            default: sql_ << "EXCEPTION";
-        }
-        if (!stmt->message.empty()) {
-            sql_ << " " << stmt->message;
-        }
-    }
-}
-```
-
----
-
-## Security & Testing Requirements
-
-### Security Checks (All Parsers):
-1. ✅ Bounds checking on all string copies
-2. ✅ Null pointer validation before dereferencing
-3. ✅ Recursion depth protection (already in RecursionGuard)
-4. ✅ Length limits on identifiers (max 10 chars for delimiter)
-5. ✅ Token existence validation (`current().text` checks)
-
-### Testing Requirements:
-1. Unit tests for each feature
-2. Cross-dialect transpilation tests
-3. Malformed input (fuzz) tests
-4. Performance benchmarks
-5. Memory safety (Valgrind/ASAN)
-6. Full regression (all 311 tests must pass)
-
-### Files to Modify:
-1. `parser.h` - Add parse methods, update parse() dispatch
-2. `generator.h` - Add visit methods, update visit() switch
-3. `tests/test_assignments.cpp` - NEW
-4. `tests/test_exceptions.cpp` - NEW
-5. `tests/test_cursors.cpp` - NEW
-6. `tests/test_delimiter.cpp` - NEW
-7. `tests/CMakeLists.txt` - Add new test files
-
----
-
-## Implementation Steps:
-1. ✅ Add all parse methods to parser.h
-2. ✅ Update parse() dispatch method
-3. ✅ Add all visit methods to generator.h
-4. ✅ Update visit() switch statement
-5. ✅ Create test files
-6. ✅ Build and fix compilation errors
-7. ✅ Run tests and fix failures
-8. ✅ Security audit
-9. ✅ Fuzz testing
-10. ✅ Performance benchmarks
-11. ✅ Memory safety checks
-12. ✅ Final regression testing
+**Let's begin!**

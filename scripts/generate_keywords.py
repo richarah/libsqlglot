@@ -284,6 +284,7 @@ keywords = [
     ("CALL", "CALL"),
     ("RETURN", "RETURN_KW"),
     ("RETURNS", "RETURNS"),
+    ("SETOF", "SETOF"),
     ("OUT", "OUT"),
     ("INOUT", "INOUT"),
     ("IF", "IF_KW"),
@@ -294,6 +295,9 @@ keywords = [
     ("ENDIF", "ENDIF"),
     ("ENDWHILE", "ENDWHILE"),
     ("ENDLOOP", "ENDLOOP"),
+    ("BREAK", "BREAK"),
+    ("CONTINUE", "CONTINUE"),
+    ("EXIT", "EXIT"),
     ("EXCEPTION", "EXCEPTION"),
     ("WHEN", "WHEN_KW"),
     ("RAISE", "RAISE"),
@@ -386,6 +390,62 @@ else:
     SLOT_SIZE = 4
 
 # Generate C++ code
+print("""#pragma once
+
+#include "tokens.h"
+#include <string_view>
+#include <cstdint>
+
+namespace libsqlglot {
+
+/// Fast keyword lookup using perfect hash function
+class KeywordLookup {
+public:
+    [[nodiscard]] static TokenType lookup(std::string_view text) noexcept {
+        if (text.empty() || text.size() > 16) {
+            return TokenType::IDENTIFIER;
+        }
+
+        // Convert to uppercase inline (branchless optimization)
+        char upper[17];
+        size_t len = text.size();
+        for (size_t i = 0; i < len; ++i) {
+            char c = text[i];
+            // Branchless: subtract 32 if lowercase (avoids branch misprediction)
+            // (c >= 'a') & (c <= 'z') evaluates to 0 or 1, shift left 5 bits = 0 or 32
+            upper[i] = c - (((c >= 'a') & (c <= 'z')) << 5);
+        }
+        upper[len] = '\\0';
+
+        // Perfect hash: (first * 31 + last + length) & 127
+        uint32_t hash = (upper[0] * 31 + upper[len - 1] + len) & 127;
+        const KeywordEntry& entry = keyword_table[hash];
+
+        // Linear probing for collisions
+        for (int i = 0; i < 8; ++i) {
+            if (entry.keywords[i] == nullptr) break;
+            if (len == entry.lengths[i]) {
+                bool match = true;
+                for (size_t j = 0; j < len; ++j) {
+                    if (upper[j] != entry.keywords[i][j]) {
+                        match = false;
+                        break;
+                    }
+                }
+                if (match) return entry.types[i];
+            }
+        }
+        return TokenType::IDENTIFIER;
+    }
+
+private:
+    struct KeywordEntry {
+        const char* keywords[8];
+        uint8_t lengths[8];
+        TokenType types[8];
+    };
+""")
+
 print(f"static constexpr KeywordEntry keyword_table[128] = {{")
 for i, entries in enumerate(hash_table):
     if not entries:
@@ -404,6 +464,12 @@ for i, entries in enumerate(hash_table):
         print(f"    {{{{{keywords_str}}}, {{{lengths_str}}}, {{{types_str}}}}},  // {comment}")
 
 print("};")
+
+# Close the class and namespace
+print("""
+};
+
+} // namespace libsqlglot""")
 
 # Print hash collision report
 print("\n// Hash collision report:")

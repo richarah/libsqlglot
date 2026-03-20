@@ -347,12 +347,181 @@ public:
                         col.unique = true;
                     } else if (match(TokenType::DEFAULT)) {
                         col.default_value = parse_expression();
+                    } else if (match(TokenType::REFERENCES)) {
+                        // REFERENCES table_name (column_name)
+                        auto* fk = new ColumnDef::ForeignKeyConstraint();
+
+                        // Table name
+                        if (current().type != TokenType::IDENTIFIER) {
+                            error_expected_after("referenced table name", "REFERENCES");
+                        }
+                        fk->ref_table = std::string(current().text);
+                        advance();
+
+                        // Optional column name: (column)
+                        if (match(TokenType::LPAREN)) {
+                            if (current().type != TokenType::IDENTIFIER) {
+                                error_expected_after("referenced column name", "(");
+                            }
+                            fk->ref_column = std::string(current().text);
+                            advance();
+                            expect(TokenType::RPAREN);
+                        }
+
+                        // ON DELETE / ON UPDATE actions
+                        while (match(TokenType::ON)) {
+                            // DELETE or UPDATE
+                            bool is_delete = false;
+                            if (match(TokenType::DELETE)) {
+                                is_delete = true;
+                            } else if (match(TokenType::UPDATE)) {
+                                // UPDATE is a keyword
+                            } else {
+                                error_expected_after("DELETE or UPDATE", "ON");
+                            }
+
+                            // Action: CASCADE, SET NULL, SET DEFAULT, RESTRICT, NO ACTION
+                            std::string action;
+
+                            // Handle SET NULL / SET DEFAULT
+                            if (match(TokenType::SET)) {
+                                if (match(TokenType::NULL_KW)) {
+                                    action = "SET NULL";
+                                } else if (match(TokenType::DEFAULT)) {
+                                    action = "SET DEFAULT";
+                                } else {
+                                    error_expected_after("NULL or DEFAULT", "SET");
+                                }
+                            } else if (current().type == TokenType::IDENTIFIER) {
+                                std::string action_kw(current().text);
+                                advance();
+
+                                if (action_kw == "CASCADE") {
+                                    action = "CASCADE";
+                                } else if (action_kw == "RESTRICT") {
+                                    action = "RESTRICT";
+                                } else if (action_kw == "NO") {
+                                    // NO ACTION
+                                    if (current().type == TokenType::IDENTIFIER &&
+                                        std::string(current().text) == "ACTION") {
+                                        advance();
+                                        action = "NO ACTION";
+                                    } else {
+                                        error_expected_after("ACTION", "NO");
+                                    }
+                                } else {
+                                    error("Expected CASCADE, RESTRICT, SET NULL, SET DEFAULT, or NO ACTION");
+                                }
+                            } else {
+                                error("Expected action keyword after ON DELETE/UPDATE");
+                            }
+
+                            if (is_delete) {
+                                fk->on_delete_action = action;
+                            } else {
+                                fk->on_update_action = action;
+                            }
+                        }
+
+                        col.fk_constraint = fk;
+                    } else if (match(TokenType::CHECK)) {
+                        // CHECK (expression)
+                        expect(TokenType::LPAREN);
+                        // For now, just consume tokens until closing paren
+                        int paren_depth = 1;
+                        std::string check_expr;
+                        while (paren_depth > 0 && !is_at_end()) {
+                            if (current().type == TokenType::LPAREN) paren_depth++;
+                            else if (current().type == TokenType::RPAREN) paren_depth--;
+
+                            if (paren_depth > 0 && current().text) {
+                                if (!check_expr.empty()) check_expr += " ";
+                                check_expr += std::string(current().text);
+                            }
+                            advance();
+                        }
+                        col.check_constraint = check_expr;
                     } else {
                         break;
                     }
                 }
 
                 stmt->columns.push_back(col);
+            } else if (match(TokenType::PRIMARY)) {
+                // Table-level PRIMARY KEY (col1, col2, ...)
+                expect(TokenType::KEY);
+                expect(TokenType::LPAREN);
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        stmt->primary_keys.push_back(std::string(current().text));
+                        advance();
+                    }
+                } while (match(TokenType::COMMA));
+                expect(TokenType::RPAREN);
+            } else if (match(TokenType::FOREIGN)) {
+                // Table-level FOREIGN KEY (col1, col2) REFERENCES table (ref_col1, ref_col2)
+                expect(TokenType::KEY);
+                expect(TokenType::LPAREN);
+
+                std::vector<std::string> fk_columns;
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        fk_columns.push_back(std::string(current().text));
+                        advance();
+                    }
+                } while (match(TokenType::COMMA));
+                expect(TokenType::RPAREN);
+
+                expect(TokenType::REFERENCES);
+
+                // Referenced table name
+                if (current().type != TokenType::IDENTIFIER) {
+                    error_expected_after("referenced table name", "REFERENCES");
+                }
+                std::string ref_table = std::string(current().text);
+                advance();
+
+                // Optional referenced columns
+                std::vector<std::string> ref_columns;
+                if (match(TokenType::LPAREN)) {
+                    do {
+                        if (current().type == TokenType::IDENTIFIER) {
+                            ref_columns.push_back(std::string(current().text));
+                            advance();
+                        }
+                    } while (match(TokenType::COMMA));
+                    expect(TokenType::RPAREN);
+                }
+
+                // Create TableRef for referenced table
+                auto* ref_table_ref = arena_.create<TableRef>(ref_table);
+
+                // For now, store as simple FK (we're not tracking ON DELETE/UPDATE at table level yet)
+                // This maintains the existing std::vector<std::pair<std::vector<std::string>, TableRef*>> structure
+                stmt->foreign_keys.push_back({fk_columns, ref_table_ref});
+
+                // TODO: Parse ON DELETE/UPDATE actions for table-level FK constraints
+            } else if (match(TokenType::UNIQUE)) {
+                // Table-level UNIQUE (col1, col2, ...)
+                expect(TokenType::LPAREN);
+                // For now, just consume - would need a unique_constraints field in CreateTableStmt
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        advance();
+                    }
+                } while (match(TokenType::COMMA));
+                expect(TokenType::RPAREN);
+            } else if (match(TokenType::CHECK)) {
+                // Table-level CHECK (expression)
+                expect(TokenType::LPAREN);
+                // For now, just consume tokens until closing paren
+                int paren_depth = 1;
+                while (paren_depth > 0 && !is_at_end()) {
+                    if (current().type == TokenType::LPAREN) paren_depth++;
+                    else if (current().type == TokenType::RPAREN) paren_depth--;
+                    advance();
+                }
+                // TODO: Store table-level CHECK constraints (would need field in CreateTableStmt)
             }
         } while (match(TokenType::COMMA));
         expect(TokenType::RPAREN);
@@ -545,24 +714,60 @@ public:
             if (current().type == TokenType::RETURNS) {
                 advance();
 
-                // Return type - can be keyword or identifier
-                if (!current().text) {
-                    error_expected_after("return type", "RETURNS");
+                // Check for RETURNS SETOF
+                if (current().type == TokenType::SETOF) {
+                    stmt->return_type = "SETOF ";
+                    advance();
                 }
-                stmt->return_type = std::string(current().text);
-                advance();
-                
-                // Type parameters
-                if (match(TokenType::LPAREN)) {
-                    stmt->return_type += "(";
-                    while (!check(TokenType::RPAREN) && !is_at_end()) {
-                        if (current().text) {
-                            stmt->return_type += std::string(current().text);
+
+                // Check for RETURNS TABLE(...)
+                if (current().type == TokenType::TABLE) {
+                    stmt->return_type += "TABLE";
+                    advance();
+
+                    // Parse table column definitions
+                    if (match(TokenType::LPAREN)) {
+                        stmt->return_type += "(";
+                        int paren_depth = 1;
+                        while (paren_depth > 0 && !is_at_end()) {
+                            if (current().type == TokenType::LPAREN) {
+                                paren_depth++;
+                            } else if (current().type == TokenType::RPAREN) {
+                                paren_depth--;
+                                if (paren_depth == 0) break;
+                            }
+                            if (current().text) {
+                                stmt->return_type += std::string(current().text);
+                            } else if (current().type == TokenType::COMMA) {
+                                stmt->return_type += ",";
+                            }
+                            advance();
                         }
-                        advance();
+                        expect(TokenType::RPAREN);
+                        stmt->return_type += ")";
                     }
-                    expect(TokenType::RPAREN);
-                    stmt->return_type += ")";
+                } else {
+                    // Regular scalar return type
+                    if (!current().text) {
+                        error_expected_after("return type", "RETURNS");
+                    }
+                    stmt->return_type += std::string(current().text);
+                    advance();
+
+                    // Type parameters (e.g., VARCHAR(100), DECIMAL(10,2))
+                    if (match(TokenType::LPAREN)) {
+                        stmt->return_type += "(";
+                        while (!check(TokenType::RPAREN) && !is_at_end()) {
+                            if (current().text) {
+                                stmt->return_type += std::string(current().text);
+                            } else if (current().type == TokenType::COMMA) {
+                                stmt->return_type += ",";
+                            }
+                            advance();
+                        }
+                        expect(TokenType::RPAREN);
+                        stmt->return_type += ")";
+                    }
                 }
             }
         }
@@ -610,8 +815,7 @@ public:
         expect(TokenType::DROP);
 
         if (check(TokenType::TABLE)) {
-            // Existing DROP TABLE would go here (not implemented yet)
-            error("DROP TABLE statement is not yet implemented");
+            return parse_drop_table();
         } else if (check(TokenType::VIEW)) {
             return parse_drop_view();
         } else if (check(TokenType::SCHEMA)) {
@@ -621,6 +825,39 @@ public:
         }
 
         error_expected_after("TABLE, VIEW, SCHEMA, or DATABASE", "DROP");
+    }
+
+    /// Parse DROP TABLE statement
+    DropTableStmt* parse_drop_table() {
+        auto stmt = arena_.create<DropTableStmt>();
+        expect(TokenType::TABLE);
+
+        // IF EXISTS
+        if (match(TokenType::IF_KW)) {
+            expect(TokenType::EXISTS);
+            stmt->if_exists = true;
+        }
+
+        // Table name
+        if (current().type != TokenType::IDENTIFIER) {
+            error_expected_after("table name", "DROP TABLE");
+        }
+        std::string table_name = std::string(current().text);
+        stmt->table = arena_.create<TableRef>(table_name);
+        advance();
+
+        // CASCADE/RESTRICT
+        if (current().type == TokenType::IDENTIFIER) {
+            std::string kw(current().text);
+            if (kw == "CASCADE") {
+                stmt->cascade = true;
+                advance();
+            } else if (kw == "RESTRICT") {
+                advance();
+            }
+        }
+
+        return stmt;
     }
 
     /// Parse DROP VIEW statement
@@ -1030,11 +1267,15 @@ public:
         }
 
         // Optional DEFAULT value or = value (T-SQL uses = instead of DEFAULT)
+        // or := value (PostgreSQL/Oracle uses :=)
         Expression* default_value = nullptr;
         if (match(TokenType::DEFAULT)) {
             default_value = parse_expression();
         } else if (match(TokenType::EQ)) {
             // T-SQL syntax: DECLARE @var INT = 0
+            default_value = parse_expression();
+        } else if (match(TokenType::COLON_EQUALS)) {
+            // PostgreSQL/Oracle syntax: DECLARE i INT := 0
             default_value = parse_expression();
         }
 
@@ -1180,6 +1421,60 @@ public:
             expect(TokenType::END);
             expect(TokenType::LOOP);  // END LOOP (two tokens)
         }
+
+        return stmt;
+    }
+
+    /// Parse LOOP statement: LOOP statements END LOOP
+    LoopStmt* parse_loop() {
+        auto stmt = arena_.create<LoopStmt>();
+        expect(TokenType::LOOP);
+
+        // Loop body (parse until END or ENDLOOP)
+        while (!check(TokenType::END) && !check(TokenType::ENDLOOP) && !is_at_end()) {
+            stmt->body.push_back(parse());
+            match(TokenType::SEMICOLON);  // Optional semicolon
+        }
+
+        // END LOOP or ENDLOOP
+        if (match(TokenType::ENDLOOP)) {
+            // Single token ENDLOOP
+        } else {
+            expect(TokenType::END);
+            expect(TokenType::LOOP);  // END LOOP (two tokens)
+        }
+
+        return stmt;
+    }
+
+    /// Parse BREAK/EXIT statement
+    BreakStmt* parse_break() {
+        auto stmt = arena_.create<BreakStmt>();
+
+        // BREAK or EXIT keyword
+        if (!match(TokenType::BREAK) && !match(TokenType::EXIT)) {
+            error("Expected BREAK or EXIT");
+        }
+
+        // Optional loop label (currently not implemented, but ready for future)
+        // if (current().type == TokenType::IDENTIFIER) {
+        //     stmt->label = std::string(current().text);
+        //     advance();
+        // }
+
+        return stmt;
+    }
+
+    /// Parse CONTINUE statement
+    ContinueStmt* parse_continue() {
+        auto stmt = arena_.create<ContinueStmt>();
+        expect(TokenType::CONTINUE);
+
+        // Optional loop label (currently not implemented, but ready for future)
+        // if (current().type == TokenType::IDENTIFIER) {
+        //     stmt->label = std::string(current().text);
+        //     advance();
+        // }
 
         return stmt;
     }
@@ -1674,6 +1969,12 @@ public:
             return parse_while();
         } else if (check(TokenType::FOR)) {
             return parse_for();
+        } else if (check(TokenType::LOOP)) {
+            return parse_loop();
+        } else if (check(TokenType::BREAK) || check(TokenType::EXIT)) {
+            return parse_break();
+        } else if (check(TokenType::CONTINUE)) {
+            return parse_continue();
         } else if (check(TokenType::DELIMITER_KW)) {
             return parse_delimiter();
         } else if (check(TokenType::OPEN)) {

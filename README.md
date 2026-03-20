@@ -78,7 +78,7 @@ stmt.walk(lambda node: print(node.type))
 optimized = sqlglot.optimize(stmt)
 ```
 
-**Python API**: `parse()`, `parse_one()`, `generate()`, `transpile()`, `optimize()`, `diff()`, `.sql()`, `.find_all()`, `.walk()`, `select()` builder
+**Python API**: `parse()`, `parse_one()`, `generate()`, `transpile()`, `optimize()`, `diff()`, `.sql()`, `.find_all()`, `.walk()`, `select()` builder, as seen in Python sqlglot.
 
 **Performance**: 95-98% of C++ speed. Overhead is ~125ns per call (10ns function call + 100ns string marshal + 15ns misc). On typical 2.5μs parse, this is 5% overhead. On complex 25μs parse, 0.5% overhead.
 

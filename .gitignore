@@ -25,9 +25,22 @@ __pycache__/
 *.pyd
 .Python
 *.egg-info/
+*.egg
+.eggs/
 dist/
 *.whl
+*.tar.gz
 .pytest_cache/
+.tox/
+.coverage
+htmlcov/
+*.cover
+.hypothesis/
+venv/
+env/
+ENV/
+.venv/
+pip-wheel-metadata/
 
 # IDE
 .vscode/
@@ -43,3 +56,10 @@ dist/
 
 # Misc
 README.md.bak
+
+# Secrets
+.pypirc
+.env
+.env.local
+*.key
+*.pem

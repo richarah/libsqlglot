@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [ master, main ]
+  pull_request:
+    branches: [ master, main ]
+
+jobs:
+  test:
+    name: Test on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        python-version: ['3.9', '3.10', '3.11', '3.12']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install build pytest
+
+    - name: Build package
+      run: python -m build
+
+    - name: Install package
+      run: pip install dist/*.whl
+
+    - name: Test import
+      run: |
+        python -c "import libsqlglot; print('libsqlglot imported successfully')"
+        python -c "import libsqlglot; sql = libsqlglot.transpile('SELECT * FROM users', libsqlglot.Dialect.MySQL, libsqlglot.Dialect.PostgreSQL); print('Transpile test:', sql)"
+
+  build-docs:
+    name: Check README
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check README exists
+      run: test -f README.md
+    - name: Check LICENSE exists
+      run: test -f LICENSE

@@ -27,9 +27,9 @@ classifiers = [
 requires-python = ">=3.9"
 
 [project.urls]
-Homepage = "https://github.com/yourusername/libsqlglot"
-Documentation = "https://github.com/yourusername/libsqlglot#readme"
-Repository = "https://github.com/yourusername/libsqlglot"
+Homepage = "https://github.com/richarah/libsqlglot"
+Documentation = "https://github.com/richarah/libsqlglot#readme"
+Repository = "https://github.com/richarah/libsqlglot"
 
 [tool.scikit-build]
 minimum-version = "0.5"

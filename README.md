@@ -88,7 +88,7 @@ optimized = sqlglot.optimize(stmt)
 
 | | libsqlglot | Python sqlglot |
 |---|---|---|
-| **Performance** | 32-242× faster (142× avg) | Baseline |
+| **Performance** | 32-242× faster (126× avg) | Baseline |
 | **Stored procedures** | Full support (PL/pgSQL, T-SQL, MySQL, PL/SQL) | Limited (`exp.Command` passthrough) |
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |

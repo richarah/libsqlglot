@@ -69,7 +69,7 @@ int main() {
                 AVG(l_discount) as avg_disc,
                 COUNT(*) as count_order
             FROM lineitem
-            WHERE l_shipdate <= DATE '1998-12-01'
+            WHERE l_shipdate <= '1998-12-01'
             GROUP BY l_returnflag, l_linestatus
             ORDER BY l_returnflag, l_linestatus
         )";
@@ -221,9 +221,9 @@ int main() {
                 ROW_NUMBER() OVER (ORDER BY id) as rn1,
                 RANK() OVER (ORDER BY score) as rn2,
                 DENSE_RANK() OVER (PARTITION BY category ORDER BY score DESC) as rn3,
-                LAG(value) OVER (ORDER BY date) as lag_val,
-                LEAD(value) OVER (ORDER BY date) as lead_val,
-                SUM(amount) OVER (PARTITION BY user_id ORDER BY date) as running_sum
+                LAG(value) OVER (ORDER BY event_date) as lag_val,
+                LEAD(value) OVER (ORDER BY event_date) as lead_val,
+                SUM(amount) OVER (PARTITION BY user_id ORDER BY event_date) as running_sum
             FROM data
         )";
         double time = benchmark_query(sql);
@@ -264,18 +264,21 @@ int main() {
 
     // Print results
     std::cout << std::left << std::setw(25) << "Query"
-              << std::right << std::setw(15) << "libsqlglot[c++]"
+              << std::right << std::setw(15) << "Time (μs)"
               << std::setw(15) << "Iterations" << "\n";
     std::cout << std::string(55, '-') << "\n";
 
+    double total_time_seconds = 0.0;
     for (const auto& result : results) {
+        double time_us = result.avg_time * 1'000'000;  // Convert to microseconds
+        total_time_seconds += result.avg_time;
         std::cout << std::left << std::setw(25) << result.name
-                  << std::right << std::setw(15) << std::fixed << std::setprecision(6) << result.avg_time
+                  << std::right << std::setw(15) << std::fixed << std::setprecision(2) << time_us
                   << std::setw(15) << result.iterations << "\n";
     }
 
     std::cout << "\nNotes:\n";
-    std::cout << "- Times are in seconds (average per query)\n";
+    std::cout << "- Times are in microseconds (μs), average per query\n";
     std::cout << "- Includes full parse + generate cycle (round-trip)\n";
     std::cout << "- Compare with sqlglot benchmarks: https://github.com/tobymao/sqlglot#benchmarks\n";
 

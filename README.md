@@ -18,7 +18,7 @@ Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot) SQL parse
 
 ## Functionality
 
-Transpiles between sqlglot AST and 31+ SQL dialects. Full stored procedure support. Fail-fast errors with exact line and column. Python bindings available at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
+Transpiles between 31+ SQL dialects via sqlglot AST. Full stored procedure support. Fail-fast errors with exact line and column. Python bindings available at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
 
 Handles the full SQL surface: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE, MERGE, plus stored procedures (CALL, RETURN, DECLARE, IF/ELSEIF/ELSE, WHILE, FOR loops). Also handles CTEs, window functions, subqueries, and various JOIN types.
 

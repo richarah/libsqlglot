@@ -1,0 +1,38 @@
+# Build directories
+build/
+build-*/
+*.cmake
+Testing/
+
+# Test binaries
+test_*
+!test_*.cpp
+fuzzing/simple_fuzzer
+fuzzing/fuzz_generator
+fuzzing/fuzz_optimizer
+fuzzing/fuzz_edge_cases
+fuzzing/*.log
+
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+*.whl
+.pytest_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Compilation artifacts
+*.o
+*.so
+*.a
+*.dylib
+*.dll

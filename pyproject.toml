@@ -1,0 +1,38 @@
+[build-system]
+requires = ["scikit-build-core", "nanobind"]
+build-backend = "scikit_build_core.build"
+
+[project]
+name = "libsqlglot"
+version = "0.1.0"
+description = "High-performance C++ SQL parser, transpiler, and optimizer with Python bindings"
+readme = "README.md"
+authors = [
+    {name = "libsqlglot contributors"}
+]
+license = {text = "Apache-2.0"}
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Database",
+    "Topic :: Software Development :: Compilers",
+]
+requires-python = ">=3.9"
+
+[project.urls]
+Homepage = "https://github.com/yourusername/libsqlglot"
+Documentation = "https://github.com/yourusername/libsqlglot#readme"
+Repository = "https://github.com/yourusername/libsqlglot"
+
+[tool.scikit-build]
+minimum-version = "0.5"
+cmake.minimum-version = "3.24"
+cmake.args = ["-DLIBSQLGLOT_BUILD_PYTHON=ON"]
+wheel.packages = ["src/python/libsqlglot"]

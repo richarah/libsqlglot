@@ -1,6 +1,6 @@
 # libsqlglot
 
-sqlglot in C++. 37x faster than sqlglot C bindings for simple queries, 1650x for complex `WHERE`. Performance gap scales with query complexity. See [Benchmarks](#benchmarks).
+sqlglot in C++. 37x faster than sqlglot C bindings for simple queries, 1650x for complex queries. Performance gap scales with query complexity. See [Benchmarks](#benchmarks).
 
 Transpiles between sqlglot AST and 31+ SQL dialects. Full stored procedure support. Fail-fast errors with exact line and column. Python bindings at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
 

@@ -209,6 +209,10 @@ int main() {
 
         iterations++;
 
+        if (iterations < 10) {
+            std::cout << "[DEBUG] Iteration " << iterations << " completed\n" << std::flush;
+        }
+
         if (iterations % 10000 == 0) {
             auto now = std::chrono::steady_clock::now();
             auto elapsed = std::chrono::duration_cast<std::chrono::seconds>(now - start_time).count();

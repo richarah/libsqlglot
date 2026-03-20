@@ -124,7 +124,7 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
 | **Optimizer** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
-| **Codebase** | 7,319 lines C++ | 50,000+ lines Python |
+| **Codebase** | 7,321 lines C++ | 50,000+ lines Python |
 | **Binary** | 15KB lib, optional 258KB Python extension | N/A |
 
 Everything else (SQL coverage, 31+ dialects, no runtime deps) is the same.
@@ -161,9 +161,28 @@ ctest --test-dir build
 
 **Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes 26,554 assertions across 288 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
 
+### Advanced optimizations
+
+**Profile-Guided Optimization (PGO)**: For production deployments requiring maximum performance, enable PGO in 3 steps:
+
+```bash
+# Step 1: Build with profiling instrumentation
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DLIBSQLGLOT_PGO_GENERATE=ON
+cmake --build build
+
+# Step 2: Run with representative workload to collect profile data
+./build/benchmarks/bench_transpiler  # or your own queries
+
+# Step 3: Rebuild using profile data for optimization (10-30% faster)
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DLIBSQLGLOT_PGO_USE=ON
+cmake --build build
+```
+
+**Compiler optimizations enabled** (Release builds): Link-Time Optimization (LTO), fast math, constant merging, symbol visibility optimization.
+
 ## Architecture
 
-7,319 lines of C++ headers, 16 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (966, 88 expression types). Entry point is `transpiler.h` (86 lines).
+7,321 lines of C++ headers, 16 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (966, 88 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 
@@ -422,7 +441,11 @@ The 16 standard queries are sqlglot's benchmark. The 8 stress tests are ours, ex
 
 **Average: 126.1× faster** (range: 32.4× to 242.4×). A million queries: 29 seconds vs 52 minutes.
 
-libsqlglot achieves this through arena allocation (O(1) cleanup), perfect hash keyword lookup (O(1)), zero-copy tokenisation via `string_view`, compile-time optimisations (C++23 `constexpr`), and cache-friendly memory layout (spatial locality, cacheline utilisation, no per-node `malloc`/`new` fragmentation as seen in Python).
+libsqlglot achieves this through:
+- **Memory**: Arena allocation (O(1) cleanup), string interning (pointer equality), zero-copy tokenization (`string_view`)
+- **Algorithms**: Perfect hash keyword lookup (O(1)), branchless uppercase conversion (no branch misprediction)
+- **Compiler**: LTO (whole-program optimization), aggressive inlining, constant folding, C++23 `constexpr`
+- **Cache**: Contiguous memory layout, spatial locality, no per-node `malloc`/`new` fragmentation
 
 ### Stress tests (8 queries, supplementary)
 

@@ -8,9 +8,9 @@ Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which di
 
 ## What this covers
 
-The full SQL surface: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE, MERGE, plus stored procedures (CALL, RETURN, DECLARE, IF/ELSEIF/ELSE, WHILE, FOR loops). Also handles CTEs, window functions, subqueries, and various JOIN types. See [SQL support](#sql-support)
+Handles the full SQL surface: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE, MERGE, plus stored procedures (CALL, RETURN, DECLARE, IF/ELSEIF/ELSE, WHILE, FOR loops). Also handles CTEs, window functions, subqueries, and various JOIN types. See [SQL support](#sql-support).
 
-31+ dialects. See [Supported SQL dialects](#supported-sql-dialects).
+Compatible with 31+ dialects. See [Supported SQL dialects](#supported-sql-dialects).
 
 ## C++ API
 

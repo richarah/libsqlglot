@@ -4,29 +4,30 @@ on:
   release:
     types: [published]
   workflow_dispatch:  # Allow manual trigger
+    inputs:
+      use_self_hosted:
+        description: 'Use self-hosted runner with GCC 16+ trunk'
+        required: false
+        default: 'true'
+        type: boolean
 
 jobs:
-  skip_c26_check:
-    name: Check C++26 compiler availability
-    runs-on: ubuntu-latest
-    steps:
-    - name: C++26 Requirement Notice
-      run: |
-        echo "⚠️  Python wheel builds require C++26 with GCC 16+ trunk"
-        echo "⚠️  CI runners don't support this yet - skipping wheel builds"
-        echo "⚠️  Manual builds with GCC 16+ trunk can create wheels"
-        echo "✅  Tag v0.2.0 published - source distribution available"
-
-  build_wheels:
-    name: Build wheels on ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    if: false  # Disabled until GCC 16 available on CI runners
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+  build_wheels_self_hosted:
+    name: Build wheels on self-hosted runner (GCC 16+ trunk)
+    runs-on: self-hosted
+    if: github.event.inputs.use_self_hosted == 'true' || github.event_name == 'release'
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Verify GCC 16+ trunk
+      run: |
+        g++ --version
+        g++ -std=c++26 -freflection -x c++ - <<< 'int main() {}' || {
+          echo "❌ GCC 16+ trunk with -freflection not available"
+          exit 1
+        }
+        echo "✅ GCC 16+ trunk with -freflection available"
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -47,7 +48,6 @@ jobs:
 
         # Use manylinux2014 for better compatibility
         CIBW_MANYLINUX_X86_64_IMAGE: manylinux2014
-        CIBW_MANYLINUX_AARCH64_IMAGE: manylinux2014
 
         # Install build dependencies
         CIBW_BEFORE_BUILD: pip install nanobind scikit-build-core
@@ -55,20 +55,28 @@ jobs:
         # Run tests after build
         CIBW_TEST_COMMAND: python -c "import libsqlglot; print('Import test passed')"
 
-        # Compiler requirements for C++26 (requires GCC 16+ trunk with -freflection)
-        # NOTE: Currently disabled - GCC 16 not yet available on CI runners
-        # CIBW_ENVIRONMENT_LINUX: CC=gcc-16 CXX=g++-16
-        CIBW_ENVIRONMENT_MACOS: MACOSX_DEPLOYMENT_TARGET=11.0
-
     - name: Upload wheels
       uses: actions/upload-artifact@v4
       with:
-        name: wheels-${{ matrix.os }}
+        name: wheels-self-hosted
         path: ./wheelhouse/*.whl
+
+  build_wheels_fallback:
+    name: Fallback notice (no self-hosted runner)
+    runs-on: ubuntu-latest
+    if: github.event.inputs.use_self_hosted == 'false'
+
+    steps:
+    - name: C++26 Requirement Notice
+      run: |
+        echo "⚠️  Python wheel builds require C++26 with GCC 16+ trunk"
+        echo "⚠️  Self-hosted runner not enabled for this build"
+        echo "💡 To build wheels, set up a self-hosted runner with GCC 16+ trunk"
+        echo "📖 See DEVELOPMENT.md for self-hosted runner setup"
 
   upload_pypi:
     name: Upload to PyPI
-    needs: [build_wheels]
+    needs: [build_wheels_self_hosted]
     runs-on: ubuntu-latest
     if: github.event_name == 'release' && github.event.action == 'published'
 

@@ -296,6 +296,88 @@ scripts/update_readme_metrics.sh
 # Updates README.md with current counts
 ```
 
+## Self-Hosted GitHub Runner for Python Wheels
+
+Python wheel builds require C++26 with GCC 16+ trunk (`-freflection`). Standard GitHub runners don't have this yet.
+
+### Setup Self-Hosted Runner
+
+**Prerequisites**:
+- Ubuntu 20.04+ or Debian 11+
+- GCC 16+ trunk built from source with C++26 reflection support
+- Python 3.9+
+- 16GB+ RAM (for wheel builds)
+
+**1. Build GCC 16 Trunk**:
+
+```bash
+# Install dependencies
+sudo apt-get update
+sudo apt-get install -y build-essential libgmp-dev libmpfr-dev libmpc-dev flex bison
+
+# Clone GCC trunk
+git clone --depth 1 https://gcc.gnu.org/git/gcc.git /tmp/gcc-trunk
+cd /tmp/gcc-trunk
+
+# Configure with C++26 reflection
+./configure --prefix=/usr/local/gcc-trunk --enable-languages=c,c++ --disable-multilib --disable-bootstrap
+
+# Build (takes 1-2 hours with -j8)
+make -j8
+
+# Install
+sudo make install
+```
+
+**2. Verify GCC 16+ Trunk**:
+
+```bash
+/usr/local/gcc-trunk/bin/g++ --version  # Should show 16.0.0 or higher
+/usr/local/gcc-trunk/bin/g++ -std=c++26 -freflection -x c++ - <<< 'int main() {}' && echo "✅ C++26 reflection works"
+```
+
+**3. Add to PATH**:
+
+```bash
+export PATH="/usr/local/gcc-trunk/bin:$PATH"
+export LD_LIBRARY_PATH="/usr/local/gcc-trunk/lib64:$LD_LIBRARY_PATH"
+
+# Add to ~/.bashrc for persistence
+echo 'export PATH="/usr/local/gcc-trunk/bin:$PATH"' >> ~/.bashrc
+echo 'export LD_LIBRARY_PATH="/usr/local/gcc-trunk/lib64:$LD_LIBRARY_PATH"' >> ~/.bashrc
+```
+
+**4. Install GitHub Actions Runner**:
+
+Follow GitHub's instructions:
+1. Go to repo → Settings → Actions → Runners → New self-hosted runner
+2. Download and configure runner for Linux x64
+3. Install runner as a service: `sudo ./svc.sh install && sudo ./svc.sh start`
+
+**5. Test Wheel Build Locally**:
+
+```bash
+git clone https://github.com/richarah/libsqlglot.git
+cd libsqlglot
+pip install cibuildwheel==2.16.2
+python -m cibuildwheel --output-dir wheelhouse
+```
+
+**6. Trigger Workflow**:
+
+Go to Actions → Build Wheels → Run workflow (or create a release)
+
+### Troubleshooting
+
+**"g++ not found"**: Ensure `/usr/local/gcc-trunk/bin` is in PATH
+**"unrecognized option '-freflection'"**: GCC version too old, rebuild trunk
+**"cannot find -lstdc++"**: Set `LD_LIBRARY_PATH` to GCC lib64 directory
+**Wheel fails to import**: Ensure manylinux2014 compatibility
+
+### Security
+
+Self-hosted runners have access to repo secrets. Only use on trusted infrastructure.
+
 ## License
 
 Apache 2.0

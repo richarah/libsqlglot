@@ -46,6 +46,7 @@ jobs:
       run: python -m build --wheel --outdir wheelhouse
       env:
         CMAKE_BUILD_TYPE: Release
+        CMAKE_ARGS: "-DLIBSQLGLOT_BUILD_TESTS=OFF -DLIBSQLGLOT_BUILD_BENCHMARKS=OFF"
 
     - name: Upload wheels
       uses: actions/upload-artifact@v4

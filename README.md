@@ -74,42 +74,42 @@ Available on PyPI: `pip install libsqlglot`
 ```python
 import libsqlglot as sqlglot
 
-# Transpile between dialects (MySQL → PostgreSQL)
-sql = sqlglot.transpile(
-    "SELECT `id`, `name` FROM `users` LIMIT 10",
-    sqlglot.Dialect.MySQL,
-    sqlglot.Dialect.PostgreSQL
-)
-# Returns: 'SELECT "users"."id", "users"."name" FROM "users" LIMIT 10'
+# Transpile
+sql = "SELECT `id`, `name` FROM `users` LIMIT 10"
+result = sqlglot.transpile(sql, read="mysql", write="postgres")
+result = sqlglot.transpile(sql, "mysql", "postgres") # Both styles work
 
-# Parse SQL into AST
-stmt = sqlglot.parse("SELECT id, name FROM users WHERE active = TRUE")
-# Returns: Statement object (AST)
+# Parse
+stmt = sqlglot.parse_one(sql) # single statement
+stmts = sqlglot.parse("SELECT 1; SELECT 2") # multiple statements
 
-# Generate SQL for different dialects
-sql_postgres = stmt.sql(dialect=sqlglot.Dialect.PostgreSQL, pretty=True)
-# Returns: 'SELECT id, name FROM users WHERE active = TRUE'
+# Generate
+sql = stmt.sql() # default ANSI
+sql = stmt.sql(dialect="postgres", pretty=True) # pretty-print
+sql = stmt.sql(dialect="sqlserver") # TRUE → 1
 
-sql_sqlserver = stmt.sql(dialect=sqlglot.Dialect.SQLServer)
-# Returns: 'SELECT id, name FROM users WHERE active = 1'  (TRUE → 1)
-
-# AST traversal - find all column references
+# AST traverse
 columns = stmt.find_all(sqlglot.ExprType.COLUMN)
-# Returns: [Column(id), Column(name), Column(active)]
+tables = stmt.find_all(sqlglot.ExprType.TABLE_REF)
+stmt.walk(lambda n: print(n.type))
 
-# AST traversal - walk all nodes
-stmt.walk(lambda node: print(node.type))
-# Prints: SELECT, COLUMN, COLUMN, TABLE, WHERE, COLUMN, LITERAL
-
-# Optimize query (column qualification, predicate pushdown)
+# Optimise
 optimized = sqlglot.optimize(stmt)
-sql = optimized.sql()
-# Returns: 'SELECT users.id, users.name FROM users WHERE users.active = TRUE'
+
+# Builder
+stmt = (sqlglot.select(["id", "name"])
+        .from_("users")
+        .where("active = TRUE")
+        .order_by("name")
+        .limit(10))
+
+# Diff
+diff = sqlglot.diff("SELECT id FROM users", "SELECT user_id FROM users")
 ```
 
 See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot.Dialect.` values.
 
-**Python API**: `parse()`, `parse_one()`, `generate()`, `transpile()`, `optimize()`, `diff()`, `.sql()`, `.find_all()`, `.walk()`, `select()` builder, as seen in Python sqlglot.
+**Python API**: `parse()`, `parse_one()`, `generate()`, `transpile()`, `optimize()`, `diff()`, `.sql()`, `.find_all()`, `.walk()`, `select()` builder.
 
 **Performance**: 95-98% of C++ speed. Overhead is ~125ns per call (10ns function call + 100ns string marshal + 15ns misc). On typical 2.5μs parse, this is 5% overhead. On complex 25μs parse, 0.5% overhead.
 

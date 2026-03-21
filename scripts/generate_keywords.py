@@ -96,7 +96,7 @@ keywords = [
     ("BLOB", "BLOB"),
     ("ARRAY", "ARRAY"),
     ("MAP", "MAP"),
-    ("STRUCT", "STRUCT"),
+    ("STRUCT", "STRUCT_KW"),
     ("JSON", "JSON"),
     ("JSONB", "JSONB"),
     ("UUID", "UUID"),
@@ -360,120 +360,307 @@ keywords = [
     ("FINAL", "FINAL"),
     ("PREWHERE", "PREWHERE"),
     ("SETTINGS", "SETTINGS"),
+
+    # Redshift-specific
+    ("DISTKEY", "DISTKEY"),
+    ("SORTKEY", "SORTKEY"),
+    ("SUPER", "SUPER"),
+    ("DISTSTYLE", "DISTSTYLE"),
+
+    # DuckDB/ClickHouse-specific
+    ("ASOF", "ASOF"),
+
+    # CockroachDB/SQLite-specific
+    ("UPSERT", "UPSERT"),
+
+    # Materialize-specific
+    ("TAIL", "TAIL"),
+
+    # Vertica-specific
+    ("PROJECTION", "PROJECTION"),
+    ("SEGMENTED", "SEGMENTED"),
+
+    # Greenplum/Doris-specific
+    ("DISTRIBUTED", "DISTRIBUTED"),
+
+    # SingleStore/PGVector-specific
+    ("VECTOR", "VECTOR"),
+
+    # Doris-specific
+    ("DUPLICATE", "DUPLICATE"),
+    ("BUCKETS", "BUCKETS"),
+
+    # TiDB-specific
+    ("AUTO_RANDOM", "AUTO_RANDOM"),
+
+    # MySQL/Spark-specific operators (note: NULL_SAFE_EQ is an operator, not a keyword)
+    # ("NULL_SAFE_EQ", "NULL_SAFE_EQ"),  # Handled separately as operator
+
+    # Databricks-specific
+    ("OPTIMIZE", "OPTIMIZE"),
+    ("ZORDER", "ZORDER"),
+
+    # Hive/Impala-specific
+    ("COMPUTE", "COMPUTE"),
+    ("STATS", "STATS"),
 ]
 
-def perfect_hash(keyword):
-    """Perfect hash: (first * 31 + last + length) & 127"""
+# Configuration constants - eliminates magic numbers
+class HashConfig:
+    """Configuration for perfect hash table generation"""
+    # Hash function parameters
+    HASH_MULTIPLIER = 31        # Prime number for better distribution
+    HASH_TABLE_SIZE = 256       # Increased from 128 to reduce collisions
+    HASH_MASK = HASH_TABLE_SIZE - 1  # Bitmask for fast modulo
+
+    # Slot sizing parameters
+    MIN_SLOT_SIZE = 4           # Minimum entries per slot
+    MAX_SLOT_SIZE = 8           # Maximum entries per slot
+    PREFERRED_MAX_COLLISIONS = 3  # Target maximum collisions per slot
+
+    # Code generation parameters
+    MAX_KEYWORD_LENGTH = 19     # Longest keyword: SYS_CONNECT_BY_PATH
+    UPPERCASE_OFFSET = 32       # ASCII offset for lowercase to uppercase
+
+    @classmethod
+    def validate(cls):
+        """Validate configuration parameters"""
+        assert cls.HASH_TABLE_SIZE > 0 and (cls.HASH_TABLE_SIZE & (cls.HASH_TABLE_SIZE - 1)) == 0, \
+            "HASH_TABLE_SIZE must be a power of 2"
+        assert cls.MIN_SLOT_SIZE > 0 and cls.MAX_SLOT_SIZE >= cls.MIN_SLOT_SIZE, \
+            "Invalid slot size configuration"
+
+# Validate configuration on startup
+HashConfig.validate()
+
+def perfect_hash(keyword: str) -> int:
+    """
+    Perfect hash function using multiplicative hashing with length component.
+
+    Formula: (first_char * HASH_MULTIPLIER + last_char + length) & HASH_MASK
+
+    Args:
+        keyword: Keyword to hash (assumed uppercase)
+
+    Returns:
+        Hash value in range [0, HASH_TABLE_SIZE)
+    """
     if not keyword:
         return 0
-    return (ord(keyword[0]) * 31 + ord(keyword[-1]) + len(keyword)) & 127
 
-# Build hash table with collision handling
-hash_table = [[] for _ in range(128)]
+    first_char = ord(keyword[0])
+    last_char = ord(keyword[-1])
+    length = len(keyword)
 
-for kw, token_type in keywords:
-    h = perfect_hash(kw)
-    hash_table[h].append((kw, token_type))
+    hash_value = (first_char * HashConfig.HASH_MULTIPLIER + last_char + length) & HashConfig.HASH_MASK
+    return hash_value
 
-# Find maximum collisions to determine array size
-max_collisions = max(len(entries) for entries in hash_table)
-if max_collisions > 4:
-    print(f"// ERROR: Maximum collisions ({max_collisions}) exceeds capacity (4)", file=__import__('sys').stderr)
-    print(f"// Slots with >4 collisions:", file=__import__('sys').stderr)
+def build_hash_table(keywords_list: list) -> tuple:
+    """
+    Build hash table with collision tracking.
+
+    Args:
+        keywords_list: List of (keyword, token_type) tuples
+
+    Returns:
+        Tuple of (hash_table, max_collisions, collision_report)
+    """
+    hash_table = [[] for _ in range(HashConfig.HASH_TABLE_SIZE)]
+
+    for kw, token_type in keywords_list:
+        h = perfect_hash(kw)
+        hash_table[h].append((kw, token_type))
+
+    # Analyze collisions
+    max_collisions = max(len(entries) for entries in hash_table) if hash_table else 0
+
+    # Generate collision report
+    collision_report = []
     for i, entries in enumerate(hash_table):
-        if len(entries) > 4:
+        if len(entries) > 1:
             kws = ", ".join([kw for kw, _ in entries])
-            print(f"//   Slot {i} ({len(entries)} entries): {kws}", file=__import__('sys').stderr)
-    print(f"// Using 8-entry slots to accommodate all keywords", file=__import__('sys').stderr)
-    SLOT_SIZE = 8
-else:
-    SLOT_SIZE = 4
+            collision_report.append(f"Slot {i} ({len(entries)} entries): {kws}")
 
-# Generate C++ code
-print("""#pragma once
+    return hash_table, max_collisions, collision_report
+
+def determine_slot_size(max_collisions: int) -> int:
+    """
+    Determine optimal slot size based on maximum collisions.
+
+    Args:
+        max_collisions: Maximum number of collisions in any slot
+
+    Returns:
+        Slot size to use
+    """
+    if max_collisions <= HashConfig.PREFERRED_MAX_COLLISIONS:
+        return HashConfig.MIN_SLOT_SIZE
+    elif max_collisions <= HashConfig.MAX_SLOT_SIZE:
+        return HashConfig.MAX_SLOT_SIZE
+    else:
+        raise ValueError(
+            f"Maximum collisions ({max_collisions}) exceeds MAX_SLOT_SIZE ({HashConfig.MAX_SLOT_SIZE}). "
+            f"Consider increasing HASH_TABLE_SIZE or improving hash function."
+        )
+
+# Build hash table
+hash_table, max_collisions, collision_report = build_hash_table(keywords)
+SLOT_SIZE = determine_slot_size(max_collisions)
+
+def generate_cpp_header(slot_size: int, table_size: int, collision_report: list) -> str:
+    """
+    Generate C++ header file content.
+
+    Args:
+        slot_size: Number of entries per hash table slot
+        table_size: Total size of hash table
+        collision_report: List of collision information strings
+
+    Returns:
+        Complete C++ header file content as string
+    """
+    # Generate collision report as comments
+    collision_comments = "\n".join([f"// {line}" for line in collision_report])
+    if collision_report:
+        collision_header = f"// Hash collision report ({len(collision_report)} slots with collisions):\n{collision_comments}\n"
+    else:
+        collision_header = "// No hash collisions - perfect hash achieved!\n"
+
+    buffer_size = HashConfig.MAX_KEYWORD_LENGTH + 1
+
+    header = f"""#pragma once
 
 #include "tokens.h"
 #include <string_view>
 #include <cstdint>
 
-namespace libsqlglot {
+namespace libsqlglot {{
 
 /// Fast keyword lookup using perfect hash function
-class KeywordLookup {
+///
+/// Hash table configuration:
+/// - Table size: {table_size}
+/// - Slot size: {slot_size}
+/// - Max keyword length: {HashConfig.MAX_KEYWORD_LENGTH}
+/// - Hash function: (first * {HashConfig.HASH_MULTIPLIER} + last + length) & {HashConfig.HASH_MASK}
+///
+{collision_header}
+class KeywordLookup {{
 public:
-    [[nodiscard]] static TokenType lookup(std::string_view text) noexcept {
-        if (text.empty() || text.size() > 16) {
+    [[nodiscard]] static TokenType lookup(std::string_view text) noexcept {{
+        if (text.empty() || text.size() > {HashConfig.MAX_KEYWORD_LENGTH}) {{
             return TokenType::IDENTIFIER;
-        }
+        }}
 
         // Convert to uppercase inline (branchless optimization)
-        char upper[17];
+        char upper[{buffer_size}];
         size_t len = text.size();
-        for (size_t i = 0; i < len; ++i) {
+        for (size_t i = 0; i < len; ++i) {{
             char c = text[i];
-            // Branchless: subtract 32 if lowercase (avoids branch misprediction)
-            // (c >= 'a') & (c <= 'z') evaluates to 0 or 1, shift left 5 bits = 0 or 32
+            // Branchless: subtract {HashConfig.UPPERCASE_OFFSET} if lowercase (avoids branch misprediction)
+            // (c >= 'a') & (c <= 'z') evaluates to 0 or 1, shift left 5 bits = 0 or {HashConfig.UPPERCASE_OFFSET}
             upper[i] = c - (((c >= 'a') & (c <= 'z')) << 5);
-        }
+        }}
         upper[len] = '\\0';
 
-        // Perfect hash: (first * 31 + last + length) & 127
-        uint32_t hash = (upper[0] * 31 + upper[len - 1] + len) & 127;
+        // Perfect hash: (first * {HashConfig.HASH_MULTIPLIER} + last + length) & {HashConfig.HASH_MASK}
+        uint32_t hash = (upper[0] * {HashConfig.HASH_MULTIPLIER} + upper[len - 1] + len) & {HashConfig.HASH_MASK};
         const KeywordEntry& entry = keyword_table[hash];
 
         // Linear probing for collisions
-        for (int i = 0; i < 8; ++i) {
+        for (int i = 0; i < {slot_size}; ++i) {{
             if (entry.keywords[i] == nullptr) break;
-            if (len == entry.lengths[i]) {
+            if (len == entry.lengths[i]) {{
                 bool match = true;
-                for (size_t j = 0; j < len; ++j) {
-                    if (upper[j] != entry.keywords[i][j]) {
+                for (size_t j = 0; j < len; ++j) {{
+                    if (upper[j] != entry.keywords[i][j]) {{
                         match = false;
                         break;
-                    }
-                }
+                    }}
+                }}
                 if (match) return entry.types[i];
-            }
-        }
+            }}
+        }}
         return TokenType::IDENTIFIER;
-    }
+    }}
 
 private:
-    struct KeywordEntry {
-        const char* keywords[8];
-        uint8_t lengths[8];
-        TokenType types[8];
-    };
-""")
+    struct KeywordEntry {{
+        const char* keywords[{slot_size}];
+        uint8_t lengths[{slot_size}];
+        TokenType types[{slot_size}];
+    }};
+"""
+    return header
 
-print(f"static constexpr KeywordEntry keyword_table[128] = {{")
-for i, entries in enumerate(hash_table):
-    if not entries:
-        nulls = ", ".join(["nullptr"] * SLOT_SIZE)
-        zeros = ", ".join(["0"] * SLOT_SIZE)
-        idents = ", ".join(["TokenType::IDENTIFIER"] * SLOT_SIZE)
-        print(f"    {{{{{nulls}}}, {{{zeros}}}, {{{idents}}}}},")
-    else:
-        # Take only first SLOT_SIZE entries
-        limited_entries = entries[:SLOT_SIZE]
-        keywords_str = ", ".join([f'"{kw}"' for kw, _ in limited_entries] + ["nullptr"] * (SLOT_SIZE - len(limited_entries)))
-        lengths_str = ", ".join([str(len(kw)) for kw, _ in limited_entries] + ["0"] * (SLOT_SIZE - len(limited_entries)))
-        types_str = ", ".join([f"TokenType::{tt}" for _, tt in limited_entries] + ["TokenType::IDENTIFIER"] * (SLOT_SIZE - len(limited_entries)))
+# Generate C++ code
+print(generate_cpp_header(SLOT_SIZE, HashConfig.HASH_TABLE_SIZE, collision_report))
 
-        comment = ", ".join([f"{kw} (hash={i})" for kw, _ in limited_entries])
-        print(f"    {{{{{keywords_str}}}, {{{lengths_str}}}, {{{types_str}}}}},  // {comment}")
+def generate_empty_slot(slot_size: int) -> tuple:
+    """Generate arrays for an empty hash table slot."""
+    nulls = ", ".join(["nullptr"] * slot_size)
+    zeros = ", ".join(["0"] * slot_size)
+    idents = ", ".join(["TokenType::IDENTIFIER"] * slot_size)
+    return nulls, zeros, idents
 
-print("};")
+def generate_filled_slot(entries: list, slot_size: int, slot_index: int) -> tuple:
+    """Generate arrays for a filled hash table slot."""
+    # Ensure we don't exceed slot size
+    limited_entries = entries[:slot_size]
+    padding_count = slot_size - len(limited_entries)
+
+    # Generate keyword strings
+    keywords_str = ", ".join(
+        [f'"{kw}"' for kw, _ in limited_entries] + ["nullptr"] * padding_count
+    )
+
+    # Generate lengths
+    lengths_str = ", ".join(
+        [str(len(kw)) for kw, _ in limited_entries] + ["0"] * padding_count
+    )
+
+    # Generate token types
+    types_str = ", ".join(
+        [f"TokenType::{tt}" for _, tt in limited_entries] + ["TokenType::IDENTIFIER"] * padding_count
+    )
+
+    # Generate comment
+    comment = ", ".join([f"{kw} (hash={slot_index})" for kw, _ in limited_entries])
+
+    return keywords_str, lengths_str, types_str, comment
+
+def generate_hash_table_code(hash_table: list, slot_size: int, table_size: int) -> str:
+    """
+    Generate C++ static hash table initialization code.
+
+    Args:
+        hash_table: List of keyword entries per slot
+        slot_size: Number of entries per slot
+        table_size: Total size of hash table
+
+    Returns:
+        C++ code for static hash table
+    """
+    lines = [f"static constexpr KeywordEntry keyword_table[{table_size}] = {{"]
+
+    for i in range(table_size):
+        entries = hash_table[i] if i < len(hash_table) else []
+
+        if not entries:
+            nulls, zeros, idents = generate_empty_slot(slot_size)
+            lines.append(f"    {{{{{nulls}}}, {{{zeros}}}, {{{idents}}}}},")
+        else:
+            keywords_str, lengths_str, types_str, comment = generate_filled_slot(entries, slot_size, i)
+            lines.append(f"    {{{{{keywords_str}}}, {{{lengths_str}}}, {{{types_str}}}}},  // {comment}")
+
+    lines.append("};")
+    return "\n".join(lines)
+
+# Generate hash table
+print(generate_hash_table_code(hash_table, SLOT_SIZE, HashConfig.HASH_TABLE_SIZE))
 
 # Close the class and namespace
 print("""
 };
 
 } // namespace libsqlglot""")
-
-# Print hash collision report
-print("\n// Hash collision report:")
-for i, entries in enumerate(hash_table):
-    if len(entries) > 1:
-        kws = ", ".join([kw for kw, _ in entries])
-        print(f"// Slot {i} ({len(entries)} entries): {kws}")

@@ -342,6 +342,12 @@ private:
         char c = advance();
         char next = peek();
 
+        // Three-character operators
+        if (c == '<' && next == '=' && peek(1) == '>') {
+            advance(); advance(); // <=
+            return make_token(TokenType::NULL_SAFE_EQ, start_pos, pos_, start_line, start_col);
+        }
+
         // Two-character operators
         if (c == '|' && next == '|') { advance(); return make_token(TokenType::CONCAT, start_pos, pos_, start_line, start_col); }
         if (c == '<' && next == '>') { advance(); return make_token(TokenType::NEQ, start_pos, pos_, start_line, start_col); }

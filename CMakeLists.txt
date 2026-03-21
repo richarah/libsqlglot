@@ -1,9 +1,38 @@
 cmake_minimum_required(VERSION 3.21)
 project(libsqlglot VERSION 0.1.2 LANGUAGES CXX)
 
-set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
+# Require C++26 for reflection and advanced constexpr features
+# Note: CMake 3.28 doesn't recognize CMAKE_CXX_STANDARD=26, so we use manual flags
+# DO NOT set CMAKE_CXX_STANDARD here - it will cause "CXX26 dialect unknown" errors
+
+# Manually add C++26 flag (CMake 3.28 doesn't have cxx_std_26 support yet)
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_compile_options(-std=c++2b -freflection)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    add_compile_options(-std=c++26 -freflection)
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    add_compile_options(/std:c++26)
+endif()
+
+# Require C++26 for reflection support - NO FALLBACK
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "14.0")
+        message(FATAL_ERROR "GCC 14.0+ required for C++26 reflection (found ${CMAKE_CXX_COMPILER_VERSION}). Please upgrade compiler.")
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "18.0")
+        message(FATAL_ERROR "Clang 18.0+ required for C++26 reflection (found ${CMAKE_CXX_COMPILER_VERSION}). Please upgrade compiler.")
+    endif()
+elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.40")
+        message(FATAL_ERROR "MSVC 19.40+ required for C++26 reflection (found ${CMAKE_CXX_COMPILER_VERSION}). Please upgrade compiler.")
+    endif()
+else()
+    message(FATAL_ERROR "Unknown compiler ${CMAKE_CXX_COMPILER_ID}. Supported: GCC 14+, Clang 18+, MSVC 19.40+")
+endif()
+
+message(STATUS "C++26 reflection enabled - keywords auto-generated from TokenType enum")
+message(STATUS "Compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
 
 # Options
 option(LIBSQLGLOT_BUILD_TESTS "Build tests" ON)
@@ -119,7 +148,8 @@ target_include_directories(libsqlglot INTERFACE
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
-target_compile_features(libsqlglot INTERFACE cxx_std_23)
+# Note: CMake 3.28 doesn't support cxx_std_26, using manual flag above
+# target_compile_features(libsqlglot INTERFACE cxx_std_26)
 add_dependencies(libsqlglot merge_dialects)
 
 # Optional compiled shared library

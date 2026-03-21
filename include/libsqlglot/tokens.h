@@ -198,6 +198,42 @@ enum class TokenType : uint16_t {
     FINAL, PREWHERE,
     SETTINGS,
 
+    // Redshift-specific
+    DISTKEY, SORTKEY, SUPER, DISTSTYLE,
+
+    // DuckDB/ClickHouse-specific
+    ASOF,
+
+    // CockroachDB/SQLite-specific
+    UPSERT,
+
+    // Materialize-specific
+    TAIL,
+
+    // Vertica-specific
+    PROJECTION, SEGMENTED,
+
+    // Greenplum/Doris-specific
+    DISTRIBUTED,
+
+    // SingleStore/PGVector-specific
+    VECTOR,
+
+    // Doris-specific
+    DUPLICATE, BUCKETS,
+
+    // TiDB-specific
+    AUTO_RANDOM,
+
+    // MySQL/Spark-specific operators
+    NULL_SAFE_EQ,  // <=> operator
+
+    // Databricks-specific
+    OPTIMIZE, ZORDER,
+
+    // Hive/Impala-specific
+    COMPUTE, STATS,
+
     // Keep this last - for iteration
     TOKEN_TYPE_COUNT
 };

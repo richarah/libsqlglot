@@ -10,6 +10,7 @@ Build instructions for libsqlglot internals, grammar generation pipeline, and in
 - [Testing](#testing)
 - [Code Quality](#code-quality)
 - [Performance Profiling](#performance-profiling)
+- [Release Process](#release-process)
 
 ## Building
 
@@ -377,6 +378,74 @@ Go to Actions → Build Wheels → Run workflow (or create a release)
 ### Security
 
 Self-hosted runners have access to repo secrets. Only use on trusted infrastructure.
+
+## Release Process
+
+libsqlglot uses an automated release process that publishes to both GitHub Releases and PyPI.
+
+### Prerequisites
+
+1. **GitHub CLI** (`gh`) installed and authenticated
+2. **Self-hosted runner** configured with GCC 16+ trunk (see above)
+3. **PyPI API token** configured as `PYPI_API_TOKEN` secret in GitHub repo settings
+
+### Creating a Release
+
+Use the automated release script:
+
+```bash
+./scripts/release.sh v0.1.3
+```
+
+**What the script does**:
+
+1. Validates version format (must be `vX.Y.Z`)
+2. Checks you're on `master` branch with clean working directory
+3. Updates version in `CMakeLists.txt` and `pyproject.toml`
+4. Commits version bump
+5. Creates and pushes git tag
+6. Creates GitHub release with auto-generated release notes
+
+**What GitHub Actions does automatically**:
+
+1. Builds Python wheels on self-hosted runner (requires GCC 16+ trunk with `-freflection`)
+2. Uploads wheels to GitHub release
+3. Publishes wheels to PyPI using `PYPI_API_TOKEN`
+
+### Manual Release (if script unavailable)
+
+```bash
+# 1. Update versions
+VERSION=0.1.3
+sed -i "s/^project(libsqlglot VERSION .*/project(libsqlglot VERSION $VERSION LANGUAGES CXX)/" CMakeLists.txt
+sed -i "s/^version = .*/version = \"$VERSION\"/" pyproject.toml
+
+# 2. Commit and tag
+git add CMakeLists.txt pyproject.toml
+git commit -m "Bump version to v$VERSION"
+git tag -a "v$VERSION" -m "Release v$VERSION"
+git push origin master v$VERSION
+
+# 3. Create GitHub release (triggers wheel build and PyPI publish)
+gh release create "v$VERSION" --title "Release v$VERSION" --generate-notes
+```
+
+### Monitoring Release
+
+After creating the release:
+
+1. Go to **Actions** tab in GitHub
+2. Watch the "Build Wheels" workflow
+3. Verify wheels are uploaded to GitHub release
+4. Verify package appears on PyPI: https://pypi.org/project/libsqlglot/
+
+### Troubleshooting
+
+**Wheel build fails**: Ensure self-hosted runner has GCC 16+ trunk with `-freflection` support
+
+**PyPI upload fails**: Check `PYPI_API_TOKEN` secret is configured correctly
+
+**Version conflict**: PyPI doesn't allow re-uploading same version - bump version and retry
 
 ## License
 

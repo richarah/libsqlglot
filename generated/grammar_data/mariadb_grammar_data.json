@@ -48431,38 +48431,18 @@
   ],
   "operators": [
     {
-      "token": "OR",
-      "precedence": 3,
-      "associativity": "left"
-    },
-    {
-      "token": "RANGE",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "DIVIDE",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
       "token": "OVERLAPS",
       "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "NOT",
-      "precedence": 5,
-      "associativity": "right"
-    },
-    {
-      "token": "MINUS",
+      "token": "PLUS",
       "precedence": 11,
       "associativity": "left"
     },
     {
-      "token": "CONCAT",
-      "precedence": 10,
+      "token": "MINUS",
+      "precedence": 11,
       "associativity": "left"
     },
     {
@@ -48471,9 +48451,9 @@
       "associativity": "left"
     },
     {
-      "token": "POWER",
-      "precedence": 13,
-      "associativity": "right"
+      "token": "CONCAT",
+      "precedence": 10,
+      "associativity": "left"
     },
     {
       "token": "STAR",
@@ -48481,9 +48461,29 @@
       "associativity": "left"
     },
     {
-      "token": "PLUS",
-      "precedence": 11,
+      "token": "RANGE",
+      "precedence": 6,
       "associativity": "left"
+    },
+    {
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "POWER",
+      "precedence": 13,
+      "associativity": "right"
+    },
+    {
+      "token": "DIVIDE",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "NOT",
+      "precedence": 5,
+      "associativity": "right"
     }
   ],
   "keywords": [

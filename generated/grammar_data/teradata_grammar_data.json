@@ -1857,14 +1857,14 @@
   ],
   "operators": [
     {
-      "token": "NOT",
-      "precedence": 5,
-      "associativity": "right"
+      "token": "PERCENT",
+      "precedence": 12,
+      "associativity": "left"
     },
     {
-      "token": "CARET",
-      "precedence": 13,
-      "associativity": "right"
+      "token": "CONCAT",
+      "precedence": 10,
+      "associativity": "left"
     },
     {
       "token": "EQ",
@@ -1872,27 +1872,7 @@
       "associativity": "left"
     },
     {
-      "token": "PERCENT",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "AND",
-      "precedence": 4,
-      "associativity": "left"
-    },
-    {
       "token": "GT",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "OR",
-      "precedence": 3,
-      "associativity": "left"
-    },
-    {
-      "token": "RANGE",
       "precedence": 6,
       "associativity": "left"
     },
@@ -1902,13 +1882,18 @@
       "associativity": "left"
     },
     {
-      "token": "LT",
+      "token": "AND",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE",
       "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "OVERLAPS",
-      "precedence": 6,
+      "token": "OR",
+      "precedence": 3,
       "associativity": "left"
     },
     {
@@ -1917,13 +1902,28 @@
       "associativity": "left"
     },
     {
-      "token": "CONCAT",
-      "precedence": 10,
+      "token": "POWER",
+      "precedence": 13,
+      "associativity": "right"
+    },
+    {
+      "token": "OVERLAPS",
+      "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "POWER",
+      "token": "CARET",
       "precedence": 13,
+      "associativity": "right"
+    },
+    {
+      "token": "LT",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "NOT",
+      "precedence": 5,
       "associativity": "right"
     }
   ],

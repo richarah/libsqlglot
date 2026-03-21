@@ -5,6 +5,7 @@
 #include "tokenizer.h"
 #include "expression.h"
 #include "arena.h"
+#include "operator_precedence.h"
 #include <vector>
 #include <string_view>
 #include <stdexcept>

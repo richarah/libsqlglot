@@ -13,7 +13,7 @@ Output headers:
 
 import json
 from pathlib import Path
-from typing import List, Dict, Set, Any
+from typing import List, Dict, Set, Any, Optional
 from dataclasses import dataclass
 from collections import defaultdict
 
@@ -212,6 +212,10 @@ class UnifiedGrammarGenerator:
             # Map to TokenType enum to check for duplicates
             token_enum = self._token_to_enum(token)
 
+            # Skip if mapping returned None (token doesn't exist in TokenType)
+            if token_enum is None:
+                continue
+
             # Only add if we haven't seen this TokenType enum before
             # If duplicate, prefer higher precedence
             if token_enum not in unique_operators:
@@ -290,26 +294,25 @@ class UnifiedGrammarGenerator:
         print(f"[SUCCESS] All headers generated in {output_dir}")
         print(f"{'='*80}\n")
 
-    def _token_to_enum(self, token: str) -> str:
+    def _token_to_enum(self, token: str) -> Optional[str]:
         """Convert token name to TokenType enum name using token mapping"""
-        # Try ANTLR token mapping first
+        # Try ANTLR token mapping first - this may explicitly return None to skip
         mapped = map_antlr_token(token)
+        # If explicitly None, don't try other mappings - it's a skip
+        if mapped is None:
+            # Check if it was an explicit "skip" (in dict with None value) vs unknown token
+            # For now, just return None to skip it
+            return None
         if mapped:
             return mapped
 
-        # Try keyword mapping
+        # Try keyword mapping only if ANTLR mapping didn't return anything
         mapped = map_keyword(token)
         if mapped:
             return mapped
 
-        # Fallback: clean up common patterns
-        clean = token.upper()
-        for suffix in ['_SYMBOL', '_OPERATOR', '_KW']:
-            if clean.endswith(suffix):
-                clean = clean[:-len(suffix)]
-                break
-
-        return clean
+        # Unknown token - return None to skip it
+        return None
 
     def _dialect_to_enum(self, dialect: str) -> str:
         """Convert dialect name to Dialect enum name"""

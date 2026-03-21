@@ -3789,32 +3789,7 @@
   ],
   "operators": [
     {
-      "token": "AND",
-      "precedence": 4,
-      "associativity": "left"
-    },
-    {
       "token": "LT",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "OR",
-      "precedence": 3,
-      "associativity": "left"
-    },
-    {
-      "token": "MINUS",
-      "precedence": 11,
-      "associativity": "left"
-    },
-    {
-      "token": "STAR",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "GT",
       "precedence": 6,
       "associativity": "left"
     },
@@ -3824,7 +3799,32 @@
       "associativity": "left"
     },
     {
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
       "token": "EQ",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "STAR",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "MINUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "AND",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "GT",
       "precedence": 6,
       "associativity": "left"
     },

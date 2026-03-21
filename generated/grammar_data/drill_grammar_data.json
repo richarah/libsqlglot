@@ -3049,52 +3049,7 @@
   ],
   "operators": [
     {
-      "token": "ASSIGN",
-      "precedence": 2,
-      "associativity": "right"
-    },
-    {
-      "token": "AND",
-      "precedence": 4,
-      "associativity": "left"
-    },
-    {
       "token": "LT",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "PERCENT",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "OR",
-      "precedence": 3,
-      "associativity": "left"
-    },
-    {
-      "token": "MINUS",
-      "precedence": 11,
-      "associativity": "left"
-    },
-    {
-      "token": "EXCLAMATION",
-      "precedence": 5,
-      "associativity": "right"
-    },
-    {
-      "token": "DIVIDE",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "STAR",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "GT",
       "precedence": 6,
       "associativity": "left"
     },
@@ -3109,7 +3064,52 @@
       "associativity": "left"
     },
     {
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "PERCENT",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "STAR",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "MINUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "AND",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "DIVIDE",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "GT",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "ASSIGN",
+      "precedence": 2,
+      "associativity": "right"
+    },
+    {
       "token": "NOT",
+      "precedence": 5,
+      "associativity": "right"
+    },
+    {
+      "token": "EXCLAMATION",
       "precedence": 5,
       "associativity": "right"
     }

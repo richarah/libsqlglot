@@ -94,6 +94,7 @@ class TokenMapper:
             'MINUS_OPERATOR': 'MINUS',
             'MULT_OPERATOR': 'STAR',
             'DIV_OPERATOR': 'SLASH',
+            'DIVIDE': 'SLASH',  # Map DIVIDE to SLASH
             'MOD_OPERATOR': 'PERCENT',
             'EQUAL_OPERATOR': 'EQ',
             'NOT_EQUAL_OPERATOR': 'NEQ',
@@ -110,8 +111,16 @@ class TokenMapper:
             'LOGICAL_OR_OPERATOR': 'OR',
             'LOGICAL_NOT_OPERATOR': 'NOT',
             'CONCAT_OPERATOR': 'CONCAT',
-            'ASSIGN_OPERATOR': 'EQ',
+            'ASSIGN_OPERATOR': None,  # Skip - no ASSIGN in TokenType
             'COLON_EQUALS': 'COLON_EQUALS',
+            'QUESTION_MARK': 'QUESTION',  # Map QUESTION_MARK to QUESTION
+            'NULL_SAFE_EQUAL_OPERATOR': None,  # Skip - not in TokenType
+            'OVERLAPS': None,  # Skip - not an operator token
+            'EXCLAMATION': None,  # Skip - not in TokenType
+            'SHIFT_LEFT': None,  # Skip - not in TokenType
+            'SHIFT_LEFT_OPERATOR': None,
+            'SHIFT_RIGHT': None,
+            'SHIFT_RIGHT_OPERATOR': None,
 
             # Delimiters
             'LPAREN': 'LPAREN',
@@ -210,12 +219,13 @@ class TokenMapper:
         }
 
         self.antlr_to_libsqlglot = explicit_mappings
-        self.known_tokens = set(explicit_mappings.values())
+        # Filter out None values from known tokens
+        self.known_tokens = {v for v in explicit_mappings.values() if v is not None}
 
     def map_token(self, antlr_name: str) -> Optional[str]:
         """Map ANTLR token name to libsqlglot TokenType"""
 
-        # Direct mapping
+        # Direct mapping (including None for explicitly skipped tokens)
         if antlr_name in self.antlr_to_libsqlglot:
             return self.antlr_to_libsqlglot[antlr_name]
 
@@ -227,6 +237,14 @@ class TokenMapper:
                 clean = clean[:-len(suffix)]
                 break
 
+        # Remove trailing underscore (Trino/Presto pattern) and map to base token
+        if clean.endswith('_') and len(clean) > 1:
+            clean = clean[:-1]
+
+        # Check direct mapping again after cleaning (might have None value)
+        if clean in self.antlr_to_libsqlglot:
+            return self.antlr_to_libsqlglot[clean]
+
         # Check if cleaned name is a known token
         if clean in self.known_tokens:
             return clean
@@ -237,8 +255,8 @@ class TokenMapper:
         if 'DIV' in clean and 'DIVIDE' not in clean:
             return 'SLASH'
 
-        # Return cleaned name (might not exist in libsqlglot, but that's ok)
-        return clean
+        # Unknown token - return None to skip it
+        return None
 
     def map_keyword(self, keyword: str) -> Optional[str]:
         """Map extracted keyword to libsqlglot TokenType"""

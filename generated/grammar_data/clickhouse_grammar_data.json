@@ -8309,13 +8309,13 @@
   ],
   "operators": [
     {
-      "token": "AND",
-      "precedence": 4,
+      "token": "LT",
+      "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "LT",
-      "precedence": 6,
+      "token": "PLUS",
+      "precedence": 11,
       "associativity": "left"
     },
     {
@@ -8329,13 +8329,13 @@
       "associativity": "left"
     },
     {
-      "token": "RANGE",
-      "precedence": 6,
+      "token": "SLASH",
+      "precedence": 12,
       "associativity": "left"
     },
     {
-      "token": "SLASH",
-      "precedence": 12,
+      "token": "AND",
+      "precedence": 4,
       "associativity": "left"
     },
     {
@@ -8344,12 +8344,12 @@
       "associativity": "left"
     },
     {
-      "token": "PLUS",
-      "precedence": 11,
+      "token": "ARROW",
+      "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "ARROW",
+      "token": "RANGE",
       "precedence": 6,
       "associativity": "left"
     },

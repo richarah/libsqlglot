@@ -891,14 +891,14 @@
   ],
   "operators": [
     {
-      "token": "DIVIDE",
-      "precedence": 12,
+      "token": "PLUS",
+      "precedence": 11,
       "associativity": "left"
     },
     {
-      "token": "AMPERSAND",
-      "precedence": 9,
-      "associativity": "left"
+      "token": "TILDE",
+      "precedence": 14,
+      "associativity": "right"
     },
     {
       "token": "MINUS",
@@ -911,13 +911,13 @@
       "associativity": "left"
     },
     {
-      "token": "TILDE",
-      "precedence": 14,
-      "associativity": "right"
+      "token": "AMPERSAND",
+      "precedence": 9,
+      "associativity": "left"
     },
     {
-      "token": "PLUS",
-      "precedence": 11,
+      "token": "DIVIDE",
+      "precedence": 12,
       "associativity": "left"
     }
   ],

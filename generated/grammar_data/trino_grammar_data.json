@@ -12314,23 +12314,8 @@
       "associativity": "left"
     },
     {
-      "token": "NOT_",
-      "precedence": 5,
-      "associativity": "right"
-    },
-    {
       "token": "NEQ_",
       "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "SLASH_",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "MINUS_",
-      "precedence": 11,
       "associativity": "left"
     },
     {
@@ -12339,13 +12324,18 @@
       "associativity": "left"
     },
     {
-      "token": "AND_",
-      "precedence": 4,
+      "token": "MINUS_",
+      "precedence": 11,
       "associativity": "left"
     },
     {
-      "token": "LTE_",
-      "precedence": 6,
+      "token": "OR_",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "AND_",
+      "precedence": 4,
       "associativity": "left"
     },
     {
@@ -12354,9 +12344,14 @@
       "associativity": "right"
     },
     {
-      "token": "GTE_",
-      "precedence": 6,
+      "token": "SLASH_",
+      "precedence": 12,
       "associativity": "left"
+    },
+    {
+      "token": "NOT_",
+      "precedence": 5,
+      "associativity": "right"
     },
     {
       "token": "GT_",
@@ -12364,7 +12359,12 @@
       "associativity": "left"
     },
     {
-      "token": "EQ_",
+      "token": "LTE_",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "GTE_",
       "precedence": 6,
       "associativity": "left"
     },
@@ -12374,18 +12374,18 @@
       "associativity": "left"
     },
     {
-      "token": "RANGE_",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
       "token": "PERCENT_",
       "precedence": 12,
       "associativity": "left"
     },
     {
-      "token": "OR_",
-      "precedence": 3,
+      "token": "EQ_",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE_",
+      "precedence": 6,
       "associativity": "left"
     }
   ],

@@ -150919,8 +150919,8 @@
   ],
   "operators": [
     {
-      "token": "NOT",
-      "precedence": 5,
+      "token": "ASSIGN",
+      "precedence": 2,
       "associativity": "right"
     },
     {
@@ -150929,28 +150929,13 @@
       "associativity": "left"
     },
     {
+      "token": "CONCAT",
+      "precedence": 10,
+      "associativity": "left"
+    },
+    {
       "token": "PIPE",
       "precedence": 7,
-      "associativity": "left"
-    },
-    {
-      "token": "AND",
-      "precedence": 4,
-      "associativity": "left"
-    },
-    {
-      "token": "OR",
-      "precedence": 3,
-      "associativity": "left"
-    },
-    {
-      "token": "RANGE",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "AMPERSAND",
-      "precedence": 9,
       "associativity": "left"
     },
     {
@@ -150964,23 +150949,38 @@
       "associativity": "left"
     },
     {
+      "token": "AND",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "POWER",
+      "precedence": 13,
+      "associativity": "right"
+    },
+    {
       "token": "OVERLAPS",
       "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "CONCAT",
-      "precedence": 10,
+      "token": "AMPERSAND",
+      "precedence": 9,
       "associativity": "left"
     },
     {
-      "token": "ASSIGN",
-      "precedence": 2,
-      "associativity": "right"
-    },
-    {
-      "token": "POWER",
-      "precedence": 13,
+      "token": "NOT",
+      "precedence": 5,
       "associativity": "right"
     }
   ],

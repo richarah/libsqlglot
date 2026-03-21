@@ -3275,13 +3275,13 @@
   ],
   "operators": [
     {
-      "token": "AND",
-      "precedence": 4,
+      "token": "OR",
+      "precedence": 3,
       "associativity": "left"
     },
     {
-      "token": "OR",
-      "precedence": 3,
+      "token": "AND",
+      "precedence": 4,
       "associativity": "left"
     },
     {

@@ -15373,42 +15373,7 @@
   ],
   "operators": [
     {
-      "token": "AND_",
-      "precedence": 4,
-      "associativity": "left"
-    },
-    {
-      "token": "ASSIGN",
-      "precedence": 2,
-      "associativity": "right"
-    },
-    {
       "token": "LT",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "MINUS",
-      "precedence": 11,
-      "associativity": "left"
-    },
-    {
-      "token": "RANGE_",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "STAR",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "TILDE",
-      "precedence": 14,
-      "associativity": "right"
-    },
-    {
-      "token": "GT",
       "precedence": 6,
       "associativity": "left"
     },
@@ -15423,14 +15388,49 @@
       "associativity": "left"
     },
     {
-      "token": "OR_",
-      "precedence": 3,
+      "token": "TILDE",
+      "precedence": 14,
+      "associativity": "right"
+    },
+    {
+      "token": "STAR",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "MINUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "GT",
+      "precedence": 6,
       "associativity": "left"
     },
     {
       "token": "NOT_",
       "precedence": 5,
       "associativity": "right"
+    },
+    {
+      "token": "OR_",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "ASSIGN",
+      "precedence": 2,
+      "associativity": "right"
+    },
+    {
+      "token": "AND_",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE_",
+      "precedence": 6,
+      "associativity": "left"
     }
   ],
   "keywords": [

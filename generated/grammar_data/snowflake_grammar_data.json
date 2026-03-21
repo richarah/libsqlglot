@@ -69985,18 +69985,13 @@
   ],
   "operators": [
     {
-      "token": "OR",
-      "precedence": 3,
+      "token": "MINUS_",
+      "precedence": 11,
       "associativity": "left"
     },
     {
-      "token": "DIVIDE",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "EQ",
-      "precedence": 6,
+      "token": "PLUS",
+      "precedence": 11,
       "associativity": "left"
     },
     {
@@ -70005,33 +70000,18 @@
       "associativity": "left"
     },
     {
-      "token": "MINUS_",
-      "precedence": 11,
-      "associativity": "left"
-    },
-    {
-      "token": "PIPE",
-      "precedence": 7,
-      "associativity": "left"
-    },
-    {
-      "token": "NOT",
-      "precedence": 5,
-      "associativity": "right"
-    },
-    {
       "token": "MINUS",
       "precedence": 11,
       "associativity": "left"
     },
     {
-      "token": "CONCAT",
-      "precedence": 10,
+      "token": "AND",
+      "precedence": 4,
       "associativity": "left"
     },
     {
-      "token": "AND",
-      "precedence": 4,
+      "token": "CONCAT",
+      "precedence": 10,
       "associativity": "left"
     },
     {
@@ -70045,19 +70025,39 @@
       "associativity": "left"
     },
     {
+      "token": "ARROW",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "EQ",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "PIPE",
+      "precedence": 7,
+      "associativity": "left"
+    },
+    {
+      "token": "DIVIDE",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
       "token": "GT",
       "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "PLUS",
-      "precedence": 11,
-      "associativity": "left"
-    },
-    {
-      "token": "ARROW",
-      "precedence": 6,
-      "associativity": "left"
+      "token": "NOT",
+      "precedence": 5,
+      "associativity": "right"
     }
   ],
   "keywords": [

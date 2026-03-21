@@ -24,10 +24,27 @@ struct OperatorPrecedence {
 
 /// Operator precedence table (higher number = higher precedence)
 constexpr OperatorPrecedence operator_precedence[] = {
-
+    {TokenType::STAR, 12, Associativity::LEFT},
+    {TokenType::SLASH, 12, Associativity::LEFT},
+    {TokenType::PERCENT, 12, Associativity::LEFT},
+    {TokenType::MINUS, 11, Associativity::LEFT},
+    {TokenType::PLUS, 11, Associativity::LEFT},
+    {TokenType::SHIFT_RIGHT, 10, Associativity::LEFT},
+    {TokenType::SHIFT_LEFT, 10, Associativity::LEFT},
+    {TokenType::AMPERSAND, 9, Associativity::LEFT},
+    {TokenType::CARET, 8, Associativity::LEFT},
+    {TokenType::NEQ, 6, Associativity::LEFT},
+    {TokenType::LTE, 6, Associativity::LEFT},
+    {TokenType::GTE, 6, Associativity::LEFT},
+    {TokenType::GT, 6, Associativity::LEFT},
+    {TokenType::NEQ, 6, Associativity::LEFT},
+    {TokenType::LT, 6, Associativity::LEFT},
+    {TokenType::EQ, 6, Associativity::LEFT},
+    {TokenType::NOT, 5, Associativity::RIGHT},
+    {TokenType::AND, 4, Associativity::LEFT}
 };
 
-constexpr size_t operator_count = 0;
+constexpr size_t operator_count = 18;
 
 /// Get precedence for an operator token
 [[nodiscard]] inline int get_precedence(TokenType op) noexcept {

@@ -99,18 +99,53 @@ class GrammarDataExtractor:
 
     def _extract_keyword_from_rule(self, rule: Rule) -> Optional[str]:
         """Extract keyword literal from lexer rule"""
-        # Simple heuristic: if rule definition contains a string literal, it's a keyword
-        definition_str = str(rule.definition)
+        # ANTLR lexer keywords can be defined in multiple ways:
+        # 1. Direct string: 'SELECT'
+        # 2. Character sequence: S E L E C T (using fragment references)
+        # 3. Both: 'SELECT' | S E L E C T
 
-        # Look for patterns like 'SELECT' or "SELECT"
-        if "'" in definition_str:
-            # Extract string between single quotes
-            parts = definition_str.split("'")
-            if len(parts) >= 2:
-                keyword = parts[1].upper()
-                # Filter out non-keywords (operators, etc.)
-                if keyword.isalpha() or '_' in keyword:
-                    return keyword
+        keyword = self._try_extract_from_ast(rule.definition)
+
+        if keyword and len(keyword) > 1:  # Filter out single-character fragments
+            # Filter out non-keywords (operators, special symbols)
+            if keyword.isalpha() or '_' in keyword:
+                return keyword.upper()
+
+        return None
+
+    def _try_extract_from_ast(self, element: Element) -> Optional[str]:
+        """Try to extract keyword string from parsed AST"""
+        from grammar_parser import Terminal, Sequence, Alternative, NonTerminal
+
+        if isinstance(element, Terminal):
+            # Direct string literal like 'SELECT'
+            if element.is_string_literal:
+                return element.value
+            # Single character reference like S, E, L, E, C, T
+            # These get concatenated in Sequence
+            return element.value
+
+        elif isinstance(element, Sequence):
+            # Sequence of characters: S E L E C T → "SELECT"
+            parts = []
+            for child in element.elements:
+                part = self._try_extract_from_ast(child)
+                if part:
+                    parts.append(part)
+
+            # If all parts are single characters, concatenate them
+            if parts and all(len(p) <= 1 for p in parts):
+                return ''.join(parts)
+            # If we have a string literal in the sequence, use it
+            elif parts:
+                for p in parts:
+                    if len(p) > 1:
+                        return p
+
+        elif isinstance(element, Alternative):
+            # Try first alternative (usually the canonical form)
+            if element.alternatives:
+                return self._try_extract_from_ast(element.alternatives[0])
 
         return None
 
@@ -123,39 +158,100 @@ class GrammarDataExtractor:
                 self.token_sequences.extend(sequences)
 
     def _extract_sequences_from_rule(self, rule_name: str, rule: Rule) -> List[TokenSequence]:
-        """Extract token sequences from a single parser rule"""
+        """Extract token sequences from a single parser rule using recursive AST walker"""
+        from grammar_parser import Alternative
+
         sequences = []
+        pattern_type = self._categorize_rule(rule_name)
 
-        # Convert rule definition to token sequences
-        # This is a simplified extraction - real implementation would need full ANTLR parsing
-        tokens = self._flatten_elements(rule.definition)
+        # Walk the AST to extract all possible token sequences
+        all_sequences = self._walk_ast_for_sequences(rule.definition)
 
-        if tokens:
-            sequences.append(TokenSequence(
-                name=rule_name,
-                tokens=tokens,
-                optional_flags=[False] * len(tokens),  # Simplified - would need real optionality detection
-                pattern_type=self._categorize_rule(rule_name)
-            ))
+        # Convert each sequence to TokenSequence
+        for seq_info in all_sequences:
+            if seq_info['tokens']:  # Only add non-empty sequences
+                sequences.append(TokenSequence(
+                    name=rule_name,
+                    tokens=seq_info['tokens'],
+                    optional_flags=seq_info['optional'],
+                    pattern_type=pattern_type
+                ))
 
         return sequences
 
-    def _flatten_elements(self, element: Element) -> List[str]:
-        """Flatten element tree into list of token names"""
-        tokens = []
+    def _walk_ast_for_sequences(self, element: Element) -> List[Dict[str, List]]:
+        """
+        Recursively walk AST to extract token sequences.
+        Returns list of dicts with 'tokens' and 'optional' lists.
+        """
+        from grammar_parser import (
+            Terminal, NonTerminal, Sequence, Alternative,
+            Quantified, Group, Quantifier
+        )
 
-        if hasattr(element, 'text'):
-            # Terminal - add as token
-            token_name = str(element.text).strip("'\"")
-            if token_name:
-                tokens.append(token_name)
+        if isinstance(element, Terminal):
+            # Base case: single terminal
+            token_name = element.value
+            return [{'tokens': [token_name], 'optional': [False]}]
 
-        if hasattr(element, 'elements') and element.elements:
-            # Non-terminal with children
-            for child in element.elements:
-                tokens.extend(self._flatten_elements(child))
+        elif isinstance(element, NonTerminal):
+            # Non-terminal reference - could inline or just reference name
+            # For now, treat as a token
+            return [{'tokens': [element.name], 'optional': [False]}]
 
-        return tokens
+        elif isinstance(element, Sequence):
+            # Sequence: concatenate all children
+            if not element.elements:
+                return [{'tokens': [], 'optional': []}]
+
+            # Start with first element's sequences
+            result_sequences = self._walk_ast_for_sequences(element.elements[0])
+
+            # Concatenate remaining elements
+            for child in element.elements[1:]:
+                child_sequences = self._walk_ast_for_sequences(child)
+                new_results = []
+
+                # Cartesian product of existing and new sequences
+                for existing in result_sequences:
+                    for child_seq in child_sequences:
+                        combined = {
+                            'tokens': existing['tokens'] + child_seq['tokens'],
+                            'optional': existing['optional'] + child_seq['optional']
+                        }
+                        new_results.append(combined)
+
+                result_sequences = new_results
+
+            return result_sequences
+
+        elif isinstance(element, Alternative):
+            # Alternative: return separate sequence for each alternative
+            all_seqs = []
+            for alt in element.alternatives:
+                seqs = self._walk_ast_for_sequences(alt)
+                all_seqs.extend(seqs)
+            return all_seqs
+
+        elif isinstance(element, Quantified):
+            # Quantified: mark as optional or repeated
+            child_seqs = self._walk_ast_for_sequences(element.element)
+
+            if element.quantifier in (Quantifier.OPTIONAL, Quantifier.STAR):
+                # Mark all tokens as optional
+                for seq in child_seqs:
+                    seq['optional'] = [True] * len(seq['tokens'])
+
+            # For STAR and PLUS, tokens can repeat, but we just mark once
+            return child_seqs
+
+        elif isinstance(element, Group):
+            # Group: just unwrap
+            return self._walk_ast_for_sequences(element.content)
+
+        else:
+            # Unknown element type
+            return [{'tokens': [], 'optional': []}]
 
     def _categorize_rule(self, rule_name: str) -> str:
         """Categorize rule by type (for organization)"""
@@ -179,35 +275,67 @@ class GrammarDataExtractor:
             return 'other'
 
     def _extract_operators(self):
-        """Extract operator precedence information"""
-        # This is a heuristic - ANTLR doesn't always explicitly specify precedence
-        # We use common SQL operator precedence rules
-
+        """Extract operator precedence information from lexer rules"""
+        # Standard SQL operator precedence (higher number = higher precedence)
         operator_precedence_map = {
-            # Arithmetic
-            'STAR': (10, 'left'),
-            'DIVIDE': (10, 'left'),
-            'MOD': (10, 'left'),
-            'PLUS': (9, 'left'),
-            'MINUS': (9, 'left'),
+            # Arithmetic (highest)
+            'STAR': (12, 'left'),
+            'MULT_OPERATOR': (12, 'left'),
+            'SLASH': (12, 'left'),
+            'DIV_OPERATOR': (12, 'left'),
+            'PERCENT': (12, 'left'),
+            'MOD_OPERATOR': (12, 'left'),
+            'DIVIDE': (12, 'left'),
+
+            'PLUS': (11, 'left'),
+            'PLUS_OPERATOR': (11, 'left'),
+            'MINUS': (11, 'left'),
+            'MINUS_OPERATOR': (11, 'left'),
+
+            # Bitwise
+            'SHIFT_LEFT': (10, 'left'),
+            'SHIFT_RIGHT': (10, 'left'),
+            'AMPERSAND': (9, 'left'),
+            'BITWISE_AND_OPERATOR': (9, 'left'),
+            'CARET': (8, 'left'),
+            'BITWISE_XOR_OPERATOR': (8, 'left'),
+            'PIPE': (7, 'left'),
+            'BITWISE_OR_OPERATOR': (7, 'left'),
 
             # Comparison
-            'EQ': (7, 'left'),
-            'NEQ': (7, 'left'),
-            'LT': (7, 'left'),
-            'LTE': (7, 'left'),
-            'GT': (7, 'left'),
-            'GTE': (7, 'left'),
+            'EQ': (6, 'left'),
+            'EQUAL_OPERATOR': (6, 'left'),
+            'NEQ': (6, 'left'),
+            'NOT_EQUAL_OPERATOR': (6, 'left'),
+            'NOT_EQUAL2_OPERATOR': (6, 'left'),
+            'LT': (6, 'left'),
+            'LESS_THAN_OPERATOR': (6, 'left'),
+            'LTE': (6, 'left'),
+            'LESS_OR_EQUAL_OPERATOR': (6, 'left'),
+            'GT': (6, 'left'),
+            'GREATER_THAN_OPERATOR': (6, 'left'),
+            'GTE': (6, 'left'),
+            'GREATER_OR_EQUAL_OPERATOR': (6, 'left'),
 
-            # Logical
+            # Logical (lowest)
             'NOT': (5, 'right'),
+            'LOGICAL_NOT_OPERATOR': (5, 'right'),
             'AND': (4, 'left'),
+            'LOGICAL_AND_OPERATOR': (4, 'left'),
             'OR': (3, 'left'),
+            'LOGICAL_OR_OPERATOR': (3, 'left'),
+
+            # String concatenation
+            'CONCAT': (10, 'left'),
+            'CONCAT_OPERATOR': (10, 'left'),
         }
 
-        # Check which operators exist in this grammar
+        # Scan lexer tokens for operators
         for token_name in self.lexer_tokens:
+            # Check if it's in our map (case-insensitive)
             token_upper = token_name.upper()
+
+            # Check exact match
             if token_upper in operator_precedence_map:
                 prec, assoc = operator_precedence_map[token_upper]
                 self.operators.append(OperatorInfo(
@@ -215,6 +343,17 @@ class GrammarDataExtractor:
                     precedence=prec,
                     associativity=assoc
                 ))
+            # Check if it ends with _OPERATOR
+            elif token_upper.endswith('_OPERATOR'):
+                # Try to infer from name
+                base_name = token_upper.replace('_OPERATOR', '')
+                if base_name in operator_precedence_map:
+                    prec, assoc = operator_precedence_map[base_name]
+                    self.operators.append(OperatorInfo(
+                        token=token_name,
+                        precedence=prec,
+                        associativity=assoc
+                    ))
 
 
 def extract_from_file(grammar_file: Path, dialect: str, lexer_file: Optional[Path] = None) -> GrammarData:

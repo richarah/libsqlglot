@@ -17,6 +17,15 @@ from typing import List, Dict, Set, Any
 from dataclasses import dataclass
 from collections import defaultdict
 
+# Import token mapping
+try:
+    from token_mapping import map_antlr_token, map_keyword
+except ImportError:
+    # Fallback if running from different directory
+    import sys
+    sys.path.insert(0, str(Path(__file__).parent))
+    from token_mapping import map_antlr_token, map_keyword
+
 
 @dataclass
 class UnifiedGrammarData:
@@ -273,23 +282,25 @@ class UnifiedGrammarGenerator:
         print(f"{'='*80}\n")
 
     def _token_to_enum(self, token: str) -> str:
-        """Convert token name to TokenType enum name"""
-        # Simple heuristic - would need mapping from actual tokens.h
-        token_upper = token.upper()
+        """Convert token name to TokenType enum name using token mapping"""
+        # Try ANTLR token mapping first
+        mapped = map_antlr_token(token)
+        if mapped:
+            return mapped
 
-        # Handle common conversions
-        conversions = {
-            'STAR': 'STAR',
-            'PLUS': 'PLUS',
-            'MINUS': 'MINUS',
-            'DIVIDE': 'DIVIDE',
-            'SELECT': 'SELECT',
-            'FROM': 'FROM',
-            'WHERE': 'WHERE',
-            # Add more as needed
-        }
+        # Try keyword mapping
+        mapped = map_keyword(token)
+        if mapped:
+            return mapped
 
-        return conversions.get(token_upper, token_upper)
+        # Fallback: clean up common patterns
+        clean = token.upper()
+        for suffix in ['_SYMBOL', '_OPERATOR', '_KW']:
+            if clean.endswith(suffix):
+                clean = clean[:-len(suffix)]
+                break
+
+        return clean
 
     def _dialect_to_enum(self, dialect: str) -> str:
         """Convert dialect name to Dialect enum name"""

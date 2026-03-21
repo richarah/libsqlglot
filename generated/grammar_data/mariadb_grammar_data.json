@@ -48431,23 +48431,13 @@
   ],
   "operators": [
     {
-      "token": "STAR",
-      "precedence": 12,
+      "token": "OR",
+      "precedence": 3,
       "associativity": "left"
     },
     {
-      "token": "NOT",
-      "precedence": 5,
-      "associativity": "right"
-    },
-    {
-      "token": "PLUS",
-      "precedence": 11,
-      "associativity": "left"
-    },
-    {
-      "token": "MINUS",
-      "precedence": 11,
+      "token": "RANGE",
+      "precedence": 6,
       "associativity": "left"
     },
     {
@@ -48456,8 +48446,23 @@
       "associativity": "left"
     },
     {
-      "token": "OR",
-      "precedence": 3,
+      "token": "OVERLAPS",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "NOT",
+      "precedence": 5,
+      "associativity": "right"
+    },
+    {
+      "token": "MINUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "CONCAT",
+      "precedence": 10,
       "associativity": "left"
     },
     {
@@ -48466,8 +48471,18 @@
       "associativity": "left"
     },
     {
-      "token": "CONCAT",
-      "precedence": 10,
+      "token": "POWER",
+      "precedence": 13,
+      "associativity": "right"
+    },
+    {
+      "token": "STAR",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "PLUS",
+      "precedence": 11,
       "associativity": "left"
     }
   ],

@@ -38853,13 +38853,13 @@
   ],
   "operators": [
     {
-      "token": "LOGICAL_AND_OPERATOR",
-      "precedence": 4,
-      "associativity": "left"
+      "token": "BITWISE_NOT_OPERATOR",
+      "precedence": 14,
+      "associativity": "right"
     },
     {
-      "token": "MINUS_OPERATOR",
-      "precedence": 11,
+      "token": "GREATER_THAN_OPERATOR",
+      "precedence": 6,
       "associativity": "left"
     },
     {
@@ -38868,7 +38868,12 @@
       "associativity": "left"
     },
     {
-      "token": "MULT_OPERATOR",
+      "token": "LOGICAL_AND_OPERATOR",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "MOD_OPERATOR",
       "precedence": 12,
       "associativity": "left"
     },
@@ -38878,13 +38883,53 @@
       "associativity": "left"
     },
     {
+      "token": "NOT_EQUAL2_OPERATOR",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "MULT_OPERATOR",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "DIV_OPERATOR",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "SHIFT_RIGHT_OPERATOR",
+      "precedence": 10,
+      "associativity": "left"
+    },
+    {
+      "token": "NULL_SAFE_EQUAL_OPERATOR",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
       "token": "LOGICAL_NOT_OPERATOR",
       "precedence": 5,
       "associativity": "right"
     },
     {
+      "token": "SHIFT_LEFT_OPERATOR",
+      "precedence": 10,
+      "associativity": "left"
+    },
+    {
+      "token": "BITWISE_XOR_OPERATOR",
+      "precedence": 8,
+      "associativity": "left"
+    },
+    {
       "token": "EQUAL_OPERATOR",
       "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "BITWISE_AND_OPERATOR",
+      "precedence": 9,
       "associativity": "left"
     },
     {
@@ -38898,48 +38943,18 @@
       "associativity": "left"
     },
     {
-      "token": "MOD_OPERATOR",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "BITWISE_XOR_OPERATOR",
-      "precedence": 8,
-      "associativity": "left"
-    },
-    {
-      "token": "BITWISE_AND_OPERATOR",
-      "precedence": 9,
-      "associativity": "left"
-    },
-    {
-      "token": "SHIFT_RIGHT_OPERATOR",
-      "precedence": 10,
-      "associativity": "left"
-    },
-    {
-      "token": "NOT_EQUAL2_OPERATOR",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "GREATER_THAN_OPERATOR",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "DIV_OPERATOR",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "SHIFT_LEFT_OPERATOR",
-      "precedence": 10,
-      "associativity": "left"
-    },
-    {
       "token": "GREATER_OR_EQUAL_OPERATOR",
       "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "ASSIGN_OPERATOR",
+      "precedence": 2,
+      "associativity": "right"
+    },
+    {
+      "token": "MINUS_OPERATOR",
+      "precedence": 11,
       "associativity": "left"
     }
   ],

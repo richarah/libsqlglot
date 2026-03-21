@@ -25645,8 +25645,28 @@
   ],
   "operators": [
     {
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
       "token": "GTE",
       "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "EQ",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "PIPE",
+      "precedence": 7,
       "associativity": "left"
     },
     {
@@ -25660,21 +25680,6 @@
       "associativity": "left"
     },
     {
-      "token": "PIPE",
-      "precedence": 7,
-      "associativity": "left"
-    },
-    {
-      "token": "GT",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "LT",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
       "token": "NEQ",
       "precedence": 6,
       "associativity": "left"
@@ -25685,18 +25690,23 @@
       "associativity": "left"
     },
     {
-      "token": "EQ",
+      "token": "AND",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "LT",
       "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "OR",
-      "precedence": 3,
+      "token": "GT",
+      "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "AND",
-      "precedence": 4,
+      "token": "ARROW",
+      "precedence": 6,
       "associativity": "left"
     }
   ],

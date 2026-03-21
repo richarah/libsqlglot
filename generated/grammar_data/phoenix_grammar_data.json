@@ -3789,13 +3789,13 @@
   ],
   "operators": [
     {
-      "token": "EQ",
-      "precedence": 6,
+      "token": "AND",
+      "precedence": 4,
       "associativity": "left"
     },
     {
-      "token": "STAR",
-      "precedence": 12,
+      "token": "LT",
+      "precedence": 6,
       "associativity": "left"
     },
     {
@@ -3804,19 +3804,19 @@
       "associativity": "left"
     },
     {
+      "token": "MINUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "STAR",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
       "token": "GT",
       "precedence": 6,
       "associativity": "left"
-    },
-    {
-      "token": "AND",
-      "precedence": 4,
-      "associativity": "left"
-    },
-    {
-      "token": "NOT",
-      "precedence": 5,
-      "associativity": "right"
     },
     {
       "token": "PLUS",
@@ -3824,14 +3824,14 @@
       "associativity": "left"
     },
     {
-      "token": "MINUS",
-      "precedence": 11,
+      "token": "EQ",
+      "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "LT",
-      "precedence": 6,
-      "associativity": "left"
+      "token": "NOT",
+      "precedence": 5,
+      "associativity": "right"
     }
   ],
   "keywords": [

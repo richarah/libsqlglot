@@ -277,8 +277,22 @@ class GrammarDataExtractor:
     def _extract_operators(self):
         """Extract operator precedence information from lexer rules"""
         # Standard SQL operator precedence (higher number = higher precedence)
+        # Based on MySQL, PostgreSQL, and standard SQL precedence
         operator_precedence_map = {
-            # Arithmetic (highest)
+            # Unary operators (highest)
+            'BITWISE_NOT': (14, 'right'),
+            'BITWISE_NOT_OPERATOR': (14, 'right'),
+            'TILDE': (14, 'right'),
+            'UNARY_PLUS': (14, 'right'),
+            'UNARY_MINUS': (14, 'right'),
+
+            # Exponentiation
+            'POWER': (13, 'right'),
+            'POWER_OPERATOR': (13, 'right'),
+            'CARET': (13, 'right'),  # PostgreSQL uses ^ for power
+            'DOUBLE_CARET': (13, 'right'),
+
+            # Multiplicative
             'STAR': (12, 'left'),
             'MULT_OPERATOR': (12, 'left'),
             'SLASH': (12, 'left'),
@@ -287,27 +301,39 @@ class GrammarDataExtractor:
             'MOD_OPERATOR': (12, 'left'),
             'DIVIDE': (12, 'left'),
 
+            # Additive
             'PLUS': (11, 'left'),
             'PLUS_OPERATOR': (11, 'left'),
             'MINUS': (11, 'left'),
             'MINUS_OPERATOR': (11, 'left'),
 
-            # Bitwise
+            # Bitwise shift and string concatenation
             'SHIFT_LEFT': (10, 'left'),
+            'SHIFT_LEFT_OPERATOR': (10, 'left'),
             'SHIFT_RIGHT': (10, 'left'),
+            'SHIFT_RIGHT_OPERATOR': (10, 'left'),
+            'CONCAT': (10, 'left'),
+            'CONCAT_OPERATOR': (10, 'left'),
+            'CONCAT_PIPES': (10, 'left'),  # || concatenation
+
+            # Bitwise AND
             'AMPERSAND': (9, 'left'),
             'BITWISE_AND_OPERATOR': (9, 'left'),
-            'CARET': (8, 'left'),
+
+            # Bitwise XOR
             'BITWISE_XOR_OPERATOR': (8, 'left'),
+
+            # Bitwise OR
             'PIPE': (7, 'left'),
             'BITWISE_OR_OPERATOR': (7, 'left'),
 
-            # Comparison
+            # Comparison operators
             'EQ': (6, 'left'),
             'EQUAL_OPERATOR': (6, 'left'),
             'NEQ': (6, 'left'),
             'NOT_EQUAL_OPERATOR': (6, 'left'),
             'NOT_EQUAL2_OPERATOR': (6, 'left'),
+            'NULL_SAFE_EQUAL_OPERATOR': (6, 'left'),  # <=> in MySQL
             'LT': (6, 'left'),
             'LESS_THAN_OPERATOR': (6, 'left'),
             'LTE': (6, 'left'),
@@ -316,18 +342,41 @@ class GrammarDataExtractor:
             'GREATER_THAN_OPERATOR': (6, 'left'),
             'GTE': (6, 'left'),
             'GREATER_OR_EQUAL_OPERATOR': (6, 'left'),
+            'SPACESHIP': (6, 'left'),  # <=> spaceship operator
 
-            # Logical (lowest)
+            # JSON and special operators
+            'ARROW': (6, 'left'),  # -> JSON access
+            'DOUBLE_ARROW': (6, 'left'),  # ->> JSON access
+            'HASH_ARROW': (6, 'left'),  # #> JSON path
+            'HASH_DOUBLE_ARROW': (6, 'left'),  # #>> JSON path
+            'AT_ARROW': (6, 'left'),  # @> contains
+            'ARROW_AT': (6, 'left'),  # <@ contained by
+            'QUESTION_MARK': (6, 'left'),  # ? JSON exists
+            'DOUBLE_PIPE': (6, 'left'),  # Overlap operator
+            'DOUBLE_AMPERSAND': (6, 'left'),  # && overlap/AND
+
+            # Range operators
+            'RANGE': (6, 'left'),
+            'OVERLAPS': (6, 'left'),
+
+            # Logical NOT (higher than AND/OR)
             'NOT': (5, 'right'),
             'LOGICAL_NOT_OPERATOR': (5, 'right'),
+            'EXCLAMATION': (5, 'right'),
+
+            # Logical AND
             'AND': (4, 'left'),
             'LOGICAL_AND_OPERATOR': (4, 'left'),
+
+            # Logical OR
             'OR': (3, 'left'),
             'LOGICAL_OR_OPERATOR': (3, 'left'),
 
-            # String concatenation
-            'CONCAT': (10, 'left'),
-            'CONCAT_OPERATOR': (10, 'left'),
+            # Assignment (lowest precedence)
+            'ASSIGN': (2, 'right'),
+            'ASSIGN_OPERATOR': (2, 'right'),
+            'COLON_EQUALS': (2, 'right'),  # := assignment
+            'WALRUS': (2, 'right'),  # := walrus operator
         }
 
         # Scan lexer tokens for operators
@@ -347,6 +396,16 @@ class GrammarDataExtractor:
             elif token_upper.endswith('_OPERATOR'):
                 # Try to infer from name
                 base_name = token_upper.replace('_OPERATOR', '')
+                if base_name in operator_precedence_map:
+                    prec, assoc = operator_precedence_map[base_name]
+                    self.operators.append(OperatorInfo(
+                        token=token_name,
+                        precedence=prec,
+                        associativity=assoc
+                    ))
+            # Check if it ends with single underscore (Trino, Presto pattern: PLUS_, MINUS_)
+            elif token_upper.endswith('_') and len(token_upper) > 1:
+                base_name = token_upper[:-1]  # Remove trailing underscore
                 if base_name in operator_precedence_map:
                     prec, assoc = operator_precedence_map[base_name]
                     self.operators.append(OperatorInfo(

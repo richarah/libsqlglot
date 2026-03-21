@@ -3275,13 +3275,18 @@
   ],
   "operators": [
     {
+      "token": "AND",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
       "token": "OR",
       "precedence": 3,
       "associativity": "left"
     },
     {
-      "token": "AND",
-      "precedence": 4,
+      "token": "RANGE",
+      "precedence": 6,
       "associativity": "left"
     },
     {

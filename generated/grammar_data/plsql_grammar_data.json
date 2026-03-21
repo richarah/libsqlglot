@@ -150924,23 +150924,8 @@
       "associativity": "right"
     },
     {
-      "token": "OR",
-      "precedence": 3,
-      "associativity": "left"
-    },
-    {
-      "token": "AND",
-      "precedence": 4,
-      "associativity": "left"
-    },
-    {
-      "token": "STAR",
+      "token": "PERCENT",
       "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "MINUS",
-      "precedence": 11,
       "associativity": "left"
     },
     {
@@ -150949,8 +150934,38 @@
       "associativity": "left"
     },
     {
-      "token": "PERCENT",
+      "token": "AND",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "AMPERSAND",
+      "precedence": 9,
+      "associativity": "left"
+    },
+    {
+      "token": "MINUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "STAR",
       "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "OVERLAPS",
+      "precedence": 6,
       "associativity": "left"
     },
     {
@@ -150959,9 +150974,14 @@
       "associativity": "left"
     },
     {
-      "token": "AMPERSAND",
-      "precedence": 9,
-      "associativity": "left"
+      "token": "ASSIGN",
+      "precedence": 2,
+      "associativity": "right"
+    },
+    {
+      "token": "POWER",
+      "precedence": 13,
+      "associativity": "right"
     }
   ],
   "keywords": [

@@ -38199,7 +38199,32 @@
   ],
   "operators": [
     {
-      "token": "STAR",
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "SLASH",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "OVERLAPS",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "CARET",
+      "precedence": 13,
+      "associativity": "right"
+    },
+    {
+      "token": "PERCENT",
       "precedence": 12,
       "associativity": "left"
     },
@@ -38209,18 +38234,18 @@
       "associativity": "right"
     },
     {
-      "token": "PLUS",
-      "precedence": 11,
-      "associativity": "left"
-    },
-    {
       "token": "MINUS",
       "precedence": 11,
       "associativity": "left"
     },
     {
-      "token": "GT",
-      "precedence": 6,
+      "token": "COLON_EQUALS",
+      "precedence": 2,
+      "associativity": "right"
+    },
+    {
+      "token": "AND",
+      "precedence": 4,
       "associativity": "left"
     },
     {
@@ -38229,28 +38254,18 @@
       "associativity": "left"
     },
     {
-      "token": "CARET",
-      "precedence": 8,
-      "associativity": "left"
-    },
-    {
-      "token": "OR",
-      "precedence": 3,
-      "associativity": "left"
-    },
-    {
-      "token": "SLASH",
+      "token": "STAR",
       "precedence": 12,
       "associativity": "left"
     },
     {
-      "token": "PERCENT",
-      "precedence": 12,
+      "token": "GT",
+      "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "AND",
-      "precedence": 4,
+      "token": "PLUS",
+      "precedence": 11,
       "associativity": "left"
     }
   ],

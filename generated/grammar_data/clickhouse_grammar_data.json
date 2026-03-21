@@ -8309,13 +8309,28 @@
   ],
   "operators": [
     {
-      "token": "PERCENT",
-      "precedence": 12,
+      "token": "AND",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "LT",
+      "precedence": 6,
       "associativity": "left"
     },
     {
       "token": "OR",
       "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "PERCENT",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE",
+      "precedence": 6,
       "associativity": "left"
     },
     {
@@ -8329,24 +8344,19 @@
       "associativity": "left"
     },
     {
-      "token": "AND",
-      "precedence": 4,
+      "token": "PLUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "ARROW",
+      "precedence": 6,
       "associativity": "left"
     },
     {
       "token": "NOT",
       "precedence": 5,
       "associativity": "right"
-    },
-    {
-      "token": "PLUS",
-      "precedence": 11,
-      "associativity": "left"
-    },
-    {
-      "token": "LT",
-      "precedence": 6,
-      "associativity": "left"
     }
   ],
   "keywords": [

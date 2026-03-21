@@ -12307,7 +12307,88 @@
       "pattern_type": "other"
     }
   ],
-  "operators": [],
+  "operators": [
+    {
+      "token": "PLUS_",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "NOT_",
+      "precedence": 5,
+      "associativity": "right"
+    },
+    {
+      "token": "NEQ_",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "SLASH_",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "MINUS_",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "LT_",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "AND_",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "LTE_",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "CARET_",
+      "precedence": 13,
+      "associativity": "right"
+    },
+    {
+      "token": "GTE_",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "GT_",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "EQ_",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "QUESTION_MARK_",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE_",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "PERCENT_",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "OR_",
+      "precedence": 3,
+      "associativity": "left"
+    }
+  ],
   "keywords": [
     "ABSENT",
     "ADD",

@@ -891,13 +891,13 @@
   ],
   "operators": [
     {
-      "token": "STAR",
+      "token": "DIVIDE",
       "precedence": 12,
       "associativity": "left"
     },
     {
-      "token": "PLUS",
-      "precedence": 11,
+      "token": "AMPERSAND",
+      "precedence": 9,
       "associativity": "left"
     },
     {
@@ -906,13 +906,18 @@
       "associativity": "left"
     },
     {
-      "token": "DIVIDE",
+      "token": "STAR",
       "precedence": 12,
       "associativity": "left"
     },
     {
-      "token": "AMPERSAND",
-      "precedence": 9,
+      "token": "TILDE",
+      "precedence": 14,
+      "associativity": "right"
+    },
+    {
+      "token": "PLUS",
+      "precedence": 11,
       "associativity": "left"
     }
   ],

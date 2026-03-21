@@ -1862,38 +1862,13 @@
       "associativity": "right"
     },
     {
-      "token": "OR",
-      "precedence": 3,
-      "associativity": "left"
-    },
-    {
-      "token": "LT",
-      "precedence": 6,
-      "associativity": "left"
+      "token": "CARET",
+      "precedence": 13,
+      "associativity": "right"
     },
     {
       "token": "EQ",
       "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "AND",
-      "precedence": 4,
-      "associativity": "left"
-    },
-    {
-      "token": "MINUS",
-      "precedence": 11,
-      "associativity": "left"
-    },
-    {
-      "token": "GT",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "CARET",
-      "precedence": 8,
       "associativity": "left"
     },
     {
@@ -1902,9 +1877,54 @@
       "associativity": "left"
     },
     {
+      "token": "AND",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "GT",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "MINUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "LT",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "OVERLAPS",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "QUESTION_MARK",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
       "token": "CONCAT",
       "precedence": 10,
       "associativity": "left"
+    },
+    {
+      "token": "POWER",
+      "precedence": 13,
+      "associativity": "right"
     }
   ],
   "keywords": [

@@ -69985,22 +69985,27 @@
   ],
   "operators": [
     {
-      "token": "STAR",
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "DIVIDE",
       "precedence": 12,
       "associativity": "left"
     },
     {
-      "token": "NOT",
-      "precedence": 5,
-      "associativity": "right"
-    },
-    {
-      "token": "PLUS",
-      "precedence": 11,
+      "token": "EQ",
+      "precedence": 6,
       "associativity": "left"
     },
     {
-      "token": "MINUS",
+      "token": "PERCENT",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "MINUS_",
       "precedence": 11,
       "associativity": "left"
     },
@@ -70010,33 +70015,18 @@
       "associativity": "left"
     },
     {
-      "token": "GT",
-      "precedence": 6,
+      "token": "NOT",
+      "precedence": 5,
+      "associativity": "right"
+    },
+    {
+      "token": "MINUS",
+      "precedence": 11,
       "associativity": "left"
     },
     {
-      "token": "DIVIDE",
-      "precedence": 12,
-      "associativity": "left"
-    },
-    {
-      "token": "LT",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "EQ",
-      "precedence": 6,
-      "associativity": "left"
-    },
-    {
-      "token": "OR",
-      "precedence": 3,
-      "associativity": "left"
-    },
-    {
-      "token": "PERCENT",
-      "precedence": 12,
+      "token": "CONCAT",
+      "precedence": 10,
       "associativity": "left"
     },
     {
@@ -70045,8 +70035,28 @@
       "associativity": "left"
     },
     {
-      "token": "CONCAT",
-      "precedence": 10,
+      "token": "LT",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "STAR",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "GT",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "PLUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "ARROW",
+      "precedence": 6,
       "associativity": "left"
     }
   ],

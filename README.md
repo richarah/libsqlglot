@@ -498,51 +498,51 @@ Each dialect includes proper identifier quoting, keyword handling, function name
 
 | Database | Dialect | Dialect-Specific Features Tested |
 |----------|---------|----------------------------------|
-| ANSI SQL | ANSI | Standard SQL compliance |
-| Athena | Athena | AWS-specific syntax |
-| BigQuery | BigQuery | STRUCT, SAFE_CAST |
-| Calcite | Calcite | TABLESAMPLE BERNOULLI |
-| ClickHouse | ClickHouse | ClickHouse-specific functions |
-| CockroachDB | CockroachDB | UPSERT |
-| Databricks | Databricks | OPTIMIZE, ZORDER |
-| DB2 | DB2 | FETCH FIRST ROWS ONLY |
-| Doris | Doris | DUPLICATE KEY, BUCKETS, DISTRIBUTED |
-| Dremio | Dremio | CREATE REFLECTION |
-| Drill | Drill | Apache Drill syntax |
-| Druid | Druid | TIME_FLOOR |
-| DuckDB | DuckDB | QUALIFY, ASOF joins |
-| Dune | Dune | bytearray_to_uint256 |
-| Exasol | Exasol | DISTRIBUTE BY |
-| Fabric (Microsoft) | Fabric | lakehouse.schema.table |
-| Greenplum | Greenplum | DISTRIBUTED |
-| Hive | Hive | Hive-specific syntax |
-| Impala | Impala | COMPUTE STATS |
-| MariaDB | MariaDB | MariaDB extensions |
-| Materialize | Materialize | TAIL |
-| MySQL | MySQL | MySQL-specific syntax |
-| Netezza | Netezza | DISTRIBUTE ON |
-| Oracle | Oracle | CONNECT BY, PRIOR |
-| Phoenix | Phoenix | Phoenix HBase syntax |
-| Pinot | Pinot | Apache Pinot functions |
-| PostgreSQL | PostgreSQL | PostgreSQL extensions |
-| Presto | Presto | Presto-specific functions |
-| Redshift | Redshift | DISTKEY, SORTKEY, SUPER, DISTSTYLE |
-| RisingWave | RisingWave | EMIT CHANGES |
-| SingleStore | SingleStore | VECTOR |
-| Snowflake | Snowflake | Snowflake-specific syntax |
-| Solr | Solr | score() |
-| Spark | Spark | NULL-SAFE equality (`<=>`) |
-| Spark 2 | Spark2 | CACHE TABLE |
-| SQL Server | SQLServer | T-SQL syntax |
-| SQLite | SQLite | SQLite-specific syntax |
-| StarRocks | StarRocks | StarRocks extensions |
-| Tableau | Tableau | ZN() |
-| Teradata | Teradata | Teradata-specific syntax |
-| TiDB | TiDB | AUTO_RANDOM |
-| TimescaleDB | TimescaleDB | time_bucket |
-| Trino | Trino | Trino-specific functions |
-| Vertica | Vertica | PROJECTION, SEGMENTED |
-| YugabyteDB | YugabyteDB | SPLIT INTO TABLETS |
+| ANSI SQL | ANSI | Standard SQL compliance: ANSI joins, standard aggregations, CTEs |
+| Athena | Athena | AWS Athena Presto syntax, S3 partitioning |
+| BigQuery | BigQuery | STRUCT types, ARRAY literals `[1,2,3]`, SAFE_CAST, INT64/STRING types, nested field access |
+| Calcite | Calcite | TABLESAMPLE BERNOULLI, Apache Calcite optimizer hints |
+| ClickHouse | ClickHouse | Column-oriented syntax, MergeTree engines, SAMPLE BY, ARRAY JOIN |
+| CockroachDB | CockroachDB | UPSERT statement, distributed transactions, RETURNING clause |
+| Databricks | Databricks | OPTIMIZE tables, ZORDER BY clustering, Delta Lake operations |
+| DB2 | DB2 | FETCH FIRST n ROWS ONLY, DB2 stored procedures, OLAP functions |
+| Doris | Doris | DUPLICATE KEY model, BUCKETS distribution, DISTRIBUTED BY HASH, aggregate keys |
+| Dremio | Dremio | CREATE REFLECTION for materialization, data lakehouse queries |
+| Drill | Drill | Schema-free JSON queries, nested data access, FLATTEN |
+| Druid | Druid | TIME_FLOOR for time bucketing, approximate aggregations, roll-up |
+| DuckDB | DuckDB | QUALIFY clause, ASOF joins, PIVOT/UNPIVOT, macro functions, LIST type |
+| Dune | Dune | Blockchain analytics: bytearray_to_uint256, ETH address functions |
+| Exasol | Exasol | DISTRIBUTE BY for parallel execution, Lua scripting UDFs |
+| Fabric (Microsoft) | Fabric | Three-part lakehouse.schema.table naming, OneLake integration |
+| Greenplum | Greenplum | DISTRIBUTED BY/RANDOMLY, column/append-optimized tables, GPORCA optimizer |
+| Hive | Hive | PARTITIONED BY, CLUSTERED BY, SerDe formats, Hive UDFs |
+| Impala | Impala | COMPUTE STATS, Kudu integration, CACHED IN pools |
+| MariaDB | MariaDB | MySQL-compatible with RETURNING, window functions, JSON functions |
+| Materialize | Materialize | TAIL for streaming results, materialized views, temporal filters |
+| MySQL | MySQL | Backtick identifiers, MySQL-specific functions, storage engines |
+| Netezza | Netezza | DISTRIBUTE ON distribution keys, zone maps, statistics |
+| Oracle | Oracle | CONNECT BY hierarchical queries, PRIOR, START WITH, DUAL table, PL/SQL blocks |
+| Phoenix | Phoenix | HBase integration: SALT_BUCKETS, ARRAY_APPEND, UPSERT VALUES |
+| Pinot | Pinot | Real-time OLAP: segment pruning, star-tree indexes, broker queries |
+| PostgreSQL | PostgreSQL | RETURNING, ON CONFLICT, LATERAL joins, window functions, array types, JSONB |
+| Presto | Presto | APPROX_DISTINCT, UNNEST, ROW types, lambda functions |
+| Redshift | Redshift | DISTKEY distribution, SORTKEY ordering, SUPER type (JSON), DISTSTYLE ALL/EVEN/KEY |
+| RisingWave | RisingWave | EMIT CHANGES for streaming, temporal joins, watermarks |
+| SingleStore | SingleStore | VECTOR type for embeddings, DOT_PRODUCT, columnstore/rowstore, distributed joins |
+| Snowflake | Snowflake | FLATTEN for JSON, VARIANT type, TIME_TRAVEL, CLUSTER BY, RESULT_SCAN |
+| Solr | Solr | score() relevance function, faceted search, Lucene query syntax |
+| Spark | Spark | NULL-SAFE equality `<=>`, Hive metastore, broadcast hints, cache table |
+| Spark 2 | Spark2 | Legacy Spark 2.x: CACHE TABLE, broadcast joins, RDD compatibility |
+| SQL Server | SQLServer | T-SQL syntax: TOP, IDENTITY, OUTPUT clause, EXEC, GO batches, temp tables `#` |
+| SQLite | SQLite | Minimal SQL: no RIGHT JOIN, PRAGMA commands, autoincrement |
+| StarRocks | StarRocks | Vectorized execution, primary key model, materialized views, bitmap indexes |
+| Tableau | Tableau | ZN() null-to-zero, Tableau calculation functions, RAWSQL passthrough |
+| Teradata | Teradata | MULTISET tables, BTEQ syntax, FastLoad/MultiLoad hints |
+| TiDB | TiDB | AUTO_RANDOM for distributed primary keys, MySQL compatibility, TiKV storage |
+| TimescaleDB | TimescaleDB | time_bucket() for time-series, hypertables, continuous aggregates |
+| Trino | Trino | Presto-compatible: UNNEST, lambda expressions, ROW types, catalog.schema.table |
+| Vertica | Vertica | CREATE PROJECTION for physical design, SEGMENTED BY HASH, columnar storage |
+| YugabyteDB | YugabyteDB | SPLIT INTO n TABLETS, distributed SQL, PostgreSQL compatibility |
 
 ## Licence
 

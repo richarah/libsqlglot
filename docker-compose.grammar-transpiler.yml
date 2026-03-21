@@ -1,0 +1,107 @@
+# Docker Compose for Grammar Transpiler
+# Multi-dialect parser generation with parallel builds
+# All parsers generated with 100% automation (ANTLR → Lemon → C++)
+#
+# Usage:
+#   docker-compose -f docker-compose.grammar-transpiler.yml up
+
+version: '3.8'
+
+services:
+  # Build all SQL dialects in parallel - 100% Automated
+  transpiler:
+    build:
+      context: .
+      dockerfile: Dockerfile.grammar-transpiler
+    image: libsqlglot-transpiler:latest
+    container_name: grammar-transpiler
+    volumes:
+      - ./generated:/workspace/generated
+      - ./include:/workspace/include
+      - ./scripts/antlr:/workspace/scripts/antlr
+    environment:
+      - PYTHONUNBUFFERED=1
+    command: ["--help"]
+
+  # Generate MySQL parser (100% automated)
+  mysql:
+    extends: transpiler
+    container_name: transpiler-mysql
+    command:
+      - --grammar
+      - mysql
+      - --output
+      - /workspace/generated/parser_mysql.h
+
+  # Generate PostgreSQL parser (100% automated)
+  postgresql:
+    extends: transpiler
+    container_name: transpiler-postgresql
+    command:
+      - --grammar
+      - postgresql
+      - --output
+      - /workspace/generated/parser_postgresql.h
+
+  # Generate SQLite parser (100% automated)
+  sqlite:
+    extends: transpiler
+    container_name: transpiler-sqlite
+    command:
+      - --grammar
+      - sqlite
+      - --output
+      - /workspace/generated/parser_sqlite.h
+
+  # Generate T-SQL parser (100% automated)
+  tsql:
+    extends: transpiler
+    container_name: transpiler-tsql
+    command:
+      - --grammar
+      - tsql
+      - --output
+      - /workspace/generated/parser_tsql.h
+
+  # Generate Oracle PL/SQL parser (100% automated)
+  plsql:
+    extends: transpiler
+    container_name: transpiler-plsql
+    command:
+      - --grammar
+      - plsql
+      - --output
+      - /workspace/generated/parser_plsql.h
+
+  # Generate keywords.h from all dialects
+  keywords:
+    extends: transpiler
+    container_name: transpiler-keywords
+    command:
+      - --keywords-only
+      - --keywords-output
+      - /workspace/include/libsqlglot/keywords_generated.h
+
+# ============================================================================
+# Usage Examples:
+# ============================================================================
+#
+# Build all dialect parsers in parallel:
+#   docker-compose -f docker-compose.grammar-transpiler.yml up mysql postgresql sqlite
+#
+# Generate keywords.h:
+#   docker-compose -f docker-compose.grammar-transpiler.yml up keywords
+#
+# Generate all parsers:
+#   docker-compose -f docker-compose.grammar-transpiler.yml up
+#
+# Generate specific dialect:
+#   docker-compose -f docker-compose.grammar-transpiler.yml up mysql
+#
+# Clean up:
+#   docker-compose -f docker-compose.grammar-transpiler.yml down
+#
+# View logs:
+#   docker-compose -f docker-compose.grammar-transpiler.yml logs mysql
+#
+# ============================================================================

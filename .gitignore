@@ -62,4 +62,8 @@ README.md.bak
 .env
 .env.local
 *.key
-*.pemexternal/grammars-v4/
+*.pem
+
+# External dependencies
+external/grammars-v4/
+external/lemon/lemon

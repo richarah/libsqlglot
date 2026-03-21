@@ -1,0 +1,107 @@
+# Grammar Transpiler Toolchain
+# 100% Automated: ANTLR → Lemon → C++ Parser Generation
+#
+# Build: docker build -f Dockerfile.grammar-transpiler -t libsqlglot-transpiler .
+# Run:   docker run --rm -v $(pwd)/generated:/workspace/generated \
+#                    libsqlglot-transpiler --grammar mysql
+
+FROM ubuntu:22.04
+
+LABEL maintainer="libsqlglot"
+LABEL description="Complete toolchain for ANTLR Grammar Transpiler with Lemon integration"
+LABEL version="1.0"
+
+# Prevent interactive prompts during build
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    # Core build tools
+    build-essential \
+    cmake \
+    gcc \
+    g++ \
+    make \
+    # Python
+    python3.10 \
+    python3-pip \
+    python3-dev \
+    # Git for cloning grammars
+    git \
+    curl \
+    wget \
+    # Utilities
+    vim \
+    less \
+    tree \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set Python 3 as default
+RUN update-alternatives --install /usr/bin/python python /usr/bin/python3.10 1 && \
+    update-alternatives --install /usr/bin/pip pip /usr/bin/pip3 1
+
+# Create working directory
+WORKDIR /workspace
+
+# Copy source files
+COPY scripts/antlr/ /workspace/scripts/antlr/
+COPY external/lemon/ /workspace/external/lemon/
+
+# Compile Lemon parser generator
+RUN cd /workspace/external/lemon && \
+    gcc -o lemon lemon.c && \
+    chmod +x lemon && \
+    echo "Lemon compiled successfully"
+
+# Clone ANTLR grammars repository (17+ SQL dialects)
+RUN git clone --depth 1 https://github.com/antlr/grammars-v4.git /workspace/external/grammars-v4 && \
+    echo "ANTLR grammars cloned successfully"
+
+# Install Python dependencies (if any)
+# RUN pip install --no-cache-dir -r scripts/antlr/requirements.txt
+
+# Create output directories
+RUN mkdir -p /workspace/generated/lemon && \
+    mkdir -p /workspace/include/libsqlglot && \
+    mkdir -p /workspace/build
+
+# Set permissions
+RUN chmod +x /workspace/scripts/antlr/*.py && \
+    chmod +x /workspace/external/lemon/lemon
+
+# Environment variables
+ENV PATH="/workspace/external/lemon:${PATH}"
+ENV PYTHONPATH="/workspace/scripts/antlr:${PYTHONPATH}"
+
+# Default command: show help
+ENTRYPOINT ["python", "/workspace/scripts/antlr/transpile.py"]
+CMD ["--help"]
+
+# ============================================================================
+# Usage Examples:
+# ============================================================================
+#
+# Build the Docker image:
+#   docker build -f Dockerfile.grammar-transpiler -t libsqlglot-transpiler .
+#
+# List available SQL dialects:
+#   docker run --rm libsqlglot-transpiler --list-dialects
+#
+# Generate parser for MySQL (100% automated):
+#   docker run --rm -v $(pwd)/generated:/workspace/generated \
+#       libsqlglot-transpiler --grammar mysql
+#
+# Generate parser for PostgreSQL (100% automated):
+#   docker run --rm -v $(pwd)/generated:/workspace/generated \
+#       libsqlglot-transpiler --grammar postgresql
+#
+# Generate keywords.h from all dialects:
+#   docker run --rm -v $(pwd)/include:/workspace/include \
+#       libsqlglot-transpiler --keywords-only
+#
+# Interactive shell for debugging:
+#   docker run --rm -it -v $(pwd):/workspace --entrypoint /bin/bash \
+#       libsqlglot-transpiler
+#
+# ============================================================================

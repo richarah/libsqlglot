@@ -48,11 +48,23 @@ jobs:
         CMAKE_BUILD_TYPE: Release
         CMAKE_ARGS: "-DLIBSQLGLOT_BUILD_TESTS=OFF -DLIBSQLGLOT_BUILD_BENCHMARKS=OFF"
 
+    - name: Install auditwheel for manylinux tags
+      run: python -m pip install auditwheel
+
+    - name: Repair wheel with auditwheel (convert to manylinux)
+      run: |
+        mkdir -p wheelhouse_repaired
+        for whl in wheelhouse/*.whl; do
+          auditwheel repair "$whl" --plat manylinux_2_28_x86_64 -w wheelhouse_repaired || \
+          auditwheel repair "$whl" --plat manylinux2014_x86_64 -w wheelhouse_repaired || \
+          cp "$whl" wheelhouse_repaired/
+        done
+
     - name: Upload wheels
       uses: actions/upload-artifact@v4
       with:
         name: wheels-self-hosted
-        path: ./wheelhouse/*.whl
+        path: ./wheelhouse_repaired/*.whl
 
   build_wheels_fallback:
     name: Fallback notice (no self-hosted runner)

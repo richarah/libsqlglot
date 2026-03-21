@@ -62,4 +62,4 @@ README.md.bak
 .env
 .env.local
 *.key
-*.pem
+*.pemexternal/grammars-v4/

@@ -7,7 +7,7 @@ project(libsqlglot VERSION 0.2.0 LANGUAGES CXX)
 
 # Manually add C++26 flag (CMake 3.28 doesn't have cxx_std_26 support yet)
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_compile_options(-std=c++2b -freflection)
+    add_compile_options(-std=c++26 -freflection)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-std=c++26 -freflection)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")

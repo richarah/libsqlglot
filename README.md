@@ -124,7 +124,8 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
 | **Optimizer** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
-| **Codebase** | 1,415,472 lines C++ | 50,000+ lines Python |
+| **Codebase** | Header-only C++26 library | 50,000+ lines Python |
+| **Keywords** | C++26 reflection: auto-generated from enum (300+ keywords, zero maintenance) | Manually maintained dictionaries |
 | **Binary** | 15KB lib, optional 258KB Python extension | N/A |
 
 **Dialects**: libsqlglot supports 45 SQL dialects (14 unique to libsqlglot, including ANSI). Python sqlglot supports 32 dialects (including PRQL query language, which libsqlglot does not support). Both share 31 common SQL dialects.
@@ -133,7 +134,11 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot
 
 ## Building
 
-Requires C++23 (Clang 18+, GCC 13+, or MSVC 19.36+) and CMake 3.24+.
+Requires C++26 (GCC 16+ trunk with `-freflection`) and CMake 3.21+.
+
+**C++26 features used:**
+- **Static reflection** (`std::meta`): Auto-generates 300+ keyword mappings from `TokenType` enum at compile time. Zero maintenance, impossible to desync.
+- **Advanced constexpr**: Perfect hash tables, compile-time string processing, full keyword system generated during compilation.
 
 ### C++ library
 
@@ -184,7 +189,7 @@ cmake --build build
 
 ## Architecture
 
-1,415,472 lines of C++ headers, 19 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (2952 lines), `generator.h` (1639), `expression.h` (1105, 105 expression types). Entry point is `transpiler.h` (86 lines).
+Header-only C++ library. 19 header files, no `.cpp` files. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (2952 lines), `generator.h` (1639), `expression.h` (1105, 105 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 
@@ -241,7 +246,7 @@ There is a `libFuzzer` target in `fuzzing/fuzz_parser.cpp`:
 
 ```bash
 cd fuzzing
-clang++ -fsanitize=fuzzer,address -std=c++23 -I../include fuzz_parser.cpp -o fuzz_parser
+clang++ -fsanitize=fuzzer,address -std=c++26 -freflection -I../include fuzz_parser.cpp -o fuzz_parser
 ./fuzz_parser -max_len=10000 -timeout=10
 ```
 
@@ -487,57 +492,57 @@ See `benchmarks/bench_complete_comparison.py` to reproduce.
 
 **45 dialects** with full parse and generation support. Use `Dialect::Name` in C++ or `sqlglot.Dialect.Name` in Python.
 
+**Note:** Dialect names are case-sensitive (e.g., `Dialect::PostgreSQL`, not `Dialect::postgresql`).
+
 Each dialect includes proper identifier quoting, keyword handling, function name translation, and syntax transformations (e.g. LIMIT vs TOP vs FETCH FIRST).
 
-| Database | Dialect |
-|----------|---------|
-| ANSI SQL | ANSI |
-| Athena | Athena |
-| BigQuery | BigQuery |
-| Calcite | Calcite |
-| ClickHouse | ClickHouse |
-| CockroachDB | CockroachDB |
-| Databricks | Databricks |
-| DB2 | DB2 |
-| Doris | Doris |
-| Dremio | Dremio |
-| Drill | Drill |
-| Druid | Druid |
-| DuckDB | DuckDB |
-| Dune | Dune |
-| Exasol | Exasol |
-| Fabric (Microsoft) | Fabric |
-| Greenplum | Greenplum |
-| Hive | Hive |
-| Impala | Impala |
-| MariaDB | MariaDB |
-| Materialize | Materialize |
-| MySQL | MySQL |
-| Netezza | Netezza |
-| Oracle | Oracle |
-| Phoenix | Phoenix |
-| Pinot | Pinot |
-| PostgreSQL | PostgreSQL |
-| Presto | Presto |
-| Redshift | Redshift |
-| RisingWave | RisingWave |
-| SingleStore | SingleStore |
-| Snowflake | Snowflake |
-| Solr | Solr |
-| Spark | Spark |
-| Spark 2 | Spark2 |
-| SQL Server | SQLServer |
-| SQLite | SQLite |
-| StarRocks | StarRocks |
-| Tableau | Tableau |
-| Teradata | Teradata |
-| TiDB | TiDB |
-| TimescaleDB | TimescaleDB |
-| Trino | Trino |
-| Vertica | Vertica |
-| YugabyteDB | YugabyteDB |
-
-**Dialect-specific features tested:** Redshift DISTKEY/SORTKEY/SUPER/DISTSTYLE, DuckDB QUALIFY/ASOF joins, CockroachDB UPSERT, Materialize TAIL, Vertica PROJECTION/SEGMENTED, Greenplum DISTRIBUTED, SingleStore VECTOR, Doris DUPLICATE KEY/BUCKETS/DISTRIBUTED, TiDB AUTO_RANDOM, Spark NULL-SAFE equality (`<=>`), Databricks OPTIMIZE/ZORDER, Impala COMPUTE STATS, BigQuery STRUCT/SAFE_CAST, Oracle CONNECT BY/PRIOR, RisingWave EMIT CHANGES, TimescaleDB time_bucket, YugabyteDB SPLIT INTO TABLETS, Dune bytearray_to_uint256, Spark2 CACHE TABLE, Dremio CREATE REFLECTION, Fabric lakehouse.schema.table, Druid TIME_FLOOR, DB2 FETCH FIRST ROWS ONLY, Netezza DISTRIBUTE ON, Tableau ZN(), Exasol DISTRIBUTE BY, Solr score(), Calcite TABLESAMPLE BERNOULLI.
+| Database | Dialect | Dialect-Specific Features Tested |
+|----------|---------|----------------------------------|
+| ANSI SQL | ANSI | Standard SQL compliance |
+| Athena | Athena | AWS-specific syntax |
+| BigQuery | BigQuery | STRUCT, SAFE_CAST |
+| Calcite | Calcite | TABLESAMPLE BERNOULLI |
+| ClickHouse | ClickHouse | ClickHouse-specific functions |
+| CockroachDB | CockroachDB | UPSERT |
+| Databricks | Databricks | OPTIMIZE, ZORDER |
+| DB2 | DB2 | FETCH FIRST ROWS ONLY |
+| Doris | Doris | DUPLICATE KEY, BUCKETS, DISTRIBUTED |
+| Dremio | Dremio | CREATE REFLECTION |
+| Drill | Drill | Apache Drill syntax |
+| Druid | Druid | TIME_FLOOR |
+| DuckDB | DuckDB | QUALIFY, ASOF joins |
+| Dune | Dune | bytearray_to_uint256 |
+| Exasol | Exasol | DISTRIBUTE BY |
+| Fabric (Microsoft) | Fabric | lakehouse.schema.table |
+| Greenplum | Greenplum | DISTRIBUTED |
+| Hive | Hive | Hive-specific syntax |
+| Impala | Impala | COMPUTE STATS |
+| MariaDB | MariaDB | MariaDB extensions |
+| Materialize | Materialize | TAIL |
+| MySQL | MySQL | MySQL-specific syntax |
+| Netezza | Netezza | DISTRIBUTE ON |
+| Oracle | Oracle | CONNECT BY, PRIOR |
+| Phoenix | Phoenix | Phoenix HBase syntax |
+| Pinot | Pinot | Apache Pinot functions |
+| PostgreSQL | PostgreSQL | PostgreSQL extensions |
+| Presto | Presto | Presto-specific functions |
+| Redshift | Redshift | DISTKEY, SORTKEY, SUPER, DISTSTYLE |
+| RisingWave | RisingWave | EMIT CHANGES |
+| SingleStore | SingleStore | VECTOR |
+| Snowflake | Snowflake | Snowflake-specific syntax |
+| Solr | Solr | score() |
+| Spark | Spark | NULL-SAFE equality (`<=>`) |
+| Spark 2 | Spark2 | CACHE TABLE |
+| SQL Server | SQLServer | T-SQL syntax |
+| SQLite | SQLite | SQLite-specific syntax |
+| StarRocks | StarRocks | StarRocks extensions |
+| Tableau | Tableau | ZN() |
+| Teradata | Teradata | Teradata-specific syntax |
+| TiDB | TiDB | AUTO_RANDOM |
+| TimescaleDB | TimescaleDB | time_bucket |
+| Trino | Trino | Trino-specific functions |
+| Vertica | Vertica | PROJECTION, SEGMENTED |
+| YugabyteDB | YugabyteDB | SPLIT INTO TABLETS |
 
 ## Licence
 

@@ -333,7 +333,7 @@ sudo make install
 
 ```bash
 /usr/local/gcc-trunk/bin/g++ --version  # Should show 16.0.0 or higher
-/usr/local/gcc-trunk/bin/g++ -std=c++26 -freflection -x c++ - <<< 'int main() {}' && echo "✅ C++26 reflection works"
+/usr/local/gcc-trunk/bin/g++ -std=c++26 -freflection -x c++ - <<< 'int main() {}' && echo "SUCCESS: C++26 reflection works"
 ```
 
 **3. Add to PATH**:

@@ -24,10 +24,10 @@ jobs:
       run: |
         g++ --version
         g++ -std=c++26 -freflection -x c++ - <<< 'int main() {}' || {
-          echo "❌ GCC 16+ trunk with -freflection not available"
+          echo "ERROR: GCC 16+ trunk with -freflection not available"
           exit 1
         }
-        echo "✅ GCC 16+ trunk with -freflection available"
+        echo "SUCCESS: GCC 16+ trunk with -freflection available"
 
     - name: Set up Python
       uses: actions/setup-python@v5
@@ -69,10 +69,10 @@ jobs:
     steps:
     - name: C++26 Requirement Notice
       run: |
-        echo "⚠️  Python wheel builds require C++26 with GCC 16+ trunk"
-        echo "⚠️  Self-hosted runner not enabled for this build"
-        echo "💡 To build wheels, set up a self-hosted runner with GCC 16+ trunk"
-        echo "📖 See DEVELOPMENT.md for self-hosted runner setup"
+        echo "WARNING: Python wheel builds require C++26 with GCC 16+ trunk"
+        echo "WARNING: Self-hosted runner not enabled for this build"
+        echo "NOTE: To build wheels, set up a self-hosted runner with GCC 16+ trunk"
+        echo "NOTE: See DEVELOPMENT.md for self-hosted runner setup"
 
   upload_pypi:
     name: Upload to PyPI

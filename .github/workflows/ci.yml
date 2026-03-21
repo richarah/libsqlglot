@@ -21,9 +21,9 @@ jobs:
     - name: Check for C++26 compiler (GCC 16+ trunk)
       id: check_compiler
       run: |
-        echo "⚠️  C++26 reflection requires GCC 16+ trunk with -freflection"
-        echo "⚠️  ubuntu-latest and macos-latest do not support this yet"
-        echo "⚠️  Skipping build tests until GCC 16 is in stable releases"
+        echo "WARNING: C++26 reflection requires GCC 16+ trunk with -freflection"
+        echo "WARNING: ubuntu-latest and macos-latest do not support this yet"
+        echo "WARNING: Skipping build tests until GCC 16 is in stable releases"
         echo "skip=true" >> $GITHUB_OUTPUT
       shell: bash
 

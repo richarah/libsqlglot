@@ -24,6 +24,34 @@ static Arena& get_arena() {
     return *arena;
 }
 
+// Helper function to convert string dialect names to Dialect enum
+static Dialect parse_dialect(const std::string& name) {
+    std::string lower_name = name;
+    for (char& c : lower_name) {
+        if (c >= 'A' && c <= 'Z') c = c - 'A' + 'a';
+    }
+
+    if (lower_name == "ansi") return Dialect::ANSI;
+    if (lower_name == "mysql") return Dialect::MySQL;
+    if (lower_name == "postgresql" || lower_name == "postgres") return Dialect::PostgreSQL;
+    if (lower_name == "sqlite") return Dialect::SQLite;
+    if (lower_name == "bigquery") return Dialect::BigQuery;
+    if (lower_name == "snowflake") return Dialect::Snowflake;
+    if (lower_name == "redshift") return Dialect::Redshift;
+    if (lower_name == "oracle") return Dialect::Oracle;
+    if (lower_name == "sqlserver" || lower_name == "tsql") return Dialect::SQLServer;
+    if (lower_name == "duckdb") return Dialect::DuckDB;
+    if (lower_name == "clickhouse") return Dialect::ClickHouse;
+    if (lower_name == "presto") return Dialect::Presto;
+    if (lower_name == "trino") return Dialect::Trino;
+    if (lower_name == "hive") return Dialect::Hive;
+    if (lower_name == "spark") return Dialect::Spark;
+    if (lower_name == "athena") return Dialect::Athena;
+    if (lower_name == "databricks") return Dialect::Databricks;
+
+    throw std::runtime_error("Unknown dialect: " + name);
+}
+
 NB_MODULE(_libsqlglot, m) {
     m.doc() = "High-performance C++ SQL parser, transpiler, and optimiser";
 
@@ -210,16 +238,62 @@ NB_MODULE(_libsqlglot, m) {
           nb::rv_policy::reference,
           "Parse SQL and return AST (sqlglot-compatible alias for parse())");
 
+    // Transpile with improved API: supports both Dialect enum and string names
+    // Also supports keyword arguments: read="mysql", write="spark"
     m.def("transpile",
           [](const std::string& sql,
-             Dialect from_dialect = Dialect::ANSI,
-             Dialect to_dialect = Dialect::ANSI) -> std::string {
-              return Transpiler::transpile(sql, from_dialect, to_dialect);
+             nb::object from_dialect = nb::none(),
+             nb::object to_dialect = nb::none(),
+             nb::object read = nb::none(),
+             nb::object write = nb::none()) -> std::string {
+
+              Dialect from_d = Dialect::ANSI;
+              Dialect to_d = Dialect::ANSI;
+
+              // Handle "read" keyword argument (source dialect)
+              if (!read.is_none()) {
+                  if (nb::isinstance<nb::str>(read)) {
+                      from_d = parse_dialect(nb::cast<std::string>(read));
+                  } else if (nb::isinstance<nb::int_>(read)) {
+                      from_d = static_cast<Dialect>(nb::cast<int>(read));
+                  }
+              }
+              // "from_dialect" positional arg overrides "read"
+              else if (!from_dialect.is_none()) {
+                  if (nb::isinstance<nb::str>(from_dialect)) {
+                      from_d = parse_dialect(nb::cast<std::string>(from_dialect));
+                  } else if (nb::isinstance<nb::int_>(from_dialect)) {
+                      from_d = static_cast<Dialect>(nb::cast<int>(from_dialect));
+                  }
+              }
+
+              // Handle "write" keyword argument (target dialect)
+              if (!write.is_none()) {
+                  if (nb::isinstance<nb::str>(write)) {
+                      to_d = parse_dialect(nb::cast<std::string>(write));
+                  } else if (nb::isinstance<nb::int_>(write)) {
+                      to_d = static_cast<Dialect>(nb::cast<int>(write));
+                  }
+              }
+              // "to_dialect" positional arg overrides "write"
+              else if (!to_dialect.is_none()) {
+                  if (nb::isinstance<nb::str>(to_dialect)) {
+                      to_d = parse_dialect(nb::cast<std::string>(to_dialect));
+                  } else if (nb::isinstance<nb::int_>(to_dialect)) {
+                      to_d = static_cast<Dialect>(nb::cast<int>(to_dialect));
+                  }
+              }
+
+              return Transpiler::transpile(sql, from_d, to_d);
           },
           nb::arg("sql"),
-          nb::arg("from_dialect") = Dialect::ANSI,
-          nb::arg("to_dialect") = Dialect::ANSI,
-          "Transpile SQL from one dialect to another");
+          nb::arg("from_dialect") = nb::none(),
+          nb::arg("to_dialect") = nb::none(),
+          nb::arg("read") = nb::none(),
+          nb::arg("write") = nb::none(),
+          "Transpile SQL from one dialect to another. "
+          "Supports both Dialect enum and string names (case-insensitive). "
+          "Use read= for source dialect, write= for target dialect.");
 
     // Optimizer API
     m.def("optimize",

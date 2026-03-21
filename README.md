@@ -49,7 +49,7 @@ std::string output = Transpiler::transpile(
     Dialect::MySQL,
     Dialect::PostgreSQL
 );
-// Returns: SELECT "id", "name" FROM "users" LIMIT 10
+// Returns: SELECT "users"."id", "users"."name" FROM "users" LIMIT 10
 
 // Parse SQL into AST
 Arena arena;
@@ -80,7 +80,7 @@ sql = sqlglot.transpile(
     sqlglot.Dialect.MySQL,
     sqlglot.Dialect.PostgreSQL
 )
-# Returns: 'SELECT "id", "name" FROM "users" LIMIT 10'
+# Returns: 'SELECT "users"."id", "users"."name" FROM "users" LIMIT 10'
 
 # Parse SQL into AST
 stmt = sqlglot.parse("SELECT id, name FROM users WHERE active = TRUE")
@@ -189,7 +189,7 @@ cmake --build build
 
 ## Architecture
 
-Header-only C++ library. 19 header files, no `.cpp` files. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (2952 lines), `generator.h` (1639), `expression.h` (1105, 105 expression types). Entry point is `transpiler.h` (86 lines).
+Header-only C++ library. 19 header files, no `.cpp` files. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (2952 lines), `generator.h` (1643), `expression.h` (1105, 105 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 
@@ -282,7 +282,7 @@ std::string mysql_sql = "SELECT `user_id`, `name` FROM `users` LIMIT 10";
 std::string pg_sql = Transpiler::transpile(
     mysql_sql, Dialect::MySQL, Dialect::PostgreSQL
 );
-// Output: SELECT "user_id", "name" FROM "users" LIMIT 10
+// Output: SELECT "users"."user_id", "users"."name" FROM "users" LIMIT 10
 ```
 
 ### Building AST by hand

@@ -53,8 +53,8 @@ public:
 
         char c = peek();
 
-        // Identifiers and keywords
-        if (is_identifier_start(c)) {
+        // Identifiers and keywords (including quoted identifiers)
+        if (is_identifier_start(c) || c == '"' || c == '`' || c == '[') {
             return tokenize_identifier();
         }
 
@@ -63,8 +63,8 @@ public:
             return tokenize_number();
         }
 
-        // Strings
-        if (c == '\'' || c == '"') {
+        // Strings (single quotes only - double quotes are for identifiers in SQL standard)
+        if (c == '\'') {
             return tokenize_string(c);
         }
 
@@ -171,13 +171,16 @@ private:
         if (peek() == '"' || peek() == '`' || peek() == '[') {
             char quote = advance();
             char end_quote = (quote == '[') ? ']' : quote;
+            uint32_t content_start = pos_;  // Start of actual identifier (after opening quote)
 
             while (!is_eof() && peek() != end_quote) {
                 advance();
             }
+            uint32_t content_end = pos_;  // End of actual identifier (before closing quote)
             if (!is_eof()) advance(); // Skip closing quote
 
-            std::string_view text = source_.substr(start_pos, pos_ - start_pos);
+            // Store identifier WITHOUT quotes
+            std::string_view text = source_.substr(content_start, content_end - content_start);
             const char* interned = pool_->intern(text);
             return make_token(TokenType::IDENTIFIER, start_pos, pos_, start_line, start_col, interned);
         }

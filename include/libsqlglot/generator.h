@@ -360,9 +360,10 @@ private:
 
     void visit_column(const Column* col) {
         if (!col->table.empty()) {
-            sql_ << col->table << ".";
+            quote_identifier(col->table);
+            sql_ << ".";
         }
-        sql_ << col->column;
+        quote_identifier(col->column);
     }
 
     void visit_star(const Star* star) {
@@ -442,14 +443,17 @@ private:
 
     void visit_table_ref(const TableRef* table) {
         if (!table->database.empty()) {
-            sql_ << table->database << ".";
+            quote_identifier(table->database);
+            sql_ << ".";
         }
         if (!table->schema.empty()) {
-            sql_ << table->schema << ".";
+            quote_identifier(table->schema);
+            sql_ << ".";
         }
-        sql_ << table->table;
+        quote_identifier(table->table);
         if (!table->alias.empty()) {
-            sql_ << " AS " << table->alias;
+            sql_ << " AS ";
+            quote_identifier(table->alias);
         }
     }
 

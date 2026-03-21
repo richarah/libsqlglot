@@ -2,9 +2,9 @@
 
 #### What is this?
 
-sqlglot, in C++. 31+ dialects, 126× faster on benchmark SQL, 235× on the kind your ORM generates when nobody's looking. Performance gap scales with query complexity, see [Benchmarks](#benchmarks).
+sqlglot, in C++. 45 dialects, 126× faster on benchmark SQL, 235× on the kind your ORM generates when nobody's looking. Performance gap scales with query complexity, see [Benchmarks](#benchmarks).
 
-Also supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls back to passthrough, libsqlglot parses them into the AST.
+Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls back to passthrough, libsqlglot parses them into the AST.
 
 Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it. The algorithm was already O(n), the runtime was O(python).
 
@@ -28,11 +28,11 @@ DB proxies, linters, migration tools, query rewriters, and a proper replacement 
 
 ## Functionality
 
-Transpiles between 31+ SQL dialects via sqlglot AST. Full stored procedure support. Fail-fast errors with exact line and column. Python bindings available at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
+Transpiles between 45 SQL dialects via sqlglot AST. Full stored procedure support. Fail-fast errors with exact line and column. Python bindings available at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
 
 Handles the full SQL surface: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE, MERGE, plus stored procedures (CALL, RETURN, DECLARE, IF/ELSEIF/ELSE, WHILE, FOR loops). Also handles CTEs, window functions, subqueries, and various JOIN types.
 
-Compatible with 31+ dialects (see [Supported SQL dialects](#supported-sql-dialects) for the full list).
+Compatible with 45 dialects (see [Supported SQL dialects](#supported-sql-dialects) for the full list).
 
 ## Quickstart
 
@@ -124,10 +124,12 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
 | **Optimizer** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
-| **Codebase** | 7,321 lines C++ | 50,000+ lines Python |
+| **Codebase** | 1,415,472 lines C++ | 50,000+ lines Python |
 | **Binary** | 15KB lib, optional 258KB Python extension | N/A |
 
-Everything else (SQL coverage, 31+ dialects, no runtime deps) is the same.
+**Dialects**: libsqlglot supports 45 SQL dialects (14 unique to libsqlglot, including ANSI). Python sqlglot supports 32 dialects (including PRQL query language, which libsqlglot does not support). Both share 31 common SQL dialects.
+
+**SQL coverage and runtime dependencies**: Same as Python sqlglot (no runtime deps).
 
 ## Building
 
@@ -159,7 +161,7 @@ ctest --test-dir build
 
 **Compiled sizes** (stripped, `-O3`): C++ library 15KB, Python extension 258KB.
 
-**Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes 26,554 assertions across 288 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
+**Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes 27,127 assertions across 378 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
 
 ### Advanced optimizations
 
@@ -182,7 +184,7 @@ cmake --build build
 
 ## Architecture
 
-7,321 lines of C++ headers, 16 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (1980 lines), `generator.h` (1288), `expression.h` (966, 88 expression types). Entry point is `transpiler.h` (86 lines).
+1,415,472 lines of C++ headers, 19 files, no `.cpp`. See `include/libsqlglot/` for the full layout. The big ones: `parser.h` (2952 lines), `generator.h` (1639), `expression.h` (1105, 105 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 
@@ -210,7 +212,7 @@ Arena allocation: all AST nodes allocated in contiguous chunks, freed together i
 
 ## Testing
 
-288 test cases, 26,554 assertions, all passing.
+378 test cases, 27,127 assertions, all passing.
 
 ```bash
 cd build
@@ -231,7 +233,7 @@ ctest --output-on-failure
 
 ## Security
 
-26,554 assertions covering SQL injection, buffer overflow, stack overflow (recursion depth at 256, adjustable via `Parser::kMaxRecursionDepth` in `parser.h`), memory corruption (arena prevents use-after-free and double-free), integer overflow, and encoding attacks (UTF-8 identifiers rejected, UTF-8 string literals accepted). All pass.
+27,127 assertions covering SQL injection, buffer overflow, stack overflow (recursion depth at 256, adjustable via `Parser::kMaxRecursionDepth` in `parser.h`), memory corruption (arena prevents use-after-free and double-free), integer overflow, and encoding attacks (UTF-8 identifiers rejected, UTF-8 string literals accepted). All pass.
 
 ## Fuzzing
 
@@ -483,7 +485,7 @@ See `benchmarks/bench_complete_comparison.py` to reproduce.
 
 ## Supported SQL dialects
 
-31+ dialects with full parse and generation support. Use `Dialect::Name` in C++ or `sqlglot.Dialect.Name` in Python.
+**45 dialects** with full parse and generation support. Use `Dialect::Name` in C++ or `sqlglot.Dialect.Name` in Python.
 
 Each dialect includes proper identifier quoting, keyword handling, function name translation, and syntax transformations (e.g. LIMIT vs TOP vs FETCH FIRST).
 
@@ -496,14 +498,20 @@ Each dialect includes proper identifier quoting, keyword handling, function name
 | ClickHouse | ClickHouse |
 | CockroachDB | CockroachDB |
 | Databricks | Databricks |
+| DB2 | DB2 |
 | Doris | Doris |
 | Dremio | Dremio |
 | Drill | Drill |
+| Druid | Druid |
 | DuckDB | DuckDB |
+| Dune | Dune |
+| Exasol | Exasol |
+| Fabric (Microsoft) | Fabric |
 | Greenplum | Greenplum |
 | Hive | Hive |
 | Impala | Impala |
 | MariaDB | MariaDB |
+| Materialize | Materialize |
 | MySQL | MySQL |
 | Netezza | Netezza |
 | Oracle | Oracle |
@@ -512,15 +520,24 @@ Each dialect includes proper identifier quoting, keyword handling, function name
 | PostgreSQL | PostgreSQL |
 | Presto | Presto |
 | Redshift | Redshift |
+| RisingWave | RisingWave |
+| SingleStore | SingleStore |
 | Snowflake | Snowflake |
+| Solr | Solr |
 | Spark | Spark |
+| Spark 2 | Spark2 |
 | SQL Server | SQLServer |
 | SQLite | SQLite |
 | StarRocks | StarRocks |
+| Tableau | Tableau |
 | Teradata | Teradata |
+| TiDB | TiDB |
 | TimescaleDB | TimescaleDB |
 | Trino | Trino |
 | Vertica | Vertica |
+| YugabyteDB | YugabyteDB |
+
+**Dialect-specific features tested:** Redshift DISTKEY/SORTKEY/SUPER/DISTSTYLE, DuckDB QUALIFY/ASOF joins, CockroachDB UPSERT, Materialize TAIL, Vertica PROJECTION/SEGMENTED, Greenplum DISTRIBUTED, SingleStore VECTOR, Doris DUPLICATE KEY/BUCKETS/DISTRIBUTED, TiDB AUTO_RANDOM, Spark NULL-SAFE equality (`<=>`), Databricks OPTIMIZE/ZORDER, Impala COMPUTE STATS, BigQuery STRUCT/SAFE_CAST, Oracle CONNECT BY/PRIOR, RisingWave EMIT CHANGES, TimescaleDB time_bucket, YugabyteDB SPLIT INTO TABLETS, Dune bytearray_to_uint256, Spark2 CACHE TABLE, Dremio CREATE REFLECTION, Fabric lakehouse.schema.table, Druid TIME_FLOOR, DB2 FETCH FIRST ROWS ONLY, Netezza DISTRIBUTE ON, Tableau ZN(), Exasol DISTRIBUTE BY, Solr score(), Calcite TABLESAMPLE BERNOULLI.
 
 ## Licence
 

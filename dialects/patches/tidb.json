@@ -1,0 +1,86 @@
+{
+  "dialect_name": "tidb",
+  "base_dialect": "mysql",
+  "description": "TiDB - Distributed MySQL-compatible database with HTAP capabilities",
+  "keywords": {
+    "add": [
+      {"name": "TIFLASH", "token_type": "TIFLASH"},
+      {"name": "TIKV", "token_type": "TIKV"},
+      {"name": "SHARD_ROW_ID_BITS", "token_type": "SHARD_ROW_ID_BITS"},
+      {"name": "PRE_SPLIT_REGIONS", "token_type": "PRE_SPLIT_REGIONS"},
+      {"name": "AUTO_ID_CACHE", "token_type": "AUTO_ID_CACHE"},
+      {"name": "AUTO_RANDOM", "token_type": "AUTO_RANDOM"},
+      {"name": "PLACEMENT", "token_type": "PLACEMENT"},
+      {"name": "POLICY", "token_type": "POLICY"},
+      {"name": "FOLLOWERS", "token_type": "FOLLOWERS"},
+      {"name": "LEADER_CONSTRAINTS", "token_type": "LEADER_CONSTRAINTS"},
+      {"name": "FOLLOWER_CONSTRAINTS", "token_type": "FOLLOWER_CONSTRAINTS"},
+      {"name": "LEARNER_CONSTRAINTS", "token_type": "LEARNER_CONSTRAINTS"},
+      {"name": "FLASHBACK", "token_type": "FLASHBACK"},
+      {"name": "RECOVER", "token_type": "RECOVER"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "TIDB_DECODE_KEY", "category": "system"},
+      {"name": "TIDB_DECODE_PLAN", "category": "system"},
+      {"name": "TIDB_IS_DDL_OWNER", "category": "system"},
+      {"name": "TIDB_PARSE_TSO", "category": "system"},
+      {"name": "TIDB_VERSION", "category": "system"},
+      {"name": "VITESS_HASH", "category": "hash"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": false,
+    "supports_struct_literals": false,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "`",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "AUTO_RANDOM",
+      "note": "Distributed auto-increment with random sharding"
+    },
+    {
+      "feature": "Placement rules",
+      "note": "PLACEMENT POLICY for data placement control"
+    },
+    {
+      "feature": "FLASHBACK",
+      "note": "Time travel and recovery using FLASHBACK TABLE/DATABASE"
+    },
+    {
+      "feature": "TiFlash",
+      "note": "Columnar storage engine for analytical queries"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.pingcap.com/tidb/stable/sql-statement-overview",
+      "notes": "Official TiDB SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/mysql.py",
+      "notes": "SQLGlot extends MySQL for TiDB"
+    }
+  ]
+}

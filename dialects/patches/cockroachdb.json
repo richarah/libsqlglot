@@ -1,0 +1,126 @@
+{
+  "dialect_name": "cockroachdb",
+  "base_dialect": "postgresql",
+  "description": "CockroachDB - Distributed SQL database with PostgreSQL wire protocol compatibility",
+  "keywords": {
+    "add": [
+      {"name": "UPSERT", "token_type": "UPSERT"},
+      {"name": "EXPERIMENTAL", "token_type": "EXPERIMENTAL"},
+      {"name": "SCRUB", "token_type": "SCRUB"},
+      {"name": "SCATTER", "token_type": "SCATTER"},
+      {"name": "SPLIT", "token_type": "SPLIT"},
+      {"name": "UNSPLIT", "token_type": "UNSPLIT"},
+      {"name": "RELOCATE", "token_type": "RELOCATE"},
+      {"name": "INJECT", "token_type": "INJECT"},
+      {"name": "STATISTICS", "token_type": "STATISTICS"},
+      {"name": "HISTOGRAM", "token_type": "HISTOGRAM"},
+      {"name": "CHANGEFEED", "token_type": "CHANGEFEED"},
+      {"name": "JOBS", "token_type": "JOBS"},
+      {"name": "SCHEDULES", "token_type": "SCHEDULES"},
+      {"name": "LOCALITY", "token_type": "LOCALITY"},
+      {"name": "SURVIVE", "token_type": "SURVIVE"},
+      {"name": "REGION", "token_type": "REGION"},
+      {"name": "ZONE", "token_type": "ZONE"},
+      {"name": "EXPERIMENTAL_RELOCATE", "token_type": "EXPERIMENTAL_RELOCATE"},
+      {"name": "RESTORE", "token_type": "RESTORE"},
+      {"name": "BACKUP", "token_type": "BACKUP"},
+      {"name": "INCREMENTAL", "token_type": "INCREMENTAL"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [
+      {"symbol": "@>", "token_type": "AT_GT", "precedence": "comparison", "associativity": "left"},
+      {"symbol": "<@", "token_type": "LT_AT", "precedence": "comparison", "associativity": "left"},
+      {"symbol": "&&", "token_type": "DOUBLE_AMP", "precedence": "comparison", "associativity": "left"},
+      {"symbol": "||", "token_type": "CONCAT", "precedence": "additive", "associativity": "left"}
+    ],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "EXPERIMENTAL_UUID_V4", "category": "misc"},
+      {"name": "GEN_RANDOM_UUID", "category": "misc"},
+      {"name": "UNIQUE_ROWID", "category": "misc"},
+      {"name": "CRDB_INTERNAL", "category": "system"},
+      {"name": "TO_HEX", "category": "conversion"},
+      {"name": "FROM_HEX", "category": "conversion"},
+      {"name": "EXPERIMENTAL_STRFTIME", "category": "date"},
+      {"name": "EXPERIMENTAL_STRPTIME", "category": "date"},
+      {"name": "ST_MAKEPOINT", "category": "geo"},
+      {"name": "ST_DISTANCE", "category": "geo"},
+      {"name": "ST_AREA", "category": "geo"},
+      {"name": "ST_GEOMFROMTEXT", "category": "geo"},
+      {"name": "ST_GEOGFROMTEXT", "category": "geo"},
+      {"name": "JSONB_BUILD_ARRAY", "category": "json"},
+      {"name": "JSONB_BUILD_OBJECT", "category": "json"},
+      {"name": "JSONB_OBJECT_AGG", "category": "json"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "INT2", "token_type": "INT2"},
+      {"name": "INT4", "token_type": "INT4"},
+      {"name": "INT8", "token_type": "INT8"},
+      {"name": "FLOAT4", "token_type": "FLOAT4"},
+      {"name": "FLOAT8", "token_type": "FLOAT8"},
+      {"name": "STRING", "token_type": "STRING_TYPE"},
+      {"name": "BYTES", "token_type": "BYTES"},
+      {"name": "GEOGRAPHY", "token_type": "GEOGRAPHY"},
+      {"name": "GEOMETRY", "token_type": "GEOMETRY"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": false,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "UPSERT",
+      "note": "Native UPSERT statement (INSERT ON CONFLICT alternative)"
+    },
+    {
+      "feature": "Multi-region",
+      "note": "SURVIVE ZONE/REGION FAILURE for geo-distributed databases"
+    },
+    {
+      "feature": "Changefeeds",
+      "note": "CREATE CHANGEFEED for streaming changes to external systems"
+    },
+    {
+      "feature": "Backup/Restore",
+      "note": "Distributed backup and restore capabilities"
+    },
+    {
+      "feature": "Table splitting",
+      "note": "ALTER TABLE ... SPLIT AT for manual range distribution"
+    },
+    {
+      "feature": "Spatial types",
+      "note": "PostGIS-compatible geometry and geography types"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://www.cockroachlabs.com/docs/stable/sql-statements.html",
+      "notes": "Official CockroachDB SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/postgres.py",
+      "notes": "SQLGlot uses extended Postgres for CockroachDB"
+    }
+  ]
+}

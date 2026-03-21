@@ -1,0 +1,89 @@
+{
+  "dialect_name": "oracle",
+  "base_dialect": "plsql",
+  "description": "Oracle Database - Enterprise RDBMS with PL/SQL",
+  "keywords": {
+    "add": [
+      {"name": "FLASHBACK", "token_type": "FLASHBACK"},
+      {"name": "VERSIONS", "token_type": "VERSIONS"},
+      {"name": "SCN", "token_type": "SCN"},
+      {"name": "PURGE", "token_type": "PURGE"},
+      {"name": "RECYCLEBIN", "token_type": "RECYCLEBIN"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [
+      {"symbol": "(+)", "token_type": "OUTER_JOIN", "precedence": "comparison", "associativity": "left"}
+    ],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "DECODE", "category": "conditional"},
+      {"name": "NVL", "category": "conditional"},
+      {"name": "NVL2", "category": "conditional"},
+      {"name": "TO_DATE", "category": "conversion"},
+      {"name": "TO_CHAR", "category": "conversion"},
+      {"name": "TO_NUMBER", "category": "conversion"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "NUMBER", "token_type": "NUMBER"},
+      {"name": "VARCHAR2", "token_type": "VARCHAR2"},
+      {"name": "NVARCHAR2", "token_type": "NVARCHAR2"},
+      {"name": "CLOB", "token_type": "CLOB"},
+      {"name": "NCLOB", "token_type": "NCLOB"},
+      {"name": "BFILE", "token_type": "BFILE"},
+      {"name": "RAW", "token_type": "RAW"},
+      {"name": "LONG", "token_type": "LONG"},
+      {"name": "LONG_RAW", "token_type": "LONG_RAW"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": true,
+    "supports_unnest": false,
+    "supports_array_literals": false,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Outer join syntax",
+      "note": "Legacy (+) syntax for outer joins"
+    },
+    {
+      "feature": "CONNECT BY",
+      "note": "Hierarchical queries"
+    },
+    {
+      "feature": "FLASHBACK",
+      "note": "Time travel queries"
+    },
+    {
+      "feature": "DUAL table",
+      "note": "Special single-row table"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.oracle.com/en/database/",
+      "notes": "Official Oracle Database documentation"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/oracle.py",
+      "notes": "SQLGlot Oracle dialect implementation"
+    }
+  ]
+}

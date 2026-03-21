@@ -1,0 +1,3678 @@
+{
+  "dialect": "informix-sql",
+  "grammar_name": "InformixSQLParser",
+  "token_sequences": [
+    {
+      "name": "sqlScript",
+      "tokens": [
+        "unitStatement",
+        "EOF"
+      ],
+      "optional_flags": [
+        true,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "createRole",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "closeStmt",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "closeDatabaseStmt",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "commitWorkStmt",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropAccessMethod",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropAggregate",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropDatabase",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropIndex",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropRole",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropSynonym",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropTable",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropTrigger",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropTrustedContext",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropType",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropUser",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropView",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropXadatasource",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "dropXadataTypeSource",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "databaseStmt",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "releaseSavepoint",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "renameColumn",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "renameConstraint",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "renameDatabase",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "renameIndex",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "renameSecurity",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "renameSequence",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "renameTable",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "renameTrustedContext",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "renameUser",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "rollbackWork",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "savepointStmt",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "setAutofree",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "setCollation",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "setDataskip",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "setDebugFile",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "unitStatement",
+      "tokens": [
+        "setDeferredPrepareStatement",
+        "SCOL"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "createRole",
+      "tokens": [
+        "CREATE",
+        "ROLE",
+        "IF",
+        "NOT",
+        "EXISTS",
+        "roleName",
+        "anyName"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        true,
+        false,
+        false
+      ],
+      "pattern_type": "create_statement"
+    },
+    {
+      "name": "dropRole",
+      "tokens": [
+        "DROP",
+        "ROLE",
+        "IF",
+        "EXISTS",
+        "roleName",
+        "anyName"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropSynonym",
+      "tokens": [
+        "DROP",
+        "SYNONYM",
+        "IF",
+        "EXISTS",
+        "synonymName",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropTable",
+      "tokens": [
+        "DROP",
+        "TABLE",
+        "IF",
+        "EXISTS",
+        "tableName",
+        "identifier",
+        "CASCADE"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        true
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropTable",
+      "tokens": [
+        "DROP",
+        "TABLE",
+        "IF",
+        "EXISTS",
+        "tableName",
+        "identifier",
+        "RESTRICT"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        true
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropTrigger",
+      "tokens": [
+        "DROP",
+        "TRIGGER",
+        "IF",
+        "EXISTS",
+        "triggerName",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropTrustedContext",
+      "tokens": [
+        "DROP",
+        "TRUSTED",
+        "CONTEXT",
+        "contextName",
+        "anyName"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropType",
+      "tokens": [
+        "DROP",
+        "TYPE",
+        "IF",
+        "EXISTS",
+        "dataTypeName",
+        "identifier",
+        "RESTRICT"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropUser",
+      "tokens": [
+        "DROP",
+        "USER",
+        "userName",
+        "anyName"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropView",
+      "tokens": [
+        "DROP",
+        "VIEW",
+        "IF",
+        "EXISTS",
+        "viewName",
+        "identifier",
+        "CASCADE"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        true
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropView",
+      "tokens": [
+        "DROP",
+        "VIEW",
+        "IF",
+        "EXISTS",
+        "viewName",
+        "identifier",
+        "RESTRICT"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        true
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropXadatasource",
+      "tokens": [
+        "DROP",
+        "XADATASOURCE",
+        "IF",
+        "EXISTS",
+        "xaSourceName",
+        "identifier",
+        "RESTRICT"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropXadataTypeSource",
+      "tokens": [
+        "DROP",
+        "XADATASOURCE",
+        "TYPE",
+        "IF",
+        "EXISTS",
+        "xaSourceName",
+        "identifier",
+        "RESTRICT"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropAccessMethod",
+      "tokens": [
+        "DROP",
+        "ACCESS_METHOD",
+        "IF",
+        "EXISTS",
+        "accessMethodName",
+        "identifier",
+        "RESTRICT"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropAggregate",
+      "tokens": [
+        "DROP",
+        "AGGREGATE",
+        "IF",
+        "EXISTS",
+        "aggregateName",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropDatabase",
+      "tokens": [
+        "DROP",
+        "DATABASE",
+        "IF",
+        "EXISTS",
+        "databaseName",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "dropIndex",
+      "tokens": [
+        "DROP",
+        "INDEX",
+        "IF",
+        "EXISTS",
+        "indexName",
+        "identifier",
+        "ONLINE"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        false,
+        false,
+        true
+      ],
+      "pattern_type": "drop_statement"
+    },
+    {
+      "name": "closeStmt",
+      "tokens": [
+        "CLOSE",
+        "cursorId",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "closeDatabaseStmt",
+      "tokens": [
+        "CLOSE",
+        "DATABASE"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "databaseStmt",
+      "tokens": [
+        "DATABASE",
+        "databaseName",
+        "anyName",
+        "EXCLUSIVE"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "commitWorkStmt",
+      "tokens": [
+        "COMMIT",
+        "WORK"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "releaseSavepoint",
+      "tokens": [
+        "RELEASE",
+        "SAVEPOINT",
+        "savepointName",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameColumn",
+      "tokens": [
+        "RENAME",
+        "COLUMN",
+        "oldColumn",
+        "identifier",
+        "TO",
+        "newColumn",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameConstraint",
+      "tokens": [
+        "RENAME",
+        "CONSTRAINT",
+        "oldConstraint",
+        "identifier",
+        "TO",
+        "newConstraint",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameDatabase",
+      "tokens": [
+        "RENAME",
+        "DATABASE",
+        "oldDatabase",
+        "identifier",
+        "TO",
+        "newDatabase",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameIndex",
+      "tokens": [
+        "RENAME",
+        "INDEX",
+        "oldIndex",
+        "identifier",
+        "TO",
+        "newIndex",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameSecurity",
+      "tokens": [
+        "RENAME",
+        "SECURITY",
+        "POLICY",
+        "oldSecurity",
+        "identifier",
+        "TO",
+        "newSecurity",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameSecurity",
+      "tokens": [
+        "RENAME",
+        "SECURITY",
+        "LABEL",
+        "policy",
+        "identifier",
+        "oldSecurity",
+        "identifier",
+        "TO",
+        "newSecurity",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameSecurity",
+      "tokens": [
+        "RENAME",
+        "SECURITY",
+        "LABEL",
+        "COMPONENT",
+        "oldSecurity",
+        "identifier",
+        "TO",
+        "newSecurity",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameSequence",
+      "tokens": [
+        "RENAME",
+        "SEQUENCE",
+        "oldSequence",
+        "identifier",
+        "TO",
+        "newSequence",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameTable",
+      "tokens": [
+        "RENAME",
+        "TABLE",
+        "oldTableName",
+        "identifier",
+        "TO",
+        "newTableName",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameTrustedContext",
+      "tokens": [
+        "RENAME",
+        "TRUSTED",
+        "CONTEXT",
+        "oldTrustedContextName",
+        "identifier",
+        "TO",
+        "newTrustedContextName",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "renameUser",
+      "tokens": [
+        "RENAME",
+        "USER",
+        "oldUserName",
+        "identifier",
+        "TO",
+        "newUserName",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "rollbackWork",
+      "tokens": [
+        "ROLLBACK",
+        "WORK",
+        "TO",
+        "SAVEPOINT",
+        "savepoint",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "savepointStmt",
+      "tokens": [
+        "SAVEPOINT",
+        "savepoint",
+        "identifier",
+        "UNIQUE"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setAutofree",
+      "tokens": [
+        "SET",
+        "AUTOFREE",
+        "ENABLED",
+        "FOR",
+        "cursorId",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setAutofree",
+      "tokens": [
+        "SET",
+        "AUTOFREE",
+        "ENABLED",
+        "FOR",
+        "cursorIdVar",
+        "anyName"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setAutofree",
+      "tokens": [
+        "SET",
+        "AUTOFREE",
+        "DISABLED",
+        "FOR",
+        "cursorId",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setAutofree",
+      "tokens": [
+        "SET",
+        "AUTOFREE",
+        "DISABLED",
+        "FOR",
+        "cursorIdVar",
+        "anyName"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setCollation",
+      "tokens": [
+        "SET",
+        "COLLATION",
+        "locale",
+        "quotedString"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setCollation",
+      "tokens": [
+        "SET",
+        "NO",
+        "COLLATION"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setDataskip",
+      "tokens": [
+        "SET",
+        "DATASKIP",
+        "ON",
+        "identifier",
+        "COMMA",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setDataskip",
+      "tokens": [
+        "SET",
+        "DATASKIP",
+        "OFF"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setDataskip",
+      "tokens": [
+        "SET",
+        "DATASKIP",
+        "DEFAULT"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setDebugFile",
+      "tokens": [
+        "SET",
+        "DEBUG",
+        "FILE",
+        "TO",
+        "CHAR_STRING",
+        "WITH",
+        "APPEND"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setDebugFile",
+      "tokens": [
+        "SET",
+        "DEBUG",
+        "FILE",
+        "TO",
+        "identifier",
+        "WITH",
+        "APPEND"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setDeferredPrepareStatement",
+      "tokens": [
+        "SET",
+        "DEFERRED_PREPARE",
+        "ENABLED"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "setDeferredPrepareStatement",
+      "tokens": [
+        "SET",
+        "DEFERRED_PREPARE",
+        "DISABLED"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "quotedString",
+      "tokens": [
+        "CHAR_STRING"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "anyName",
+      "tokens": [
+        "IDENTIFIER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "anyName",
+      "tokens": [
+        "keyword"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "anyName",
+      "tokens": [
+        "STRING_LITERAL"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "anyName",
+      "tokens": [
+        "OPEN_PAR",
+        "anyName",
+        "CLOSE_PAR"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "identifier",
+      "tokens": [
+        "anyName",
+        ".",
+        "anyName"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ABORT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ACTION"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ACCESS_METHOD"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ADD"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "AFTER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "AGGREGATE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ALL"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ALTER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ANALYZE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "AND"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "APPEND"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "AS"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ASC"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ATTACH"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "AUTOFREE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "AUTOINCREMENT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "BEFORE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "BEGIN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "BETWEEN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "BY"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CASCADE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CASE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CAST"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CHECK"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CLOSE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "COLLATE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "COLLATION"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "COLUMN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "COMPONENT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "COMMIT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CONFLICT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CONSTRAINT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CONTEXT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CREATE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CROSS"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CURRENT_DATE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CURRENT_TIME"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CURRENT_TIMESTAMP"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DATABASE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DATASKIP"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DEBUG"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DEFAULT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DEFERRABLE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DEFERRED"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DEFERRED_PREPARE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DELETE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DESC"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DETACH"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DISABLED"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DISTINCT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DROP"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "EACH"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ELSE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ENABLED"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "END"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ESCAPE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "EXCEPT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "EXCLUSIVE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "EXISTS"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "EXPLAIN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FAIL"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FOR"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FOREIGN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FROM"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FILE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FULL"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "GLOB"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "GROUP"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "HAVING"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "IF"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "IGNORE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "IMMEDIATE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "IN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "INDEX"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "INDEXED"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "INITIALLY"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "INNER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "INSERT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "INSTEAD"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "INTERSECT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "INTO"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "IS"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ISNULL"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "JOIN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "KEY"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "LABEL"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "LEFT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "LIKE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "LIMIT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "MATCH"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "NATURAL"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "NO"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "NOT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "NOTNULL"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "NULL"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "OF"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "OFF"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "OFFSET"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ON"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ONLINE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "OR"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ORDER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "OUTER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "POLICY"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "PLAN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "PRAGMA"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "PRIMARY"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "QUERY"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "RAISE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "RECURSIVE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "REFERENCES"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "REGEXP"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "REINDEX"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "RELEASE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "RENAME"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "REPLACE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "RESTRICT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "RIGHT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ROLLBACK"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ROW"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ROWS"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "SAVEPOINT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "SECURITY"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "SELECT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "SET"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "SEQUENCE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "SYNONYM"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "TABLE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "TEMP"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "TEMPORARY"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "THEN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "TO"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "TRANSACTION"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "TRIGGER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "TRUSTED"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "TYPE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "UNION"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "UNIQUE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "UPDATE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "USER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "USING"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "VACUUM"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "VALUES"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "VIEW"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "VIRTUAL"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "WHEN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "WHERE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "WITH"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "WITHOUT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "WORK"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "XADATASOURCE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FIRST_VALUE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "OVER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "PARTITION"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "RANGE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "PRECEDING"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "UNBOUNDED"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CURRENT"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FOLLOWING"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "CUME_DIST"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "DENSE_RANK"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "LAG"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "LAST_VALUE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "LEAD"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "NTH_VALUE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "NTILE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "PERCENT_RANK"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "RANK"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ROW_NUMBER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "GENERATED"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "ALWAYS"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "STORED"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "TRUE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FALSE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "WINDOW"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "NULLS"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FIRST"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "LAST"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "FILTER"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "GROUPS"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "keyword",
+      "tokens": [
+        "EXCLUDE"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    }
+  ],
+  "operators": [
+    {
+      "token": "OR",
+      "precedence": 3,
+      "associativity": "left"
+    },
+    {
+      "token": "AND",
+      "precedence": 4,
+      "associativity": "left"
+    },
+    {
+      "token": "RANGE",
+      "precedence": 6,
+      "associativity": "left"
+    },
+    {
+      "token": "NOT",
+      "precedence": 5,
+      "associativity": "right"
+    }
+  ],
+  "keywords": [
+    " (\n        QS_ANGLE\n        | QS_BRACE\n        | QS_BRACK\n        | QS_PAREN\n        | QS_EXCLAM\n        | QS_SHARP\n        | QS_QUOTE\n        | QS_DQUOTE\n    ) ",
+    "ABORT",
+    "ACCESS_METHOD",
+    "ACTION",
+    "ADD",
+    "AFTER",
+    "AGGREGATE",
+    "ALL",
+    "ALTER",
+    "ALWAYS",
+    "ANALYZE",
+    "AND",
+    "APPEND",
+    "AS",
+    "ASC",
+    "ATTACH",
+    "AUTOFREE",
+    "AUTOINCREMENT",
+    "BEFORE",
+    "BEGIN",
+    "BETWEEN",
+    "BY",
+    "CASCADE",
+    "CASE",
+    "CAST",
+    "CHECK",
+    "CLOSE",
+    "COLLATE",
+    "COLLATION",
+    "COLUMN",
+    "COMMIT",
+    "COMPONENT",
+    "CONFLICT",
+    "CONSTRAINT",
+    "CONTEXT",
+    "CREATE",
+    "CROSS",
+    "CUME_DIST",
+    "CURRENT",
+    "CURRENT_DATE",
+    "CURRENT_TIME",
+    "CURRENT_TIMESTAMP",
+    "DATABASE",
+    "DATASKIP",
+    "DEBUG",
+    "DEFAULT",
+    "DEFERRABLE",
+    "DEFERRED",
+    "DEFERRED_PREPARE",
+    "DELETE",
+    "DENSE_RANK",
+    "DESC",
+    "DETACH",
+    "DISABLED",
+    "DISTINCT",
+    "DROP",
+    "EACH",
+    "ELSE",
+    "ENABLED",
+    "END",
+    "ESCAPE",
+    "EXCEPT",
+    "EXCLUDE",
+    "EXCLUSIVE",
+    "EXISTS",
+    "EXPLAIN",
+    "FAIL",
+    "FALSE",
+    "FILE",
+    "FILTER",
+    "FIRST",
+    "FIRST_VALUE",
+    "FOLLOWING",
+    "FOR",
+    "FOREIGN",
+    "FROM",
+    "FULL",
+    "GENERATED",
+    "GLOB",
+    "GROUP",
+    "GROUPS",
+    "HAVING",
+    "IF",
+    "IGNORE",
+    "IMMEDIATE",
+    "IN",
+    "INDEX",
+    "INDEXED",
+    "INITIALLY",
+    "INNER",
+    "INSERT",
+    "INSTEAD",
+    "INTERSECT",
+    "INTO",
+    "IS",
+    "ISNULL",
+    "JOIN",
+    "KEY",
+    "LABEL",
+    "LAG",
+    "LAST",
+    "LAST_VALUE",
+    "LEAD",
+    "LEFT",
+    "LIKE",
+    "LIMIT",
+    "MATCH",
+    "NATURAL",
+    "NO",
+    "NOT",
+    "NOTNULL",
+    "NTH_VALUE",
+    "NTILE",
+    "NULL",
+    "NULLS",
+    "OF",
+    "OFF",
+    "OFFSET",
+    "ON",
+    "ONLINE",
+    "OR",
+    "ORDER",
+    "OUTER",
+    "OVER",
+    "PARTITION",
+    "PERCENT_RANK",
+    "PLAN",
+    "POLICY",
+    "PRAGMA",
+    "PRECEDING",
+    "PRIMARY",
+    "QUERY",
+    "RAISE",
+    "RANGE",
+    "RANK",
+    "RECURSIVE",
+    "REFERENCES",
+    "REGEXP",
+    "REINDEX",
+    "RELEASE",
+    "RENAME",
+    "REPLACE",
+    "RESTRICT",
+    "RIGHT",
+    "ROLE",
+    "ROLLBACK",
+    "ROW",
+    "ROWS",
+    "ROW_NUMBER",
+    "SAVEPOINT",
+    "SECURITY",
+    "SELECT",
+    "SEQUENCE",
+    "SET",
+    "STORED",
+    "SYNONYM",
+    "TABLE",
+    "TEMP",
+    "TEMPORARY",
+    "THEN",
+    "TO",
+    "TRANSACTION",
+    "TRIGGER",
+    "TRUE",
+    "TRUSTED",
+    "TYPE",
+    "UNBOUNDED",
+    "UNION",
+    "UNIQUE",
+    "UPDATE",
+    "USER",
+    "USING",
+    "VACUUM",
+    "VALUES",
+    "VIEW",
+    "VIRTUAL",
+    "WHEN",
+    "WHERE",
+    "WINDOW",
+    "WITH",
+    "WITHOUT",
+    "WORK",
+    "XADATASOURCE"
+  ],
+  "lexer_tokens": [
+    "ABORT",
+    "ACCESS_METHOD",
+    "ACTION",
+    "ADD",
+    "AFTER",
+    "AGGREGATE",
+    "ALL",
+    "ALTER",
+    "ALWAYS",
+    "ANALYZE",
+    "AND",
+    "APPEND",
+    "AS",
+    "ASC",
+    "ATTACH",
+    "AUTOFREE",
+    "AUTOINCREMENT",
+    "BEFORE",
+    "BEGIN",
+    "BETWEEN",
+    "BIND_PARAMETER",
+    "BY",
+    "CASCADE",
+    "CASE",
+    "CAST",
+    "CHAR_STRING_PERL",
+    "CHECK",
+    "CLOSE",
+    "CLOSE_PAR",
+    "COLLATE",
+    "COLLATION",
+    "COLUMN",
+    "COMMA",
+    "COMMIT",
+    "COMPONENT",
+    "CONFLICT",
+    "CONSTRAINT",
+    "CONTEXT",
+    "CREATE",
+    "CROSS",
+    "CUME_DIST",
+    "CURRENT",
+    "CURRENT_DATE",
+    "CURRENT_TIME",
+    "CURRENT_TIMESTAMP",
+    "DATABASE",
+    "DATASKIP",
+    "DEBUG",
+    "DEFAULT",
+    "DEFERRABLE",
+    "DEFERRED",
+    "DEFERRED_PREPARE",
+    "DELETE",
+    "DENSE_RANK",
+    "DESC",
+    "DETACH",
+    "DISABLED",
+    "DISTINCT",
+    "DOT",
+    "DROP",
+    "EACH",
+    "ELSE",
+    "ENABLED",
+    "END",
+    "ESCAPE",
+    "EXCEPT",
+    "EXCLUDE",
+    "EXCLUSIVE",
+    "EXISTS",
+    "EXPLAIN",
+    "FAIL",
+    "FALSE",
+    "FILE",
+    "FILTER",
+    "FIRST",
+    "FIRST_VALUE",
+    "FOLLOWING",
+    "FOR",
+    "FOREIGN",
+    "FROM",
+    "FULL",
+    "GENERATED",
+    "GLOB",
+    "GROUP",
+    "GROUPS",
+    "HAVING",
+    "IDENTIFIER",
+    "IF",
+    "IGNORE",
+    "IMMEDIATE",
+    "IN",
+    "INDEX",
+    "INDEXED",
+    "INITIALLY",
+    "INNER",
+    "INSERT",
+    "INSTEAD",
+    "INTERSECT",
+    "INTO",
+    "IS",
+    "ISNULL",
+    "JOIN",
+    "KEY",
+    "LABEL",
+    "LAG",
+    "LAST",
+    "LAST_VALUE",
+    "LEAD",
+    "LEFT",
+    "LIKE",
+    "LIMIT",
+    "MATCH",
+    "MULTILINE_COMMENT",
+    "NATURAL",
+    "NO",
+    "NOT",
+    "NOTNULL",
+    "NTH_VALUE",
+    "NTILE",
+    "NULL",
+    "NULLS",
+    "NUMERIC_LITERAL",
+    "OF",
+    "OFF",
+    "OFFSET",
+    "ON",
+    "ONLINE",
+    "OPEN_PAR",
+    "OR",
+    "ORDER",
+    "OUTER",
+    "OVER",
+    "PARTITION",
+    "PERCENT_RANK",
+    "PLAN",
+    "POLICY",
+    "PRAGMA",
+    "PRECEDING",
+    "PRIMARY",
+    "QUERY",
+    "RAISE",
+    "RANGE",
+    "RANK",
+    "RECURSIVE",
+    "REFERENCES",
+    "REGEXP",
+    "REINDEX",
+    "RELEASE",
+    "RENAME",
+    "REPLACE",
+    "RESTRICT",
+    "RIGHT",
+    "ROLE",
+    "ROLLBACK",
+    "ROW",
+    "ROWS",
+    "ROW_NUMBER",
+    "SAVEPOINT",
+    "SECURITY",
+    "SELECT",
+    "SEQUENCE",
+    "SET",
+    "SINGLE_LINE_COMMENT",
+    "SPACES",
+    "STORED",
+    "SYNONYM",
+    "TABLE",
+    "TEMP",
+    "TEMPORARY",
+    "THEN",
+    "TO",
+    "TRANSACTION",
+    "TRIGGER",
+    "TRUE",
+    "TRUSTED",
+    "TYPE",
+    "UNBOUNDED",
+    "UNION",
+    "UNIQUE",
+    "UPDATE",
+    "USER",
+    "USING",
+    "VACUUM",
+    "VALUES",
+    "VIEW",
+    "VIRTUAL",
+    "WHEN",
+    "WHERE",
+    "WINDOW",
+    "WITH",
+    "WITHOUT",
+    "WORK",
+    "XADATASOURCE"
+  ]
+}

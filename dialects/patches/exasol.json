@@ -1,0 +1,86 @@
+{
+  "dialect_name": "exasol",
+  "base_dialect": "postgresql",
+  "description": "Exasol - In-memory analytical database",
+  "keywords": {
+    "add": [
+      {"name": "DISTRIBUTE", "token_type": "DISTRIBUTE"},
+      {"name": "PARTITION", "token_type": "PARTITION"},
+      {"name": "PREFERRING", "token_type": "PREFERRING"},
+      {"name": "HIGH", "token_type": "HIGH"},
+      {"name": "LOW", "token_type": "LOW"},
+      {"name": "ADAPTER", "token_type": "ADAPTER"},
+      {"name": "SCRIPT", "token_type": "SCRIPT"},
+      {"name": "EMITS", "token_type": "EMITS"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [
+      {"symbol": "||", "token_type": "CONCAT", "precedence": "additive", "associativity": "left"}
+    ],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "HASHTYPE_MD5", "category": "hash"},
+      {"name": "HASHTYPE_SHA1", "category": "hash"},
+      {"name": "HASHTYPE_SHA256", "category": "hash"},
+      {"name": "HASHTYPE_SHA512", "category": "hash"},
+      {"name": "ZEROIFNULL", "category": "conditional"},
+      {"name": "NULLIFZERO", "category": "conditional"},
+      {"name": "MEDIAN", "category": "aggregate"},
+      {"name": "APPROXIMATE_COUNT_DISTINCT", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "DECIMAL", "token_type": "DECIMAL"},
+      {"name": "DOUBLE_PRECISION", "token_type": "DOUBLE_PRECISION"},
+      {"name": "HASHTYPE", "token_type": "HASHTYPE"},
+      {"name": "INTERVAL_YEAR_TO_MONTH", "token_type": "INTERVAL_YEAR_TO_MONTH"},
+      {"name": "INTERVAL_DAY_TO_SECOND", "token_type": "INTERVAL_DAY_TO_SECOND"},
+      {"name": "GEOMETRY", "token_type": "GEOMETRY"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": false,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "DISTRIBUTE BY",
+      "note": "Hash distribution for parallel processing"
+    },
+    {
+      "feature": "UDF scripts",
+      "note": "CREATE SCRIPT for user-defined functions in Lua, Python, R, Java"
+    },
+    {
+      "feature": "Virtual schemas",
+      "note": "Adapter scripts for federated queries"
+    },
+    {
+      "feature": "PREFERRING",
+      "note": "Join optimization hints"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.exasol.com/db/latest/",
+      "notes": "Official Exasol documentation"
+    }
+  ]
+}

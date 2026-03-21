@@ -1,0 +1,1631 @@
+{
+  "dialect": "hive",
+  "grammar_name": "FromClauseParser",
+  "token_sequences": [
+    {
+      "name": "tableAllColumns",
+      "tokens": [
+        "STAR"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "tableAllColumns",
+      "tokens": [
+        "tableName",
+        "DOT",
+        "STAR"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "tableOrColumn",
+      "tokens": [
+        "identifier"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "expressionList",
+      "tokens": [
+        "expression",
+        "COMMA",
+        "expression"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        true
+      ],
+      "pattern_type": "expression"
+    },
+    {
+      "name": "aliasList",
+      "tokens": [
+        "identifier",
+        "COMMA",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "fromClause",
+      "tokens": [
+        "KW_FROM",
+        "fromSource"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "fromSource",
+      "tokens": [
+        "uniqueJoinToken",
+        "uniqueJoinSource",
+        "COMMA",
+        "uniqueJoinSource"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "fromSource",
+      "tokens": [
+        "joinSource"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "atomjoinSource",
+      "tokens": [
+        "tableSource",
+        "lateralView"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "atomjoinSource",
+      "tokens": [
+        "virtualTableSource",
+        "lateralView"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "atomjoinSource",
+      "tokens": [
+        "subQuerySource",
+        "lateralView"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "atomjoinSource",
+      "tokens": [
+        "partitionedTableFunction",
+        "lateralView"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "atomjoinSource",
+      "tokens": [
+        "LPAREN",
+        "joinSource",
+        "RPAREN"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinSource",
+      "tokens": [
+        "atomjoinSource",
+        "joinToken",
+        "joinSourcePart",
+        "KW_ON",
+        "expression"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinSource",
+      "tokens": [
+        "atomjoinSource",
+        "joinToken",
+        "joinSourcePart",
+        "KW_USING",
+        "columnParenthesesList"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinSourcePart",
+      "tokens": [
+        "tableSource",
+        "lateralView"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinSourcePart",
+      "tokens": [
+        "virtualTableSource",
+        "lateralView"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinSourcePart",
+      "tokens": [
+        "subQuerySource",
+        "lateralView"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinSourcePart",
+      "tokens": [
+        "partitionedTableFunction",
+        "lateralView"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "uniqueJoinSource",
+      "tokens": [
+        "KW_PRESERVE",
+        "uniqueJoinTableSource",
+        "uniqueJoinExpr"
+      ],
+      "optional_flags": [
+        true,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "uniqueJoinExpr",
+      "tokens": [
+        "LPAREN",
+        "expressionList",
+        "RPAREN"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "expression"
+    },
+    {
+      "name": "uniqueJoinToken",
+      "tokens": [
+        "KW_UNIQUEJOIN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinToken",
+      "tokens": [
+        "KW_JOIN"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinToken",
+      "tokens": [
+        "KW_INNER",
+        "KW_JOIN"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinToken",
+      "tokens": [
+        "COMMA"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinToken",
+      "tokens": [
+        "KW_CROSS",
+        "KW_JOIN"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinToken",
+      "tokens": [
+        "KW_LEFT",
+        "KW_OUTER",
+        "KW_JOIN"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinToken",
+      "tokens": [
+        "KW_RIGHT",
+        "KW_OUTER",
+        "KW_JOIN"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinToken",
+      "tokens": [
+        "KW_FULL",
+        "KW_OUTER",
+        "KW_JOIN"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "joinToken",
+      "tokens": [
+        "KW_LEFT",
+        "KW_SEMI",
+        "KW_JOIN"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "lateralView",
+      "tokens": [
+        "KW_LATERAL",
+        "KW_VIEW",
+        "KW_OUTER",
+        "function",
+        "tableAlias",
+        "KW_AS",
+        "identifier",
+        "COMMA",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "lateralView",
+      "tokens": [
+        "COMMA",
+        "KW_LATERAL",
+        "KW_VIEW",
+        "function",
+        "tableAlias",
+        "KW_AS",
+        "identifier",
+        "COMMA",
+        "identifier"
+      ],
+      "optional_flags": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "lateralView",
+      "tokens": [
+        "COMMA",
+        "KW_LATERAL",
+        "KW_TABLE",
+        "LPAREN",
+        "valuesClause",
+        "RPAREN",
+        "KW_AS",
+        "tableAlias",
+        "LPAREN",
+        "identifier",
+        "COMMA",
+        "identifier",
+        "RPAREN"
+      ],
+      "optional_flags": [
+        true,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "tableAlias",
+      "tokens": [
+        "identifier"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "tableBucketSample",
+      "tokens": [
+        "KW_TABLESAMPLE",
+        "LPAREN",
+        "KW_BUCKET",
+        "Number",
+        "KW_OUT",
+        "KW_OF",
+        "Number",
+        "KW_ON",
+        "expression",
+        "COMMA",
+        "expression",
+        "RPAREN"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "splitSample",
+      "tokens": [
+        "KW_TABLESAMPLE",
+        "LPAREN",
+        "Number",
+        "KW_PERCENT",
+        "RPAREN"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "splitSample",
+      "tokens": [
+        "KW_TABLESAMPLE",
+        "LPAREN",
+        "Number",
+        "KW_ROWS",
+        "RPAREN"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "splitSample",
+      "tokens": [
+        "KW_TABLESAMPLE",
+        "LPAREN",
+        "ByteLengthLiteral",
+        "RPAREN"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "tableSample",
+      "tokens": [
+        "tableBucketSample"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "tableSample",
+      "tokens": [
+        "splitSample"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "tableSource",
+      "tokens": [
+        "tableName",
+        "tableProperties",
+        "tableSample",
+        "KW_AS",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "uniqueJoinTableSource",
+      "tokens": [
+        "tableName",
+        "tableSample",
+        "KW_AS",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "tableName",
+      "tokens": [
+        "identifier",
+        "DOT",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "tableName",
+      "tokens": [
+        "identifier"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "viewName",
+      "tokens": [
+        "identifier",
+        "DOT",
+        "identifier"
+      ],
+      "optional_flags": [
+        true,
+        true,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "subQuerySource",
+      "tokens": [
+        "LPAREN",
+        "queryStatementExpression",
+        "RPAREN",
+        "KW_AS",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        true,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "partitioningSpec",
+      "tokens": [
+        "partitionByClause",
+        "orderByClause"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "partitioningSpec",
+      "tokens": [
+        "orderByClause"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "partitioningSpec",
+      "tokens": [
+        "distributeByClause",
+        "sortByClause"
+      ],
+      "optional_flags": [
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "partitioningSpec",
+      "tokens": [
+        "sortByClause"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "partitioningSpec",
+      "tokens": [
+        "clusterByClause"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "partitionTableFunctionSource",
+      "tokens": [
+        "subQuerySource"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "partitionTableFunctionSource",
+      "tokens": [
+        "tableSource"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "partitionTableFunctionSource",
+      "tokens": [
+        "partitionedTableFunction"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "partitionedTableFunction",
+      "tokens": [
+        "identifier",
+        "LPAREN",
+        "KW_ON",
+        "partitionTableFunctionSource",
+        "partitioningSpec",
+        "Identifier",
+        "LPAREN",
+        "expression",
+        "RPAREN",
+        "COMMA",
+        "Identifier",
+        "LPAREN",
+        "expression",
+        "RPAREN",
+        "RPAREN",
+        "identifier"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        true,
+        false,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "whereClause",
+      "tokens": [
+        "KW_WHERE",
+        "searchCondition"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "searchCondition",
+      "tokens": [
+        "expression"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "valuesClause",
+      "tokens": [
+        "KW_VALUES",
+        "valuesTableConstructor"
+      ],
+      "optional_flags": [
+        false,
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "valuesTableConstructor",
+      "tokens": [
+        "valueRowConstructor",
+        "COMMA",
+        "valueRowConstructor"
+      ],
+      "optional_flags": [
+        false,
+        true,
+        true
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "valueRowConstructor",
+      "tokens": [
+        "expressionsInParenthesis"
+      ],
+      "optional_flags": [
+        false
+      ],
+      "pattern_type": "other"
+    },
+    {
+      "name": "virtualTableSource",
+      "tokens": [
+        "KW_TABLE",
+        "LPAREN",
+        "valuesClause",
+        "RPAREN",
+        "KW_AS",
+        "tableAlias",
+        "LPAREN",
+        "identifier",
+        "COMMA",
+        "identifier",
+        "RPAREN"
+      ],
+      "optional_flags": [
+        false,
+        false,
+        false,
+        false,
+        true,
+        false,
+        true,
+        true,
+        true,
+        true,
+        false
+      ],
+      "pattern_type": "other"
+    }
+  ],
+  "operators": [
+    {
+      "token": "PLUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "TILDE",
+      "precedence": 14,
+      "associativity": "right"
+    },
+    {
+      "token": "MINUS",
+      "precedence": 11,
+      "associativity": "left"
+    },
+    {
+      "token": "STAR",
+      "precedence": 12,
+      "associativity": "left"
+    },
+    {
+      "token": "AMPERSAND",
+      "precedence": 9,
+      "associativity": "left"
+    },
+    {
+      "token": "DIVIDE",
+      "precedence": 12,
+      "associativity": "left"
+    }
+  ],
+  "keywords": [
+    "ABORT",
+    "ACTIVATE",
+    "ACTIVE",
+    "ADD",
+    "ADMIN",
+    "AFTER",
+    "ALL",
+    "ALLOC_FRACTION",
+    "ALTER",
+    "ANALYZE",
+    "AND",
+    "ANY",
+    "APPLICATION",
+    "ARCHIVE",
+    "ARRAY",
+    "AS",
+    "ASC",
+    "AUTHORIZATION",
+    "AUTOCOMMIT",
+    "BEFORE",
+    "BETWEEN",
+    "BIGINT",
+    "BINARY",
+    "BOOLEAN",
+    "BOTH",
+    "BUCKET",
+    "BUCKETS",
+    "BY",
+    "CACHE",
+    "CASCADE",
+    "CASE",
+    "CAST",
+    "CHANGE",
+    "CHAR",
+    "CHECK",
+    "CLUSTER",
+    "CLUSTERED",
+    "CLUSTERSTATUS",
+    "COLLECTION",
+    "COLUMN",
+    "COLUMNS",
+    "COMMENT",
+    "COMMIT",
+    "COMPACT",
+    "COMPACTIONS",
+    "COMPUTE",
+    "CONCATENATE",
+    "CONF",
+    "CONSTRAINT",
+    "CONTINUE",
+    "CREATE",
+    "CROSS",
+    "CUBE",
+    "CURRENT",
+    "CURRENT_DATE",
+    "CURRENT_TIMESTAMP",
+    "CURSOR",
+    "DATA",
+    "DATABASE",
+    "DATABASES",
+    "DATE",
+    "DATETIME",
+    "DAY",
+    "DBPROPERTIES",
+    "DECIMAL",
+    "DEFAULT",
+    "DEFERRED",
+    "DEFINED",
+    "DELETE",
+    "DELIMITED",
+    "DEPENDENCY",
+    "DESC",
+    "DESCRIBE",
+    "DETAIL",
+    "DIRECTORIES",
+    "DIRECTORY",
+    "DISABLE",
+    "DISTINCT",
+    "DISTRIBUTE",
+    "DIV",
+    "DO",
+    "DOUBLE",
+    "DOW",
+    "DROP",
+    "DUMP",
+    "ELSE",
+    "ENABLE",
+    "END",
+    "ENFORCED",
+    "ESCAPED",
+    "EXCEPT",
+    "EXCHANGE",
+    "EXCLUSIVE",
+    "EXISTS",
+    "EXPLAIN",
+    "EXPORT",
+    "EXPRESSION",
+    "EXTENDED",
+    "EXTERNAL",
+    "EXTRACT",
+    "FALSE",
+    "FETCH",
+    "FIELDS",
+    "FILE",
+    "FILEFORMAT",
+    "FIRST",
+    "FLOAT",
+    "FLOOR",
+    "FOLLOWING",
+    "FOR",
+    "FOREIGN",
+    "FORMAT",
+    "FORMATTED",
+    "FROM",
+    "FULL",
+    "FUNCTION",
+    "FUNCTIONS",
+    "GRANT",
+    "GROUP",
+    "GROUPING",
+    "HAVING",
+    "HOUR",
+    "IDXPROPERTIES",
+    "IF",
+    "IMPORT",
+    "IN",
+    "INDEX",
+    "INDEXES",
+    "INNER",
+    "INPATH",
+    "INPUTDRIVER",
+    "INPUTFORMAT",
+    "INSERT",
+    "INT",
+    "INTERSECT",
+    "INTERVAL",
+    "INTO",
+    "IS",
+    "ISOLATION",
+    "ITEMS",
+    "JAR",
+    "JOIN",
+    "KEY",
+    "KEYS",
+    "KILL",
+    "LAST",
+    "LATERAL",
+    "LEFT",
+    "LESS",
+    "LEVEL",
+    "LIKE",
+    "LIMIT",
+    "LINES",
+    "LOAD",
+    "LOCAL",
+    "LOCATION",
+    "LOCK",
+    "LOCKS",
+    "LOGICAL",
+    "LONG",
+    "MACRO",
+    "MANAGEMENT",
+    "MAP",
+    "MAPJOIN",
+    "MAPPING",
+    "MATCHED",
+    "MATERIALIZED",
+    "MERGE",
+    "METADATA",
+    "MINUS",
+    "MINUTE",
+    "MONTH",
+    "MORE",
+    "MOVE",
+    "MSCK",
+    "NONE",
+    "NORELY",
+    "NOSCAN",
+    "NOT",
+    "NOVALIDATE",
+    "NULL",
+    "NULLS",
+    "NUMBER",
+    "OF",
+    "OFFSET",
+    "ON",
+    "ONLY",
+    "OPERATOR",
+    "OPTION",
+    "OR",
+    "ORDER",
+    "OUT",
+    "OUTER",
+    "OUTPUTDRIVER",
+    "OUTPUTFORMAT",
+    "OVER",
+    "OVERWRITE",
+    "OWNER",
+    "PARTITION",
+    "PARTITIONED",
+    "PARTITIONS",
+    "PATH",
+    "PERCENT",
+    "PLAN",
+    "PLANS",
+    "PLUS",
+    "POOL",
+    "PRECEDING",
+    "PRECISION",
+    "PRESERVE",
+    "PRIMARY",
+    "PRINCIPALS",
+    "PROCEDURE",
+    "PURGE",
+    "QUARTER",
+    "QUERY",
+    "QUERY_PARALLELISM",
+    "RANGE",
+    "READ",
+    "READS",
+    "REBUILD",
+    "RECORDREADER",
+    "RECORDWRITER",
+    "REDUCE",
+    "REFERENCES",
+    "REGEXP",
+    "RELOAD",
+    "RELY",
+    "RENAME",
+    "REOPTIMIZATION",
+    "REPAIR",
+    "REPL",
+    "REPLACE",
+    "REPLICATION",
+    "RESOURCE",
+    "RESTRICT",
+    "REVOKE",
+    "REWRITE",
+    "RIGHT",
+    "RLIKE",
+    "ROLE",
+    "ROLES",
+    "ROLLBACK",
+    "ROLLUP",
+    "ROW",
+    "ROWS",
+    "SCHEDULING_POLICY",
+    "SCHEMA",
+    "SCHEMAS",
+    "SECOND",
+    "SELECT",
+    "SEMI",
+    "SERDE",
+    "SERDEPROPERTIES",
+    "SERVER",
+    "SET",
+    "SETS",
+    "SHARED",
+    "SHOW",
+    "SHOW_DATABASE",
+    "SHOW_HINT",
+    "SKEWED",
+    "SMALLINT",
+    "SNAPSHOT",
+    "SORT",
+    "SORTED",
+    "SSL",
+    "START",
+    "STATISTICS",
+    "STATUS",
+    "STORED",
+    "STREAMTABLE",
+    "STRING",
+    "STRINGLITERAL",
+    "STRUCT",
+    "SUMMARY",
+    "SYNC",
+    "TABLE",
+    "TABLES",
+    "TABLESAMPLE",
+    "TBLPROPERTIES",
+    "TEMPORARY",
+    "TERMINATED",
+    "THEN",
+    "TIME",
+    "TIMESTAMP",
+    "TIMESTAMPLOCALTZ",
+    "TINYINT",
+    "TO",
+    "TOUCH",
+    "TRANSACTION",
+    "TRANSACTIONS",
+    "TRANSFORM",
+    "TRIGGER",
+    "TRUE",
+    "TRUNCATE",
+    "UNARCHIVE",
+    "UNBOUNDED",
+    "UNDO",
+    "UNION",
+    "UNIONTYPE",
+    "UNIQUE",
+    "UNIQUEJOIN",
+    "UNLOCK",
+    "UNMANAGED",
+    "UNSET",
+    "UNSIGNED",
+    "UPDATE",
+    "URI",
+    "USE",
+    "USER",
+    "USING",
+    "UTC",
+    "UTCTIMESTAMP",
+    "VALIDATE",
+    "VALUES",
+    "VARCHAR",
+    "VECTORIZATION",
+    "VIEW",
+    "VIEWS",
+    "WAIT",
+    "WEEK",
+    "WHEN",
+    "WHERE",
+    "WHILE",
+    "WINDOW",
+    "WITH",
+    "WORK",
+    "WORKLOAD",
+    "WRITE",
+    "YEAR",
+    "ZONE"
+  ],
+  "lexer_tokens": [
+    "AMPERSAND",
+    "BITWISEXOR",
+    "ByteLengthLiteral",
+    "COLON",
+    "COMMA",
+    "CharSetLiteral",
+    "CharSetName",
+    "DIV",
+    "DIVIDE",
+    "DOLLAR",
+    "DOT",
+    "EQUAL",
+    "EQUAL_NS",
+    "GREATERTHAN",
+    "GREATERTHANOREQUALTO",
+    "HIDDEN_HINT",
+    "Identifier",
+    "IntegralLiteral",
+    "KW_ABORT",
+    "KW_ACTIVATE",
+    "KW_ACTIVE",
+    "KW_ADD",
+    "KW_ADMIN",
+    "KW_AFTER",
+    "KW_ALL",
+    "KW_ALLOC_FRACTION",
+    "KW_ALTER",
+    "KW_ANALYZE",
+    "KW_AND",
+    "KW_ANY",
+    "KW_APPLICATION",
+    "KW_ARCHIVE",
+    "KW_ARRAY",
+    "KW_AS",
+    "KW_ASC",
+    "KW_AUTHORIZATION",
+    "KW_AUTOCOMMIT",
+    "KW_BEFORE",
+    "KW_BETWEEN",
+    "KW_BIGINT",
+    "KW_BINARY",
+    "KW_BOOLEAN",
+    "KW_BOTH",
+    "KW_BUCKET",
+    "KW_BUCKETS",
+    "KW_BY",
+    "KW_CACHE",
+    "KW_CASCADE",
+    "KW_CASE",
+    "KW_CAST",
+    "KW_CHANGE",
+    "KW_CHAR",
+    "KW_CHECK",
+    "KW_CLUSTER",
+    "KW_CLUSTERED",
+    "KW_CLUSTERSTATUS",
+    "KW_COLLECTION",
+    "KW_COLUMN",
+    "KW_COLUMNS",
+    "KW_COMMENT",
+    "KW_COMMIT",
+    "KW_COMPACT",
+    "KW_COMPACTIONS",
+    "KW_COMPUTE",
+    "KW_CONCATENATE",
+    "KW_CONF",
+    "KW_CONSTRAINT",
+    "KW_CONTINUE",
+    "KW_CREATE",
+    "KW_CROSS",
+    "KW_CUBE",
+    "KW_CURRENT",
+    "KW_CURRENT_DATE",
+    "KW_CURRENT_TIMESTAMP",
+    "KW_CURSOR",
+    "KW_DATA",
+    "KW_DATABASE",
+    "KW_DATABASES",
+    "KW_DATE",
+    "KW_DATETIME",
+    "KW_DAY",
+    "KW_DBPROPERTIES",
+    "KW_DECIMAL",
+    "KW_DEFAULT",
+    "KW_DEFERRED",
+    "KW_DEFINED",
+    "KW_DELETE",
+    "KW_DELIMITED",
+    "KW_DEPENDENCY",
+    "KW_DESC",
+    "KW_DESCRIBE",
+    "KW_DETAIL",
+    "KW_DIRECTORIES",
+    "KW_DIRECTORY",
+    "KW_DISABLE",
+    "KW_DISTINCT",
+    "KW_DISTRIBUTE",
+    "KW_DO",
+    "KW_DOUBLE",
+    "KW_DOW",
+    "KW_DROP",
+    "KW_DUMP",
+    "KW_ELEM_TYPE",
+    "KW_ELSE",
+    "KW_ENABLE",
+    "KW_END",
+    "KW_ENFORCED",
+    "KW_ESCAPED",
+    "KW_EXCEPT",
+    "KW_EXCHANGE",
+    "KW_EXCLUSIVE",
+    "KW_EXISTS",
+    "KW_EXPLAIN",
+    "KW_EXPORT",
+    "KW_EXPRESSION",
+    "KW_EXTENDED",
+    "KW_EXTERNAL",
+    "KW_EXTRACT",
+    "KW_FALSE",
+    "KW_FETCH",
+    "KW_FIELDS",
+    "KW_FILE",
+    "KW_FILEFORMAT",
+    "KW_FIRST",
+    "KW_FLOAT",
+    "KW_FLOOR",
+    "KW_FOLLOWING",
+    "KW_FOR",
+    "KW_FOREIGN",
+    "KW_FORMAT",
+    "KW_FORMATTED",
+    "KW_FROM",
+    "KW_FULL",
+    "KW_FUNCTION",
+    "KW_FUNCTIONS",
+    "KW_GRANT",
+    "KW_GROUP",
+    "KW_GROUPING",
+    "KW_HAVING",
+    "KW_HOUR",
+    "KW_IDXPROPERTIES",
+    "KW_IF",
+    "KW_IMPORT",
+    "KW_IN",
+    "KW_INDEX",
+    "KW_INDEXES",
+    "KW_INNER",
+    "KW_INPATH",
+    "KW_INPUTDRIVER",
+    "KW_INPUTFORMAT",
+    "KW_INSERT",
+    "KW_INT",
+    "KW_INTERSECT",
+    "KW_INTERVAL",
+    "KW_INTO",
+    "KW_IS",
+    "KW_ISOLATION",
+    "KW_ITEMS",
+    "KW_JAR",
+    "KW_JOIN",
+    "KW_KEY",
+    "KW_KEYS",
+    "KW_KEY_TYPE",
+    "KW_KILL",
+    "KW_LAST",
+    "KW_LATERAL",
+    "KW_LEFT",
+    "KW_LESS",
+    "KW_LEVEL",
+    "KW_LIKE",
+    "KW_LIMIT",
+    "KW_LINES",
+    "KW_LOAD",
+    "KW_LOCAL",
+    "KW_LOCATION",
+    "KW_LOCK",
+    "KW_LOCKS",
+    "KW_LOGICAL",
+    "KW_LONG",
+    "KW_MACRO",
+    "KW_MANAGEMENT",
+    "KW_MAP",
+    "KW_MAPJOIN",
+    "KW_MAPPING",
+    "KW_MATCHED",
+    "KW_MATERIALIZED",
+    "KW_MERGE",
+    "KW_METADATA",
+    "KW_MINUS",
+    "KW_MINUTE",
+    "KW_MONTH",
+    "KW_MORE",
+    "KW_MOVE",
+    "KW_MSCK",
+    "KW_NONE",
+    "KW_NORELY",
+    "KW_NOSCAN",
+    "KW_NOT",
+    "KW_NOVALIDATE",
+    "KW_NULL",
+    "KW_NULLS",
+    "KW_OF",
+    "KW_OFFSET",
+    "KW_ON",
+    "KW_ONLY",
+    "KW_OPERATOR",
+    "KW_OPTION",
+    "KW_OR",
+    "KW_ORDER",
+    "KW_OUT",
+    "KW_OUTER",
+    "KW_OUTPUTDRIVER",
+    "KW_OUTPUTFORMAT",
+    "KW_OVER",
+    "KW_OVERWRITE",
+    "KW_OWNER",
+    "KW_PARTITION",
+    "KW_PARTITIONED",
+    "KW_PARTITIONS",
+    "KW_PATH",
+    "KW_PERCENT",
+    "KW_PLAN",
+    "KW_PLANS",
+    "KW_PLUS",
+    "KW_POOL",
+    "KW_PRECEDING",
+    "KW_PRECISION",
+    "KW_PRESERVE",
+    "KW_PRIMARY",
+    "KW_PRINCIPALS",
+    "KW_PROCEDURE",
+    "KW_PURGE",
+    "KW_QUARTER",
+    "KW_QUERY",
+    "KW_QUERY_PARALLELISM",
+    "KW_RANGE",
+    "KW_READ",
+    "KW_READS",
+    "KW_REBUILD",
+    "KW_RECORDREADER",
+    "KW_RECORDWRITER",
+    "KW_REDUCE",
+    "KW_REFERENCES",
+    "KW_REGEXP",
+    "KW_RELOAD",
+    "KW_RELY",
+    "KW_RENAME",
+    "KW_REOPTIMIZATION",
+    "KW_REPAIR",
+    "KW_REPL",
+    "KW_REPLACE",
+    "KW_REPLICATION",
+    "KW_RESOURCE",
+    "KW_RESTRICT",
+    "KW_REVOKE",
+    "KW_REWRITE",
+    "KW_RIGHT",
+    "KW_RLIKE",
+    "KW_ROLE",
+    "KW_ROLES",
+    "KW_ROLLBACK",
+    "KW_ROLLUP",
+    "KW_ROW",
+    "KW_ROWS",
+    "KW_SCHEDULING_POLICY",
+    "KW_SCHEMA",
+    "KW_SCHEMAS",
+    "KW_SECOND",
+    "KW_SELECT",
+    "KW_SEMI",
+    "KW_SERDE",
+    "KW_SERDEPROPERTIES",
+    "KW_SERVER",
+    "KW_SET",
+    "KW_SETS",
+    "KW_SHARED",
+    "KW_SHOW",
+    "KW_SHOW_DATABASE",
+    "KW_SKEWED",
+    "KW_SMALLINT",
+    "KW_SNAPSHOT",
+    "KW_SORT",
+    "KW_SORTED",
+    "KW_SSL",
+    "KW_START",
+    "KW_STATISTICS",
+    "KW_STATUS",
+    "KW_STORED",
+    "KW_STREAMTABLE",
+    "KW_STRING",
+    "KW_STRUCT",
+    "KW_SUMMARY",
+    "KW_SYNC",
+    "KW_TABLE",
+    "KW_TABLES",
+    "KW_TABLESAMPLE",
+    "KW_TBLPROPERTIES",
+    "KW_TEMPORARY",
+    "KW_TERMINATED",
+    "KW_THEN",
+    "KW_TIME",
+    "KW_TIMESTAMP",
+    "KW_TIMESTAMPLOCALTZ",
+    "KW_TINYINT",
+    "KW_TO",
+    "KW_TOUCH",
+    "KW_TRANSACTION",
+    "KW_TRANSACTIONS",
+    "KW_TRANSFORM",
+    "KW_TRIGGER",
+    "KW_TRUE",
+    "KW_TRUNCATE",
+    "KW_UNARCHIVE",
+    "KW_UNBOUNDED",
+    "KW_UNDO",
+    "KW_UNION",
+    "KW_UNIONTYPE",
+    "KW_UNIQUE",
+    "KW_UNIQUEJOIN",
+    "KW_UNLOCK",
+    "KW_UNMANAGED",
+    "KW_UNSET",
+    "KW_UNSIGNED",
+    "KW_UPDATE",
+    "KW_URI",
+    "KW_USE",
+    "KW_USER",
+    "KW_USING",
+    "KW_UTC",
+    "KW_UTCTIMESTAMP",
+    "KW_VALIDATE",
+    "KW_VALUES",
+    "KW_VALUE_TYPE",
+    "KW_VARCHAR",
+    "KW_VECTORIZATION",
+    "KW_VIEW",
+    "KW_VIEWS",
+    "KW_WAIT",
+    "KW_WEEK",
+    "KW_WHEN",
+    "KW_WHERE",
+    "KW_WHILE",
+    "KW_WINDOW",
+    "KW_WITH",
+    "KW_WORK",
+    "KW_WORKLOAD",
+    "KW_WRITE",
+    "KW_YEAR",
+    "KW_ZONE",
+    "LCURLY",
+    "LESSTHAN",
+    "LESSTHANOREQUALTO",
+    "LINE_COMMENT",
+    "LPAREN",
+    "LSQUARE",
+    "MINUS",
+    "MOD",
+    "NOTEQUAL",
+    "Number",
+    "NumberLiteral",
+    "PLUS",
+    "QUERY_HINT",
+    "QUESTION",
+    "QuotedIdentifier",
+    "RCURLY",
+    "RPAREN",
+    "RSQUARE",
+    "SHOW_HINT",
+    "STAR",
+    "TILDE",
+    "WS"
+  ]
+}

@@ -1,0 +1,149 @@
+{
+  "dialect_name": "spark",
+  "base_dialect": "hive",
+  "description": "Apache Spark SQL - Distributed SQL engine with Hive compatibility and extended analytical features",
+  "keywords": {
+    "add": [
+      {"name": "CACHE", "token_type": "CACHE"},
+      {"name": "UNCACHE", "token_type": "UNCACHE"},
+      {"name": "LAZY", "token_type": "LAZY"},
+      {"name": "REFRESH", "token_type": "REFRESH"},
+      {"name": "CLEAR", "token_type": "CLEAR"},
+      {"name": "GLOBAL", "token_type": "GLOBAL"},
+      {"name": "TEMPORARY", "token_type": "TEMPORARY"},
+      {"name": "TRANSFORM", "token_type": "TRANSFORM"},
+      {"name": "REDUCE", "token_type": "REDUCE"},
+      {"name": "DISTRIBUTE", "token_type": "DISTRIBUTE"},
+      {"name": "CLUSTER", "token_type": "CLUSTER"},
+      {"name": "SORT", "token_type": "SORT"},
+      {"name": "OPTIONS", "token_type": "OPTIONS"},
+      {"name": "UNSET", "token_type": "UNSET"},
+      {"name": "TBLPROPERTIES", "token_type": "TBLPROPERTIES"},
+      {"name": "DBPROPERTIES", "token_type": "DBPROPERTIES"},
+      {"name": "DFS", "token_type": "DFS"},
+      {"name": "VERSION", "token_type": "VERSION"},
+      {"name": "EXPLAIN", "token_type": "EXPLAIN"},
+      {"name": "FORMATTED", "token_type": "FORMATTED"},
+      {"name": "EXTENDED", "token_type": "EXTENDED"},
+      {"name": "ANALYZE", "token_type": "ANALYZE"},
+      {"name": "COMPUTE", "token_type": "COMPUTE"},
+      {"name": "STATISTICS", "token_type": "STATISTICS"},
+      {"name": "NOSCAN", "token_type": "NOSCAN"},
+      {"name": "ANTI", "token_type": "ANTI"},
+      {"name": "SEMI", "token_type": "SEMI"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [
+      {"symbol": "<=>", "token_type": "NULL_SAFE_EQ", "precedence": "comparison", "associativity": "left"},
+      {"symbol": "==", "token_type": "DOUBLE_EQ", "precedence": "comparison", "associativity": "left"}
+    ],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "EXPLODE", "category": "array"},
+      {"name": "EXPLODE_OUTER", "category": "array"},
+      {"name": "POSEXPLODE", "category": "array"},
+      {"name": "POSEXPLODE_OUTER", "category": "array"},
+      {"name": "INLINE", "category": "array"},
+      {"name": "INLINE_OUTER", "category": "array"},
+      {"name": "ARRAY", "category": "array"},
+      {"name": "MAP", "category": "map"},
+      {"name": "NAMED_STRUCT", "category": "struct"},
+      {"name": "GET_JSON_OBJECT", "category": "json"},
+      {"name": "FROM_JSON", "category": "json"},
+      {"name": "TO_JSON", "category": "json"},
+      {"name": "SCHEMA_OF_JSON", "category": "json"},
+      {"name": "FROM_CSV", "category": "string"},
+      {"name": "TO_CSV", "category": "string"},
+      {"name": "SCHEMA_OF_CSV", "category": "string"},
+      {"name": "COLLECT_LIST", "category": "aggregate"},
+      {"name": "COLLECT_SET", "category": "aggregate"},
+      {"name": "PERCENTILE", "category": "aggregate"},
+      {"name": "PERCENTILE_APPROX", "category": "aggregate"},
+      {"name": "APPROX_COUNT_DISTINCT", "category": "aggregate"},
+      {"name": "APPROX_PERCENTILE", "category": "aggregate"},
+      {"name": "FIRST", "category": "aggregate"},
+      {"name": "FIRST_VALUE", "category": "window"},
+      {"name": "LAST", "category": "aggregate"},
+      {"name": "LAST_VALUE", "category": "window"},
+      {"name": "MONOTONICALLY_INCREASING_ID", "category": "misc"},
+      {"name": "SPARK_PARTITION_ID", "category": "misc"},
+      {"name": "INPUT_FILE_NAME", "category": "misc"},
+      {"name": "CURRENT_DATABASE", "category": "misc"},
+      {"name": "CURRENT_USER", "category": "misc"},
+      {"name": "SHA", "category": "hash"},
+      {"name": "SHA1", "category": "hash"},
+      {"name": "SHA2", "category": "hash"},
+      {"name": "MD5", "category": "hash"},
+      {"name": "CRC32", "category": "hash"},
+      {"name": "HASH", "category": "hash"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "VOID", "token_type": "VOID"},
+      {"name": "INTERVAL", "token_type": "INTERVAL"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": true,
+    "supports_unnest": false,
+    "supports_array_literals": true,
+    "supports_struct_literals": true,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "`",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "TRANSFORM clause",
+      "note": "Allows custom transformations using external scripts"
+    },
+    {
+      "feature": "DISTRIBUTE/CLUSTER/SORT BY",
+      "note": "Partitioning and ordering hints for data distribution"
+    },
+    {
+      "feature": "CACHE TABLE",
+      "note": "In-memory caching of tables for performance"
+    },
+    {
+      "feature": "Delta Lake",
+      "note": "Native support for Delta Lake format and operations"
+    },
+    {
+      "feature": "EXPLODE lateral views",
+      "note": "Unnesting arrays/maps using LATERAL VIEW EXPLODE"
+    },
+    {
+      "feature": "Null-safe equality",
+      "note": "<=> operator treats NULL as equal to NULL"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://spark.apache.org/docs/latest/sql-ref.html",
+      "notes": "Official Spark SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/spark.py",
+      "notes": "SQLGlot Spark dialect implementation"
+    },
+    {
+      "type": "antlr",
+      "url": "https://github.com/apache/spark/tree/master/sql/catalyst/src/main/antlr4",
+      "notes": "Spark SQL ANTLR grammar"
+    }
+  ]
+}

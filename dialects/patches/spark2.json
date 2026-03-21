@@ -1,0 +1,68 @@
+{
+  "dialect_name": "spark2",
+  "base_dialect": "hive",
+  "description": "Apache Spark 2.x - Older version of Spark SQL",
+  "keywords": {
+    "add": [
+      {"name": "CACHE", "token_type": "CACHE"},
+      {"name": "UNCACHE", "token_type": "UNCACHE"},
+      {"name": "LAZY", "token_type": "LAZY"},
+      {"name": "REFRESH", "token_type": "REFRESH"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [
+      {"symbol": "<=>", "token_type": "NULL_SAFE_EQ", "precedence": "comparison", "associativity": "left"}
+    ],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "EXPLODE", "category": "array"},
+      {"name": "POSEXPLODE", "category": "array"},
+      {"name": "COLLECT_LIST", "category": "aggregate"},
+      {"name": "COLLECT_SET", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": true,
+    "supports_struct_literals": true,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "`",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Null-safe equality",
+      "note": "<=> operator treats NULL as equal to NULL"
+    },
+    {
+      "feature": "CACHE TABLE",
+      "note": "In-memory caching"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://spark.apache.org/docs/2.4.0/sql-ref.html",
+      "notes": "Spark 2.x SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/spark2.py",
+      "notes": "SQLGlot Spark2 dialect implementation"
+    }
+  ]
+}

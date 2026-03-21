@@ -1,8 +1,15 @@
 # Build directories
 build/
+build_*/
 build-*/
+cmake-build-*/
 *.cmake
+!CMakeLists.txt
 Testing/
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+CTestTestfile.cmake
 
 # Test binaries
 test_*
@@ -56,6 +63,14 @@ pip-wheel-metadata/
 
 # Misc
 README.md.bak
+*.tmp
+*.log
+.DS_Store
+*~
+
+# Temporary benchmark/test files
+/tmp/*
+*.prof
 
 # Secrets
 .pypirc
@@ -63,3 +78,7 @@ README.md.bak
 .env.local
 *.key
 *.pem
+
+# External dependencies
+external/grammars-v4/
+external/lemon/lemon

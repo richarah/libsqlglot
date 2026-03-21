@@ -1,0 +1,65 @@
+{
+  "dialect_name": "calcite",
+  "base_dialect": "derby",
+  "description": "Apache Calcite - SQL parser and query optimizer framework",
+  "keywords": {
+    "add": [
+      {"name": "LATERAL", "token_type": "LATERAL"},
+      {"name": "TABLESAMPLE", "token_type": "TABLESAMPLE"},
+      {"name": "BERNOULLI", "token_type": "BERNOULLI"},
+      {"name": "SYSTEM", "token_type": "SYSTEM"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [
+      {"symbol": "||", "token_type": "CONCAT", "precedence": "additive", "associativity": "left"}
+    ],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "ARRAY", "category": "array"},
+      {"name": "MAP", "category": "map"},
+      {"name": "ARRAY_CONCAT", "category": "array"},
+      {"name": "MAP_CONCAT", "category": "map"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "ANY", "token_type": "ANY"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": true,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Standard SQL",
+      "note": "Supports most SQL:2011 features"
+    },
+    {
+      "feature": "Extensible",
+      "note": "Adapter pattern for different backends"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://calcite.apache.org/docs/",
+      "notes": "Apache Calcite documentation"
+    }
+  ]
+}

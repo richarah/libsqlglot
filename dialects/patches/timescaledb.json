@@ -1,0 +1,76 @@
+{
+  "dialect_name": "timescaledb",
+  "base_dialect": "postgresql",
+  "description": "TimescaleDB - Time-series database built on PostgreSQL",
+  "keywords": {
+    "add": [
+      {"name": "HYPERTABLE", "token_type": "HYPERTABLE"},
+      {"name": "CHUNK", "token_type": "CHUNK"},
+      {"name": "CONTINUOUS", "token_type": "CONTINUOUS"},
+      {"name": "COMPRESSION", "token_type": "COMPRESSION"},
+      {"name": "REORDER", "token_type": "REORDER"},
+      {"name": "RETENTION", "token_type": "RETENTION"},
+      {"name": "CAGG", "token_type": "CAGG"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "TIME_BUCKET", "category": "timeseries"},
+      {"name": "TIME_BUCKET_GAPFILL", "category": "timeseries"},
+      {"name": "LOCF", "category": "timeseries"},
+      {"name": "INTERPOLATE", "category": "timeseries"},
+      {"name": "FIRST", "category": "aggregate"},
+      {"name": "LAST", "category": "aggregate"},
+      {"name": "HISTOGRAM", "category": "aggregate"},
+      {"name": "APPROX_PERCENTILE", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": false,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Hypertables",
+      "note": "create_hypertable() for time-series partitioning"
+    },
+    {
+      "feature": "Continuous aggregates",
+      "note": "Incrementally maintained aggregates over time windows"
+    },
+    {
+      "feature": "Compression",
+      "note": "Native columnar compression for older data"
+    },
+    {
+      "feature": "Gap filling",
+      "note": "time_bucket_gapfill with LOCF/interpolate"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.timescale.com/api/latest/",
+      "notes": "Official TimescaleDB API reference"
+    }
+  ]
+}

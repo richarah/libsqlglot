@@ -99,6 +99,17 @@ struct DialectFeatures {
     // Boolean literals
     std::string true_literal = "TRUE";
     std::string false_literal = "FALSE";
+
+    // Stored procedure / procedural SQL features
+    bool supports_begin_end_blocks = false;  // BEGIN...END for statement blocks (T-SQL, MySQL, PL/SQL)
+    bool supports_for_loops = true;          // FOR i IN 1..10 LOOP syntax (PostgreSQL, Oracle, generic)
+    std::string variable_prefix = "";        // @ for T-SQL, $ for PostgreSQL params, empty for others
+
+    enum class AssignmentStyle {
+        WALRUS,          // := (Oracle PL/SQL, PL/pgSQL)
+        SET_KEYWORD,     // SET var = value (MySQL, T-SQL)
+        EQUALS           // = (some contexts)
+    } assignment_style = AssignmentStyle::WALRUS;
 };
 
 /// Dialect configuration - features and transformations
@@ -167,12 +178,22 @@ private:
         postgres.supports_regex = true;
         postgres.identifier_quote = '"';
         postgres.concat_op = DialectFeatures::ConcatOp::PIPES;
+        // PL/pgSQL procedural features
+        postgres.supports_begin_end_blocks = true;
+        postgres.supports_for_loops = true;
+        postgres.variable_prefix = "";  // No prefix for variables
+        postgres.assignment_style = DialectFeatures::AssignmentStyle::WALRUS;  // :=
 
         // MySQL / MariaDB
         auto& mysql = features[Dialect::MySQL];
         mysql.identifier_quote = '`';
         mysql.supports_ilike = false;
         mysql.concat_op = DialectFeatures::ConcatOp::CONCAT_FUNC;
+        // MySQL stored procedure features
+        mysql.supports_begin_end_blocks = true;
+        mysql.supports_for_loops = true;  // MySQL has FOR...LOOP in stored procedures
+        mysql.variable_prefix = "";  // No prefix (uses DECLARE for variables)
+        mysql.assignment_style = DialectFeatures::AssignmentStyle::SET_KEYWORD;  // SET var = value
         features[Dialect::MariaDB] = mysql;  // MariaDB is MySQL-compatible
 
         // SQLite
@@ -209,6 +230,11 @@ private:
         oracle.identifier_quote = '"';
         oracle.concat_op = DialectFeatures::ConcatOp::PIPES;
         oracle.limit_style = DialectFeatures::LimitStyle::FETCH_FIRST;
+        // PL/SQL procedural features
+        oracle.supports_begin_end_blocks = true;
+        oracle.supports_for_loops = true;
+        oracle.variable_prefix = "";  // No prefix for variables
+        oracle.assignment_style = DialectFeatures::AssignmentStyle::WALRUS;  // :=
 
         // SQL Server
         auto& sqlserver = features[Dialect::SQLServer];
@@ -218,6 +244,11 @@ private:
         sqlserver.limit_style = DialectFeatures::LimitStyle::TOP;
         sqlserver.true_literal = "1";
         sqlserver.false_literal = "0";
+        // T-SQL procedural features
+        sqlserver.supports_begin_end_blocks = true;
+        sqlserver.supports_for_loops = false;  // T-SQL doesn't have FOR loops, only WHILE
+        sqlserver.variable_prefix = "@";  // @variable syntax
+        sqlserver.assignment_style = DialectFeatures::AssignmentStyle::SET_KEYWORD;  // SET @var = value
 
         // DuckDB (PostgreSQL-compatible with extensions)
         auto& duckdb = features[Dialect::DuckDB];

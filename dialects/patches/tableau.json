@@ -1,0 +1,69 @@
+{
+  "dialect_name": "tableau",
+  "base_dialect": "postgresql",
+  "description": "Tableau - BI tool with custom SQL dialect",
+  "keywords": {
+    "add": [
+      {"name": "ZN", "token_type": "ZN"},
+      {"name": "ATTR", "token_type": "ATTR"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "ZN", "category": "conditional"},
+      {"name": "ATTR", "category": "aggregate"},
+      {"name": "DATEPARSE", "category": "date"},
+      {"name": "DATENAME", "category": "date"},
+      {"name": "DATEDIFF", "category": "date"},
+      {"name": "DATEADD", "category": "date"},
+      {"name": "MAKEDATE", "category": "date"},
+      {"name": "MAKETIME", "category": "date"},
+      {"name": "MAKEDATETIME", "category": "date"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": false,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "ZN function",
+      "note": "Returns 0 if NULL (Tableau-specific)"
+    },
+    {
+      "feature": "ATTR function",
+      "note": "Aggregate that returns value if all rows are same"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://help.tableau.com/current/pro/desktop/en-us/functions.htm",
+      "notes": "Tableau calculation reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/tableau.py",
+      "notes": "SQLGlot Tableau dialect implementation"
+    }
+  ]
+}

@@ -12,7 +12,7 @@
 namespace libsqlglot {
 
 /// Tokenizer - converts SQL source text into tokens
-/// Uses SIMD for fast whitespace skipping and string scanning
+/// Fast scalar implementation with branchless optimizations and perfect hash keyword lookup
 /// Thread-safe (stateless), uses LocalStringPool for interning
 class Tokenizer {
 public:
@@ -66,6 +66,11 @@ public:
         // Strings
         if (c == '\'' || c == '"') {
             return tokenize_string(c);
+        }
+
+        // Parameters: @name (T-SQL), :name (Oracle), $1 (Postgres), ?
+        if (c == '@' || c == ':' || c == '$' || c == '?') {
+            return tokenize_parameter();
         }
 
         // Operators and delimiters
@@ -275,6 +280,60 @@ private:
         return make_token(TokenType::STRING, start_pos, pos_, start_line, start_col, pool_->intern(text));
     }
 
+    Token tokenize_parameter() {
+        uint32_t start_pos = pos_;
+        uint16_t start_line = line_;
+        uint16_t start_col = col_;
+
+        char prefix = advance(); // @ or : or $ or ?
+
+        // For standalone ? parameter, return immediately
+        if (prefix == '?') {
+            std::string_view text = source_.substr(start_pos, pos_ - start_pos);
+            return make_token(TokenType::PARAMETER, start_pos, pos_, start_line, start_col, pool_->intern(text));
+        }
+
+        // For :=, don't treat as parameter (it's assignment operator)
+        if (prefix == ':' && peek() == '=') {
+            // Backtrack - this is COLON_EQUALS, not a parameter
+            pos_ = start_pos;
+            col_ = start_col;
+            return tokenize_operator();
+        }
+
+        // For :: (double colon cast), don't treat as parameter
+        if (prefix == ':' && peek() == ':') {
+            // Backtrack - this is DOUBLE_COLON, not a parameter
+            pos_ = start_pos;
+            col_ = start_col;
+            return tokenize_operator();
+        }
+
+        // For $1, $2, etc. (Postgres positional parameters)
+        if (prefix == '$' && is_digit(peek())) {
+            while (!is_eof() && is_digit(peek())) {
+                advance();
+            }
+            std::string_view text = source_.substr(start_pos, pos_ - start_pos);
+            return make_token(TokenType::PARAMETER, start_pos, pos_, start_line, start_col, pool_->intern(text));
+        }
+
+        // For @name or :name (must be followed by identifier)
+        if (is_identifier_start(peek())) {
+            while (!is_eof() && is_identifier_continue(peek())) {
+                advance();
+            }
+            std::string_view text = source_.substr(start_pos, pos_ - start_pos);
+            return make_token(TokenType::PARAMETER, start_pos, pos_, start_line, start_col, pool_->intern(text));
+        }
+
+        // If not followed by identifier/digit, backtrack and treat as operator
+        // (e.g., @ alone, : alone, $ alone)
+        pos_ = start_pos;
+        col_ = start_col;
+        return tokenize_operator();
+    }
+
     Token tokenize_operator() {
         uint32_t start_pos = pos_;
         uint16_t start_line = line_;
@@ -283,12 +342,19 @@ private:
         char c = advance();
         char next = peek();
 
+        // Three-character operators
+        if (c == '<' && next == '=' && peek(1) == '>') {
+            advance(); advance(); // <=
+            return make_token(TokenType::NULL_SAFE_EQ, start_pos, pos_, start_line, start_col);
+        }
+
         // Two-character operators
         if (c == '|' && next == '|') { advance(); return make_token(TokenType::CONCAT, start_pos, pos_, start_line, start_col); }
         if (c == '<' && next == '>') { advance(); return make_token(TokenType::NEQ, start_pos, pos_, start_line, start_col); }
         if (c == '<' && next == '=') { advance(); return make_token(TokenType::LTE, start_pos, pos_, start_line, start_col); }
         if (c == '>' && next == '=') { advance(); return make_token(TokenType::GTE, start_pos, pos_, start_line, start_col); }
         if (c == '!' && next == '=') { advance(); return make_token(TokenType::NEQ, start_pos, pos_, start_line, start_col); }
+        if (c == ':' && next == '=') { advance(); return make_token(TokenType::COLON_EQUALS, start_pos, pos_, start_line, start_col); }
         if (c == ':' && next == ':') { advance(); return make_token(TokenType::DOUBLE_COLON, start_pos, pos_, start_line, start_col); }
         if (c == '.' && next == '.') { advance(); return make_token(TokenType::DOUBLE_DOT, start_pos, pos_, start_line, start_col); }
         if (c == '-' && next == '>') {

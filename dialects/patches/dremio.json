@@ -1,0 +1,66 @@
+{
+  "dialect_name": "dremio",
+  "base_dialect": "trino",
+  "description": "Dremio - Data lakehouse platform with SQL query acceleration",
+  "keywords": {
+    "add": [
+      {"name": "REFLECTION", "token_type": "REFLECTION"},
+      {"name": "AGGREGATE", "token_type": "AGGREGATE"},
+      {"name": "RAW", "token_type": "RAW"},
+      {"name": "DIMENSIONS", "token_type": "DIMENSIONS"},
+      {"name": "MEASURES", "token_type": "MEASURES"},
+      {"name": "DISPLAY", "token_type": "DISPLAY"},
+      {"name": "ACCELERATION", "token_type": "ACCELERATION"},
+      {"name": "VDS", "token_type": "VDS"},
+      {"name": "PDS", "token_type": "PDS"},
+      {"name": "LOCALSORT", "token_type": "LOCALSORT"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "FLATTEN", "category": "array"},
+      {"name": "CONVERT_TO", "category": "conversion"},
+      {"name": "CONVERT_FROM", "category": "conversion"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": true,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Reflections",
+      "note": "CREATE REFLECTION for query acceleration"
+    },
+    {
+      "feature": "VDS and PDS",
+      "note": "Virtual datasets (views) and Physical datasets (tables)"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.dremio.com/software/sql-reference/",
+      "notes": "Official Dremio SQL reference"
+    }
+  ]
+}

@@ -154,13 +154,18 @@ enum class TokenType : uint16_t {
     RETURNING_KW, DO, LANGUAGE,
     PLPGSQL, DECLARE, PERFORM,
     GENERATE_SERIES,
+    DELIMITER_KW,  // DELIMITER for MySQL
 
     // Stored Procedures & Functions
     FUNCTION, PROCEDURE_KW,  // PROCEDURE_KW to distinguish from PROCEDURE already defined
-    CALL, RETURN_KW, RETURNS,  // RETURN_KW for RETURN statement, RETURNS for function return type
+    CALL, RETURN_KW, RETURNS, SETOF,  // RETURN_KW for RETURN statement, RETURNS for function return type, SETOF for set-returning functions
     OUT, INOUT,
     IF, WHILE, LOOP, EACH,
     ELSEIF, ENDIF, ENDWHILE, ENDLOOP,
+    BREAK, CONTINUE, EXIT,  // Loop control statements
+    EXCEPTION, WHEN_KW, RAISE, SIGNAL,  // Exception handling
+    CURSOR, OPEN, CLOSE, SCROLL,  // Cursor operations
+    COLON_EQUALS,  // := (assignment operator)
 
     // Triggers
     TRIGGER, BEFORE, AFTER, INSTEAD, OF,
@@ -192,6 +197,42 @@ enum class TokenType : uint16_t {
     ENGINE_KW, PARTITION_BY, ORDER_BY,
     FINAL, PREWHERE,
     SETTINGS,
+
+    // Redshift-specific
+    DISTKEY, SORTKEY, SUPER, DISTSTYLE,
+
+    // DuckDB/ClickHouse-specific
+    ASOF,
+
+    // CockroachDB/SQLite-specific
+    UPSERT,
+
+    // Materialize-specific
+    TAIL,
+
+    // Vertica-specific
+    PROJECTION, SEGMENTED,
+
+    // Greenplum/Doris-specific
+    DISTRIBUTED,
+
+    // SingleStore/PGVector-specific
+    VECTOR,
+
+    // Doris-specific
+    DUPLICATE, BUCKETS,
+
+    // TiDB-specific
+    AUTO_RANDOM,
+
+    // MySQL/Spark-specific operators
+    NULL_SAFE_EQ,  // <=> operator
+
+    // Databricks-specific
+    OPTIMIZE, ZORDER,
+
+    // Hive/Impala-specific
+    COMPUTE, STATS,
 
     // Keep this last - for iteration
     TOKEN_TYPE_COUNT
@@ -245,6 +286,54 @@ struct Token {
 /// Check if token is a literal
 [[nodiscard]] constexpr bool is_literal(TokenType type) {
     return type >= TokenType::NUMBER && type <= TokenType::NATIONAL_STRING;
+}
+
+/// Get the text representation of a token type (for operators/delimiters)
+[[nodiscard]] constexpr const char* token_type_text(TokenType type) {
+    switch (type) {
+        case TokenType::PLUS: return "+";
+        case TokenType::MINUS: return "-";
+        case TokenType::STAR: return "*";
+        case TokenType::SLASH: return "/";
+        case TokenType::PERCENT: return "%";
+        case TokenType::CARET: return "^";
+        case TokenType::AMPERSAND: return "&";
+        case TokenType::PIPE: return "|";
+        case TokenType::TILDE: return "~";
+        case TokenType::EQ: return "=";
+        case TokenType::NEQ: return "<>";
+        case TokenType::LT: return "<";
+        case TokenType::LTE: return "<=";
+        case TokenType::GT: return ">";
+        case TokenType::GTE: return ">=";
+        case TokenType::CONCAT: return "||";
+        case TokenType::ARROW: return "->";
+        case TokenType::LONG_ARROW: return "->>";
+        case TokenType::DOUBLE_COLON: return "::";
+        case TokenType::LPAREN: return "(";
+        case TokenType::RPAREN: return ")";
+        case TokenType::LBRACKET: return "[";
+        case TokenType::RBRACKET: return "]";
+        case TokenType::LBRACE: return "{";
+        case TokenType::RBRACE: return "}";
+        case TokenType::COMMA: return ",";
+        case TokenType::SEMICOLON: return ";";
+        case TokenType::DOT: return ".";
+        case TokenType::COLON: return ":";
+        case TokenType::QUESTION: return "?";
+        case TokenType::DOUBLE_DOT: return "..";
+        case TokenType::COLON_EQUALS: return ":=";
+        default: return nullptr;
+    }
+}
+
+/// Get text from a token - uses interned text if available, otherwise reconstructs from type
+[[nodiscard]] inline const char* get_token_text(const Token& tok) {
+    if (tok.text) {
+        return tok.text;
+    }
+    // Fallback: reconstruct from token type (for operators/delimiters)
+    return token_type_text(tok.type);
 }
 
 } // namespace libsqlglot

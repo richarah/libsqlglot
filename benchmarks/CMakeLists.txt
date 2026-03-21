@@ -15,6 +15,11 @@ add_executable(bench_transpiler bench_transpiler.cpp)
 target_link_libraries(bench_transpiler PRIVATE libsqlglot benchmark::benchmark)
 target_compile_options(bench_transpiler PRIVATE ${LIBSQLGLOT_CXX_FLAGS})
 
+# Copy mad_queries directory to build directory for tests
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mad_queries)
+file(GLOB MAD_QUERY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/mad_queries/*.sql)
+file(COPY ${MAD_QUERY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/mad_queries)
+
 # All benchmarks target
 add_custom_target(run_benchmarks
     COMMAND bench_tokenizer --benchmark_format=console

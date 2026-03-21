@@ -1,0 +1,147 @@
+{
+  "dialect_name": "redshift",
+  "base_dialect": "postgresql",
+  "description": "Amazon Redshift - PostgreSQL 8.0.2 fork optimized for data warehousing with columnar storage and MPP architecture",
+  "keywords": {
+    "add": [
+      {"name": "DISTKEY", "token_type": "DISTKEY"},
+      {"name": "SORTKEY", "token_type": "SORTKEY"},
+      {"name": "DISTSTYLE", "token_type": "DISTSTYLE"},
+      {"name": "ENCODE", "token_type": "ENCODE"},
+      {"name": "INTERLEAVED", "token_type": "INTERLEAVED"},
+      {"name": "COMPOUND", "token_type": "COMPOUND"},
+      {"name": "BACKUP", "token_type": "BACKUP"},
+      {"name": "STATUPDATE", "token_type": "STATUPDATE"},
+      {"name": "EVEN", "token_type": "EVEN"},
+      {"name": "ALL", "token_type": "ALL"},
+      {"name": "AUTO", "token_type": "AUTO"},
+      {"name": "UNLOAD", "token_type": "UNLOAD"},
+      {"name": "CREDENTIALS", "token_type": "CREDENTIALS"},
+      {"name": "MANIFEST", "token_type": "MANIFEST"},
+      {"name": "DELIMITER", "token_type": "DELIMITER_KW"},
+      {"name": "FIXEDWIDTH", "token_type": "FIXEDWIDTH"},
+      {"name": "ACCEPTINVCHARS", "token_type": "ACCEPTINVCHARS"},
+      {"name": "ACCEPTANYDATE", "token_type": "ACCEPTANYDATE"},
+      {"name": "BLANKSASNULL", "token_type": "BLANKSASNULL"},
+      {"name": "DATEFORMAT", "token_type": "DATEFORMAT"},
+      {"name": "EMPTYASNULL", "token_type": "EMPTYASNULL"},
+      {"name": "ENCODING", "token_type": "ENCODING"},
+      {"name": "ESCAPE", "token_type": "ESCAPE"},
+      {"name": "EXPLICIT", "token_type": "EXPLICIT"},
+      {"name": "FILLRECORD", "token_type": "FILLRECORD"},
+      {"name": "IGNOREBLANKLINES", "token_type": "IGNOREBLANKLINES"},
+      {"name": "IGNOREHEADER", "token_type": "IGNOREHEADER"},
+      {"name": "NULL_KW", "token_type": "NULL_KW"},
+      {"name": "READRATIO", "token_type": "READRATIO"},
+      {"name": "REGION", "token_type": "REGION"},
+      {"name": "REMOVEQUOTES", "token_type": "REMOVEQUOTES"},
+      {"name": "ROUNDEC", "token_type": "ROUNDEC"},
+      {"name": "TIMEFORMAT", "token_type": "TIMEFORMAT"},
+      {"name": "TRIMBLANKS", "token_type": "TRIMBLANKS"},
+      {"name": "TRUNCATECOLUMNS", "token_type": "TRUNCATECOLUMNS"},
+      {"name": "COMPROWS", "token_type": "COMPROWS"},
+      {"name": "COMPUPDATE", "token_type": "COMPUPDATE"},
+      {"name": "MAXERROR", "token_type": "MAXERROR"},
+      {"name": "NOLOAD", "token_type": "NOLOAD"},
+      {"name": "STATUPDATE", "token_type": "STATUPDATE"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "STRTOL", "category": "string"},
+      {"name": "JSON_EXTRACT_PATH_TEXT", "category": "json"},
+      {"name": "JSON_EXTRACT_ARRAY_ELEMENT_TEXT", "category": "json"},
+      {"name": "APPROXIMATE", "category": "aggregate"},
+      {"name": "MEDIAN", "category": "aggregate"},
+      {"name": "PERCENTILE_CONT", "category": "aggregate"},
+      {"name": "LISTAGG", "category": "aggregate"},
+      {"name": "REGEXP_COUNT", "category": "string"},
+      {"name": "REGEXP_INSTR", "category": "string"},
+      {"name": "REGEXP_REPLACE", "category": "string"},
+      {"name": "REGEXP_SUBSTR", "category": "string"},
+      {"name": "SPLIT_TO_ARRAY", "category": "string"},
+      {"name": "DATEADD", "category": "date"},
+      {"name": "DATEDIFF", "category": "date"},
+      {"name": "GETDATE", "category": "date"},
+      {"name": "CONVERT_TIMEZONE", "category": "date"},
+      {"name": "NVL", "category": "conditional"},
+      {"name": "NVL2", "category": "conditional"},
+      {"name": "DECODE", "category": "conditional"},
+      {"name": "FUNC_SHA1", "category": "hash"},
+      {"name": "FUNC_SHA2", "category": "hash"},
+      {"name": "MD5", "category": "hash"},
+      {"name": "CHECKSUM", "category": "hash"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "SUPER", "token_type": "SUPER"},
+      {"name": "HLLSKETCH", "token_type": "HLLSKETCH"},
+      {"name": "GEOMETRY", "token_type": "GEOMETRY"},
+      {"name": "GEOGRAPHY", "token_type": "GEOGRAPHY"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": true,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "COPY command",
+      "note": "Redshift COPY has extensive S3/DynamoDB/remote source options with credentials"
+    },
+    {
+      "feature": "UNLOAD command",
+      "note": "Redshift-specific command to export query results to S3"
+    },
+    {
+      "feature": "Distribution and Sort Keys",
+      "note": "DISTKEY/SORTKEY/DISTSTYLE are table-level optimization hints for MPP"
+    },
+    {
+      "feature": "ENCODE",
+      "note": "Column-level compression encoding (LZO, ZSTD, DELTA, etc.)"
+    },
+    {
+      "feature": "SUPER type",
+      "note": "Semi-structured data type supporting nested JSON-like structures"
+    },
+    {
+      "feature": "Window functions",
+      "note": "Supports MEDIAN, PERCENTILE_CONT, LISTAGG as window functions"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/c_SQL_commands.html",
+      "notes": "Official Redshift SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/redshift.py",
+      "notes": "SQLGlot Redshift dialect implementation"
+    },
+    {
+      "type": "other",
+      "url": "https://docs.aws.amazon.com/redshift/latest/dg/c_choosing_dist_sort.html",
+      "notes": "Distribution and sort key documentation"
+    }
+  ]
+}

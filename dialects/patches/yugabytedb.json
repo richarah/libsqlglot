@@ -1,0 +1,61 @@
+{
+  "dialect_name": "yugabytedb",
+  "base_dialect": "postgresql",
+  "description": "YugabyteDB - Distributed SQL database with PostgreSQL compatibility",
+  "keywords": {
+    "add": [
+      {"name": "HASH", "token_type": "HASH"},
+      {"name": "SPLIT", "token_type": "SPLIT"},
+      {"name": "TABLETS", "token_type": "TABLETS"},
+      {"name": "COLOCATION", "token_type": "COLOCATION"},
+      {"name": "TABLEGROUP", "token_type": "TABLEGROUP"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": false,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Hash sharding",
+      "note": "PRIMARY KEY with HASH for distributed sharding"
+    },
+    {
+      "feature": "Table splitting",
+      "note": "SPLIT INTO n TABLETS for pre-splitting"
+    },
+    {
+      "feature": "Colocation",
+      "note": "COLOCATION for grouping related tables"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.yugabyte.com/preview/api/ysql/",
+      "notes": "Official YugabyteDB SQL reference"
+    }
+  ]
+}

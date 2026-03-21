@@ -1,0 +1,95 @@
+{
+  "dialect_name": "materialize",
+  "base_dialect": "postgresql",
+  "description": "Materialize - Streaming database with PostgreSQL wire protocol and real-time materialized views",
+  "keywords": {
+    "add": [
+      {"name": "MATERIALIZED", "token_type": "MATERIALIZED"},
+      {"name": "SOURCE", "token_type": "SOURCE"},
+      {"name": "SINK", "token_type": "SINK"},
+      {"name": "KAFKA", "token_type": "KAFKA"},
+      {"name": "KINESIS", "token_type": "KINESIS"},
+      {"name": "POSTGRES", "token_type": "POSTGRES"},
+      {"name": "PUBNUB", "token_type": "PUBNUB"},
+      {"name": "S3", "token_type": "S3"},
+      {"name": "ENVELOPE", "token_type": "ENVELOPE"},
+      {"name": "DEBEZIUM", "token_type": "DEBEZIUM"},
+      {"name": "UPSERT", "token_type": "UPSERT"},
+      {"name": "TAIL", "token_type": "TAIL"},
+      {"name": "SUBSCRIBE", "token_type": "SUBSCRIBE"},
+      {"name": "PROGRESS", "token_type": "PROGRESS"},
+      {"name": "SNAPSHOT", "token_type": "SNAPSHOT"},
+      {"name": "TIMESTAMP", "token_type": "TIMESTAMP"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "MZ_LOGICAL_TIMESTAMP", "category": "system"},
+      {"name": "MZ_CLUSTER_ID", "category": "system"},
+      {"name": "MZ_VERSION", "category": "system"},
+      {"name": "CSV_EXTRACT", "category": "string"},
+      {"name": "REGEXP_EXTRACT", "category": "string"},
+      {"name": "LIST_AGG", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "LIST", "token_type": "LIST"},
+      {"name": "MAP", "token_type": "MAP"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": false,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Materialized views",
+      "note": "Incrementally maintained materialized views for streaming data"
+    },
+    {
+      "feature": "Sources",
+      "note": "CREATE SOURCE for Kafka, Kinesis, PostgreSQL CDC, etc."
+    },
+    {
+      "feature": "Sinks",
+      "note": "CREATE SINK for writing to external systems"
+    },
+    {
+      "feature": "TAIL",
+      "note": "TAIL statement for streaming query results"
+    },
+    {
+      "feature": "Temporal filters",
+      "note": "AS OF timestamp for temporal queries"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://materialize.com/docs/sql/",
+      "notes": "Official Materialize SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/postgres.py",
+      "notes": "SQLGlot extends Postgres for Materialize"
+    }
+  ]
+}

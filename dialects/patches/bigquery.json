@@ -1,0 +1,189 @@
+{
+  "dialect_name": "bigquery",
+  "base_dialect": "postgresql",
+  "description": "Google BigQuery - Serverless data warehouse with standard SQL and extensions",
+  "keywords": {
+    "add": [
+      {"name": "STRUCT", "token_type": "STRUCT_KW"},
+      {"name": "ARRAY", "token_type": "ARRAY"},
+      {"name": "UNNEST", "token_type": "UNNEST"},
+      {"name": "SAFE", "token_type": "SAFE"},
+      {"name": "SAFE_CAST", "token_type": "SAFE_CAST"},
+      {"name": "SAFE_OFFSET", "token_type": "SAFE_OFFSET"},
+      {"name": "SAFE_ORDINAL", "token_type": "SAFE_ORDINAL"},
+      {"name": "ORDINAL", "token_type": "ORDINAL"},
+      {"name": "OFFSET", "token_type": "OFFSET"},
+      {"name": "QUALIFY", "token_type": "QUALIFY"},
+      {"name": "PIVOT", "token_type": "PIVOT"},
+      {"name": "UNPIVOT", "token_type": "UNPIVOT"},
+      {"name": "TABLESAMPLE", "token_type": "TABLESAMPLE"},
+      {"name": "SYSTEM", "token_type": "SYSTEM"},
+      {"name": "OPTIONS", "token_type": "OPTIONS"},
+      {"name": "CLUSTER", "token_type": "CLUSTER"},
+      {"name": "PARTITION", "token_type": "PARTITION"},
+      {"name": "RANGE", "token_type": "RANGE_KW"},
+      {"name": "GENERATE", "token_type": "GENERATE"},
+      {"name": "ASSERT", "token_type": "ASSERT"},
+      {"name": "MODEL", "token_type": "MODEL"},
+      {"name": "TRANSFORM", "token_type": "TRANSFORM"},
+      {"name": "REMOTE", "token_type": "REMOTE"},
+      {"name": "CONNECTION", "token_type": "CONNECTION"},
+      {"name": "FOR_SYSTEM_TIME_AS_OF", "token_type": "FOR_SYSTEM_TIME_AS_OF"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [
+      {"symbol": "=>", "token_type": "NAMED_ARG", "precedence": "assignment", "associativity": "right"},
+      {"symbol": "||", "token_type": "CONCAT", "precedence": "additive", "associativity": "left"}
+    ],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "ARRAY", "category": "array"},
+      {"name": "ARRAY_AGG", "category": "array"},
+      {"name": "ARRAY_CONCAT", "category": "array"},
+      {"name": "ARRAY_LENGTH", "category": "array"},
+      {"name": "ARRAY_TO_STRING", "category": "array"},
+      {"name": "GENERATE_ARRAY", "category": "array"},
+      {"name": "GENERATE_DATE_ARRAY", "category": "array"},
+      {"name": "GENERATE_TIMESTAMP_ARRAY", "category": "array"},
+      {"name": "ARRAY_REVERSE", "category": "array"},
+      {"name": "STRUCT", "category": "struct"},
+      {"name": "JSON_EXTRACT", "category": "json"},
+      {"name": "JSON_EXTRACT_SCALAR", "category": "json"},
+      {"name": "JSON_QUERY", "category": "json"},
+      {"name": "JSON_VALUE", "category": "json"},
+      {"name": "TO_JSON_STRING", "category": "json"},
+      {"name": "PARSE_DATE", "category": "date"},
+      {"name": "PARSE_DATETIME", "category": "date"},
+      {"name": "PARSE_TIME", "category": "date"},
+      {"name": "PARSE_TIMESTAMP", "category": "date"},
+      {"name": "FORMAT_DATE", "category": "date"},
+      {"name": "FORMAT_DATETIME", "category": "date"},
+      {"name": "FORMAT_TIME", "category": "date"},
+      {"name": "FORMAT_TIMESTAMP", "category": "date"},
+      {"name": "DATE_ADD", "category": "date"},
+      {"name": "DATE_SUB", "category": "date"},
+      {"name": "DATE_DIFF", "category": "date"},
+      {"name": "DATE_TRUNC", "category": "date"},
+      {"name": "DATETIME_ADD", "category": "date"},
+      {"name": "DATETIME_SUB", "category": "date"},
+      {"name": "DATETIME_DIFF", "category": "date"},
+      {"name": "DATETIME_TRUNC", "category": "date"},
+      {"name": "TIMESTAMP_ADD", "category": "date"},
+      {"name": "TIMESTAMP_SUB", "category": "date"},
+      {"name": "TIMESTAMP_DIFF", "category": "date"},
+      {"name": "TIMESTAMP_TRUNC", "category": "date"},
+      {"name": "CURRENT_DATE", "category": "date", "token_type": "CURRENT_DATE"},
+      {"name": "CURRENT_DATETIME", "category": "date"},
+      {"name": "CURRENT_TIME", "category": "date", "token_type": "CURRENT_TIME"},
+      {"name": "CURRENT_TIMESTAMP", "category": "date", "token_type": "CURRENT_TIMESTAMP"},
+      {"name": "SAFE_CAST", "category": "conversion"},
+      {"name": "SAFE_CONVERT_BYTES_TO_STRING", "category": "conversion"},
+      {"name": "APPROX_COUNT_DISTINCT", "category": "aggregate"},
+      {"name": "APPROX_QUANTILES", "category": "aggregate"},
+      {"name": "APPROX_TOP_COUNT", "category": "aggregate"},
+      {"name": "APPROX_TOP_SUM", "category": "aggregate"},
+      {"name": "COUNTIF", "category": "aggregate"},
+      {"name": "LOGICAL_AND", "category": "aggregate"},
+      {"name": "LOGICAL_OR", "category": "aggregate"},
+      {"name": "STRING_AGG", "category": "aggregate"},
+      {"name": "ANY_VALUE", "category": "aggregate"},
+      {"name": "FARM_FINGERPRINT", "category": "hash"},
+      {"name": "MD5", "category": "hash"},
+      {"name": "SHA1", "category": "hash"},
+      {"name": "SHA256", "category": "hash"},
+      {"name": "SHA512", "category": "hash"},
+      {"name": "NET_HOST", "category": "net"},
+      {"name": "NET_PUBLIC_SUFFIX", "category": "net"},
+      {"name": "NET_REG_DOMAIN", "category": "net"},
+      {"name": "ST_GEOGPOINT", "category": "geo"},
+      {"name": "ST_MAKELINE", "category": "geo"},
+      {"name": "ST_MAKEPOLYGON", "category": "geo"},
+      {"name": "ST_DISTANCE", "category": "geo"},
+      {"name": "ST_AREA", "category": "geo"},
+      {"name": "ST_WITHIN", "category": "geo"},
+      {"name": "ST_CONTAINS", "category": "geo"},
+      {"name": "ST_INTERSECTS", "category": "geo"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "INT64", "token_type": "INT64"},
+      {"name": "FLOAT64", "token_type": "FLOAT64"},
+      {"name": "NUMERIC", "token_type": "NUMERIC"},
+      {"name": "BIGNUMERIC", "token_type": "BIGNUMERIC"},
+      {"name": "STRING", "token_type": "STRING_TYPE"},
+      {"name": "BYTES", "token_type": "BYTES"},
+      {"name": "DATETIME", "token_type": "DATETIME"},
+      {"name": "GEOGRAPHY", "token_type": "GEOGRAPHY"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": true,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": true,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": true,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "`",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Arrays and Structs",
+      "note": "First-class ARRAY and STRUCT types with comprehensive functions"
+    },
+    {
+      "feature": "UNNEST",
+      "note": "Lateral UNNEST for flattening arrays"
+    },
+    {
+      "feature": "QUALIFY",
+      "note": "Window function filtering without subquery"
+    },
+    {
+      "feature": "SAFE functions",
+      "note": "SAFE_CAST, SAFE_OFFSET return NULL instead of error"
+    },
+    {
+      "feature": "Named arguments",
+      "note": "Function calls with => for named parameters"
+    },
+    {
+      "feature": "Time travel",
+      "note": "FOR SYSTEM_TIME AS OF for historical queries"
+    },
+    {
+      "feature": "Partitioning and clustering",
+      "note": "PARTITION BY and CLUSTER BY for table organization"
+    },
+    {
+      "feature": "ML models",
+      "note": "CREATE MODEL for BigQuery ML"
+    },
+    {
+      "feature": "Remote functions",
+      "note": "CREATE FUNCTION with REMOTE CONNECTION"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://cloud.google.com/bigquery/docs/reference/standard-sql/",
+      "notes": "Official BigQuery Standard SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/bigquery.py",
+      "notes": "SQLGlot BigQuery dialect implementation"
+    }
+  ]
+}

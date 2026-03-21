@@ -1,0 +1,62 @@
+{
+  "dialect_name": "fabric",
+  "base_dialect": "tsql",
+  "description": "Microsoft Fabric - Unified analytics platform with T-SQL base",
+  "keywords": {
+    "add": [
+      {"name": "LAKEHOUSE", "token_type": "LAKEHOUSE"},
+      {"name": "WAREHOUSE", "token_type": "WAREHOUSE"},
+      {"name": "NOTEBOOK", "token_type": "NOTEBOOK"},
+      {"name": "SPARK", "token_type": "SPARK"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "PREDICT", "category": "ml"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": true,
+    "supports_unnest": false,
+    "supports_array_literals": false,
+    "supports_struct_literals": false,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Lakehouse",
+      "note": "OneLake integration with Delta tables"
+    },
+    {
+      "feature": "Cross-engine queries",
+      "note": "Query across SQL, Spark, and Analysis Services"
+    },
+    {
+      "feature": "ML functions",
+      "note": "PREDICT for ML model inference"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://learn.microsoft.com/en-us/fabric/",
+      "notes": "Official Microsoft Fabric documentation"
+    }
+  ]
+}

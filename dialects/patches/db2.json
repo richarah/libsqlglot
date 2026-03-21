@@ -1,0 +1,87 @@
+{
+  "dialect_name": "db2",
+  "base_dialect": "derby",
+  "description": "IBM DB2 - Enterprise relational database",
+  "keywords": {
+    "add": [
+      {"name": "OPTIMIZE", "token_type": "OPTIMIZE"},
+      {"name": "RUNSTATS", "token_type": "RUNSTATS"},
+      {"name": "REORG", "token_type": "REORG"},
+      {"name": "COMPRESS", "token_type": "COMPRESS"},
+      {"name": "ORGANIZE", "token_type": "ORGANIZE"},
+      {"name": "FINAL", "token_type": "FINAL"},
+      {"name": "PARTITIONED", "token_type": "PARTITIONED"},
+      {"name": "ENDING", "token_type": "ENDING"},
+      {"name": "EVERY", "token_type": "EVERY"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [
+      {"symbol": "||", "token_type": "CONCAT", "precedence": "additive", "associativity": "left"},
+      {"symbol": "!!", "token_type": "DOUBLE_EXCLAIM", "precedence": "unary", "associativity": "left"}
+    ],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "DECFLOAT", "category": "conversion"},
+      {"name": "DECIMAL", "category": "conversion"},
+      {"name": "GENERATE_UNIQUE", "category": "misc"},
+      {"name": "IDENTITY_VAL_LOCAL", "category": "misc"},
+      {"name": "CHAR", "category": "string"},
+      {"name": "VARCHAR", "category": "string"},
+      {"name": "TRANSLATE", "category": "string"},
+      {"name": "POSSTR", "category": "string"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "DECFLOAT", "token_type": "DECFLOAT"},
+      {"name": "GRAPHIC", "token_type": "GRAPHIC"},
+      {"name": "VARGRAPHIC", "token_type": "VARGRAPHIC"},
+      {"name": "DBCLOB", "token_type": "DBCLOB"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": false,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "FETCH FIRST",
+      "note": "DB2-specific FETCH FIRST n ROWS ONLY"
+    },
+    {
+      "feature": "ORGANIZE BY",
+      "note": "Multidimensional clustering"
+    },
+    {
+      "feature": "Range partitioning",
+      "note": "PARTITION BY RANGE with ENDING AT"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://www.ibm.com/docs/en/db2/11.5",
+      "notes": "Official IBM DB2 documentation"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/db2.py",
+      "notes": "SQLGlot DB2 dialect implementation"
+    }
+  ]
+}

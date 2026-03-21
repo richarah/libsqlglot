@@ -1,0 +1,103 @@
+{
+  "dialect_name": "databricks",
+  "base_dialect": "hive",
+  "description": "Databricks SQL - Managed Spark platform with Unity Catalog and Delta Lake enhancements",
+  "keywords": {
+    "add": [
+      {"name": "OPTIMIZE", "token_type": "OPTIMIZE"},
+      {"name": "ZORDER", "token_type": "ZORDER"},
+      {"name": "VACUUM", "token_type": "VACUUM"},
+      {"name": "RESTORE", "token_type": "RESTORE"},
+      {"name": "SHALLOW", "token_type": "SHALLOW"},
+      {"name": "CLONE", "token_type": "CLONE"},
+      {"name": "DEEP", "token_type": "DEEP"},
+      {"name": "COPY", "token_type": "COPY"},
+      {"name": "CREDENTIAL", "token_type": "CREDENTIAL"},
+      {"name": "STORAGE", "token_type": "STORAGE"},
+      {"name": "LOCATION", "token_type": "LOCATION"},
+      {"name": "VOLUMES", "token_type": "VOLUMES"},
+      {"name": "VOLUME", "token_type": "VOLUME"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "CURRENT_METASTORE", "category": "misc"},
+      {"name": "CURRENT_CATALOG", "category": "misc"},
+      {"name": "CURRENT_SCHEMA", "category": "misc"},
+      {"name": "AI_QUERY", "category": "ai"},
+      {"name": "AI_ANALYZE_SENTIMENT", "category": "ai"},
+      {"name": "AI_CLASSIFY", "category": "ai"},
+      {"name": "AI_EXTRACT", "category": "ai"},
+      {"name": "AI_FORECAST", "category": "ai"},
+      {"name": "AI_GENERATE_TEXT", "category": "ai"},
+      {"name": "AI_SIMILARITY", "category": "ai"},
+      {"name": "VECTOR_SEARCH", "category": "vector"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": true,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": true,
+    "supports_unnest": false,
+    "supports_array_literals": true,
+    "supports_struct_literals": true,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "`",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Delta Lake operations",
+      "note": "OPTIMIZE, VACUUM, RESTORE, ZORDER for Delta table management"
+    },
+    {
+      "feature": "Unity Catalog",
+      "note": "Three-level namespace: catalog.schema.table"
+    },
+    {
+      "feature": "AI functions",
+      "note": "Built-in AI/ML functions for inference and analysis"
+    },
+    {
+      "feature": "CLONE",
+      "note": "CREATE TABLE ... CLONE for deep/shallow copies"
+    },
+    {
+      "feature": "Volumes",
+      "note": "Unity Catalog volumes for unstructured data"
+    },
+    {
+      "feature": "COPY INTO",
+      "note": "Efficient bulk data loading with exactly-once semantics"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.databricks.com/sql/language-manual/index.html",
+      "notes": "Official Databricks SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/databricks.py",
+      "notes": "SQLGlot Databricks dialect implementation"
+    },
+    {
+      "type": "other",
+      "url": "https://docs.databricks.com/delta/index.html",
+      "notes": "Delta Lake documentation"
+    }
+  ]
+}

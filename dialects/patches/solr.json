@@ -1,0 +1,64 @@
+{
+  "dialect_name": "solr",
+  "base_dialect": "derby",
+  "description": "Apache Solr - Search platform with SQL interface",
+  "keywords": {
+    "add": [
+      {"name": "FACET", "token_type": "FACET"},
+      {"name": "STREAMING", "token_type": "STREAMING"},
+      {"name": "TIMESERIES", "token_type": "TIMESERIES"},
+      {"name": "SCOREMODE", "token_type": "SCOREMODE"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "SCORE", "category": "search"},
+      {"name": "FACET", "category": "search"},
+      {"name": "SEARCH", "category": "search"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": false,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": false,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Full-text search",
+      "note": "SCORE() function for relevance scoring"
+    },
+    {
+      "feature": "Faceting",
+      "note": "FACET clause for search facets"
+    },
+    {
+      "feature": "Streaming expressions",
+      "note": "Stream processing with SQL"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://solr.apache.org/guide/solr/latest/query-guide/sql-query.html",
+      "notes": "Apache Solr SQL reference"
+    }
+  ]
+}

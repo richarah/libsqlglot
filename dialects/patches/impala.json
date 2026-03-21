@@ -1,0 +1,82 @@
+{
+  "dialect_name": "impala",
+  "base_dialect": "hive",
+  "description": "Apache Impala - MPP SQL query engine for Hadoop",
+  "keywords": {
+    "add": [
+      {"name": "INVALIDATE", "token_type": "INVALIDATE"},
+      {"name": "METADATA", "token_type": "METADATA"},
+      {"name": "COMPUTE", "token_type": "COMPUTE"},
+      {"name": "STATS", "token_type": "STATS"},
+      {"name": "INCREMENTAL", "token_type": "INCREMENTAL"},
+      {"name": "UPSERT", "token_type": "UPSERT"},
+      {"name": "SHUFFLE", "token_type": "SHUFFLE"},
+      {"name": "NOSHUFFLE", "token_type": "NOSHUFFLE"},
+      {"name": "STRAIGHT_JOIN", "token_type": "STRAIGHT_JOIN"},
+      {"name": "ANTI", "token_type": "ANTI"},
+      {"name": "SEMI", "token_type": "SEMI"},
+      {"name": "PARQUET", "token_type": "PARQUET"},
+      {"name": "KUDU", "token_type": "KUDU"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "APPX_MEDIAN", "category": "aggregate"},
+      {"name": "GROUP_CONCAT", "category": "aggregate"},
+      {"name": "NDV", "category": "aggregate"},
+      {"name": "STDDEV_POP", "category": "aggregate"},
+      {"name": "STDDEV_SAMP", "category": "aggregate"},
+      {"name": "VAR_POP", "category": "aggregate"},
+      {"name": "VAR_SAMP", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": false,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": true,
+    "supports_struct_literals": true,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "`",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "UPSERT",
+      "note": "UPSERT support for Kudu tables"
+    },
+    {
+      "feature": "COMPUTE STATS",
+      "note": "Manual statistics computation for query optimization"
+    },
+    {
+      "feature": "INVALIDATE METADATA",
+      "note": "Refresh metadata cache"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://impala.apache.org/docs/build/html/",
+      "notes": "Official Impala documentation"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/hive.py",
+      "notes": "SQLGlot extends Hive for Impala"
+    }
+  ]
+}

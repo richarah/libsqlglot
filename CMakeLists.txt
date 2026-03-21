@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(libsqlglot VERSION 0.1.2 LANGUAGES CXX)
+project(libsqlglot VERSION 0.2.0 LANGUAGES CXX)
 
 # Require C++26 for reflection and advanced constexpr features
 # Note: CMake 3.28 doesn't recognize CMAKE_CXX_STANDARD=26, so we use manual flags

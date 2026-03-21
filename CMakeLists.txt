@@ -40,6 +40,7 @@ option(LIBSQLGLOT_BUILD_BENCHMARKS "Build benchmarks" OFF)
 option(LIBSQLGLOT_BUILD_PYTHON "Build Python bindings" OFF)
 option(LIBSQLGLOT_BUILD_SHARED "Build shared library" ON)
 option(LIBSQLGLOT_ENABLE_SIMD "Enable SIMD optimisations" ON)
+option(LIBSQLGLOT_ENABLE_NATIVE "Enable native CPU optimizations (-march=native)" OFF)
 option(LIBSQLGLOT_FUZZ "Build fuzz targets" OFF)
 option(LIBSQLGLOT_PGO_GENERATE "Generate PGO profile data" OFF)
 option(LIBSQLGLOT_PGO_USE "Use PGO profile data for optimization" OFF)
@@ -48,7 +49,16 @@ option(LIBSQLGLOT_PGO_USE "Use PGO profile data for optimization" OFF)
 set(LIBSQLGLOT_CXX_FLAGS -Wall -Wextra -Wpedantic -Werror -fno-rtti)
 
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    list(APPEND LIBSQLGLOT_CXX_FLAGS -O3 -march=native -flto -fmerge-all-constants -fvisibility=hidden)
+    # Portable optimization flags (no -march=native for wheels)
+    # Use LIBSQLGLOT_ENABLE_NATIVE for local builds with machine-specific optimizations
+    if(LIBSQLGLOT_ENABLE_NATIVE)
+        list(APPEND LIBSQLGLOT_CXX_FLAGS -O3 -march=native -mtune=native -flto -fmerge-all-constants -fvisibility=hidden)
+        message(STATUS "Native optimizations enabled (-march=native -mtune=native)")
+    else()
+        # Portable: x86-64 baseline without AVX/AVX2/AVX512
+        list(APPEND LIBSQLGLOT_CXX_FLAGS -O3 -march=x86-64 -mtune=generic -flto -fmerge-all-constants -fvisibility=hidden)
+        message(STATUS "Portable optimizations enabled (-march=x86-64 -mtune=generic)")
+    endif()
     set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)  # Enable LTO
 
     # Profile-Guided Optimization (PGO)

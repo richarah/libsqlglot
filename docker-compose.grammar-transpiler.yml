@@ -8,7 +8,7 @@
 version: '3.8'
 
 services:
-  # Build all SQL dialects in parallel - 100% Automated
+  # Extract grammar data and generate C++ LUT headers for ALL dialects
   transpiler:
     build:
       context: .
@@ -23,55 +23,43 @@ services:
       - PYTHONUNBUFFERED=1
     command: ["--help"]
 
-  # Generate MySQL parser (100% automated)
+  # Extract ALL dialects and generate unified headers (RECOMMENDED)
+  extract-all:
+    extends: transpiler
+    container_name: transpiler-extract-all
+    command:
+      - --extract-all
+      - --data-output-dir
+      - /workspace/generated/grammar_data
+      - --header-output-dir
+      - /workspace/include/libsqlglot
+
+  # Extract single dialect (for testing)
   mysql:
     extends: transpiler
     container_name: transpiler-mysql
     command:
       - --grammar
       - mysql
-      - --output
-      - /workspace/generated/parser_mysql.h
+      - --extract-only
 
-  # Generate PostgreSQL parser (100% automated)
+  # Extract single dialect (for testing)
   postgresql:
     extends: transpiler
     container_name: transpiler-postgresql
     command:
       - --grammar
       - postgresql
-      - --output
-      - /workspace/generated/parser_postgresql.h
+      - --extract-only
 
-  # Generate SQLite parser (100% automated)
+  # Extract single dialect (for testing)
   sqlite:
     extends: transpiler
     container_name: transpiler-sqlite
     command:
       - --grammar
       - sqlite
-      - --output
-      - /workspace/generated/parser_sqlite.h
-
-  # Generate T-SQL parser (100% automated)
-  tsql:
-    extends: transpiler
-    container_name: transpiler-tsql
-    command:
-      - --grammar
-      - tsql
-      - --output
-      - /workspace/generated/parser_tsql.h
-
-  # Generate Oracle PL/SQL parser (100% automated)
-  plsql:
-    extends: transpiler
-    container_name: transpiler-plsql
-    command:
-      - --grammar
-      - plsql
-      - --output
-      - /workspace/generated/parser_plsql.h
+      - --extract-only
 
   # Generate keywords.h from all dialects
   keywords:
@@ -86,22 +74,19 @@ services:
 # Usage Examples:
 # ============================================================================
 #
-# Build all dialect parsers in parallel:
-#   docker-compose -f docker-compose.grammar-transpiler.yml up mysql postgresql sqlite
+# Extract ALL dialects and generate unified C++ headers (RECOMMENDED):
+#   docker-compose -f docker-compose.grammar-transpiler.yml up extract-all
 #
-# Generate keywords.h:
-#   docker-compose -f docker-compose.grammar-transpiler.yml up keywords
-#
-# Generate all parsers:
-#   docker-compose -f docker-compose.grammar-transpiler.yml up
-#
-# Generate specific dialect:
+# Extract single dialect for testing:
 #   docker-compose -f docker-compose.grammar-transpiler.yml up mysql
+#
+# Generate keywords.h only:
+#   docker-compose -f docker-compose.grammar-transpiler.yml up keywords
 #
 # Clean up:
 #   docker-compose -f docker-compose.grammar-transpiler.yml down
 #
 # View logs:
-#   docker-compose -f docker-compose.grammar-transpiler.yml logs mysql
+#   docker-compose -f docker-compose.grammar-transpiler.yml logs extract-all
 #
 # ============================================================================

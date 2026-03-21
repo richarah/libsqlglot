@@ -3,32 +3,40 @@
 ANTLR Grammar Transpiler - Main Orchestrator
 
 This is the main entry point for the Grammar Transpiler System.
-Coordinates all phases to generate C++ parser code from ANTLR grammars.
+Extracts grammar data from ANTLR grammars and generates C++ LUT headers
+for libsqlglot's hand-written parser.
+
+NEW PIPELINE (Build-time grammar compiler):
+    ANTLR grammars → Extract data → Generate C++ LUT headers → libsqlglot uses at runtime
+
+OLD PIPELINE (deprecated):
+    ANTLR → Lemon → C runtime parser (SLOW, not used)
 
 Usage:
-    python scripts/antlr/transpile.py --help
-    python scripts/antlr/transpile.py --grammar mysql --output parser_mysql.h
-    python scripts/antlr/transpile.py --all-dialects --keywords-only
+    python scripts/antlr/transpile.py --extract-all
+    python scripts/antlr/transpile.py --grammar mysql --extract-only
 """
 
 import argparse
 from pathlib import Path
 import sys
 import subprocess
+import json
+from typing import List, Optional
 
 from grammar_parser import parse_grammar_file
-from complexity_analyzer import ComplexityAnalyzer, Complexity
-from grammar_transformer import GrammarTransformer
-from cpp_generator import CppGenerator
 from keywords_generator import KeywordsGenerator
+from grammar_data_extractor import extract_from_file, save_to_json, GrammarData
+from unified_grammar_generator import UnifiedGrammarGenerator
 
 
 class GrammarTranspiler:
-    """Main orchestrator for grammar transpilation"""
+    """Main orchestrator for grammar-to-LUT compilation"""
 
     def __init__(self, grammars_dir: Path):
         self.grammars_dir = grammars_dir
         self.sql_dir = self._find_sql_dir()
+        self.extracted_data: List[Path] = []
 
     def _find_sql_dir(self) -> Path:
         """Find SQL grammars directory"""
@@ -71,113 +79,101 @@ class GrammarTranspiler:
 
         return parser_files[0]
 
-    def generate_lemon_parser(self, grammar_file: Path, lemon_output_dir: Path, dialect: str):
-        """Generate Lemon parser from ANTLR grammar - 100% automated pipeline"""
-        print(f"\n[LEMON] Converting ANTLR → Lemon → C++ (100% automated)...")
+    def find_lexer_file(self, dialect: str) -> Optional[Path]:
+        """Find lexer grammar file for dialect (if exists)"""
+        dialect_dir = self.sql_dir / dialect
 
-        # Create output directory
-        lemon_output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Generate Lemon grammar using antlr_to_lemon.py
-        lemon_y_file = lemon_output_dir / f"{dialect}_lemon.y"
-        lemon_c_file = lemon_output_dir / f"{dialect}_lemon.c"
-        lemon_wrapper_file = lemon_output_dir / f"{dialect}_lemon_wrapper.h"
-
-        # Run antlr_to_lemon.py directly on the ANTLR grammar file
-        script_dir = Path(__file__).parent
-        antlr_to_lemon = script_dir / "antlr_to_lemon.py"
-
-        print(f"  [OK] Step 1/3: ANTLR → Lemon grammar conversion...")
-
-        # Convert to Lemon (all rules, no complexity filtering)
-        result = subprocess.run(
-            [sys.executable, str(antlr_to_lemon), str(grammar_file),
-             '--output', str(lemon_y_file), '--complexity', 'all'],
-            capture_output=True, text=True, timeout=60
-        )
-
-        if result.returncode != 0:
-            print(f"  [WARN] Lemon conversion failed: {result.stderr}")
+        if not dialect_dir.exists():
             return None
 
-        print(f"  [OK] Generated Lemon grammar: {lemon_y_file}")
+        # Look for lexer grammar
+        lexer_files = list(dialect_dir.rglob('*Lexer.g4'))
 
-        # Step 2: Compile with Lemon
-        print(f"  [OK] Step 2/3: Compiling Lemon grammar...")
-        lemon_exe = Path("external/lemon/lemon")
-        if not lemon_exe.exists():
-            print(f"  [WARN] Lemon executable not found at {lemon_exe}")
+        if not lexer_files:
             return None
 
-        result = subprocess.run(
-            [str(lemon_exe), str(lemon_y_file)],
-            capture_output=True, text=True, timeout=30
-        )
+        # Prefer non-test, non-original files
+        for lf in lexer_files:
+            if 'test' not in str(lf).lower() and 'original' not in str(lf).lower():
+                return lf
 
-        if not lemon_c_file.exists():
-            print(f"  [WARN] Lemon compilation failed")
-            return None
+        return lexer_files[0]
 
-        print(f"  [OK] Compiled Lemon parser: {lemon_c_file}")
-
-        # Step 3: Generate C++ wrapper
-        print(f"  [OK] Step 3/3: Generating C++ wrapper...")
-        lemon_wrapper_script = script_dir / "lemon_wrapper.py"
-        result = subprocess.run(
-            [sys.executable, str(lemon_wrapper_script), str(lemon_c_file),
-             '--output', str(lemon_wrapper_file)],
-            capture_output=True, text=True, timeout=30
-        )
-
-        if result.returncode != 0:
-            print(f"  [WARN] Wrapper generation failed: {result.stderr}")
-            return None
-
-        print(f"  [OK] Generated C++ wrapper: {lemon_wrapper_file}")
-        print(f"\n  [SUCCESS] 100% automated: {lemon_wrapper_file} ready for libsqlglot")
-
-        return {
-            'grammar_file': lemon_y_file,
-            'parser_file': lemon_c_file,
-            'wrapper_file': lemon_wrapper_file
-        }
-
-    def transpile_dialect(self, dialect: str, output_file: Path,
-                         lemon_output_dir: Path = None):
-        """Transpile a single dialect - 100% automated ANTLR → Lemon → C++"""
+    def extract_dialect_data(self, dialect: str, output_dir: Path) -> Optional[Path]:
+        """Extract grammar data from a single dialect"""
         print(f"\n{'='*80}")
-        print(f"Transpiling {dialect.upper()} Grammar")
-        print(f"Pipeline: ANTLR → Lemon → C++ (100% Automated)")
+        print(f"Extracting Grammar Data: {dialect.upper()}")
+        print(f"Pipeline: ANTLR → Extract patterns/keywords/operators → JSON")
         print(f"{'='*80}")
 
-        # Step 1: Find and parse grammar
-        print(f"\n[1/3] Parsing ANTLR grammar...")
-        grammar_file = self.find_grammar_file(dialect)
-        print(f"  Using: {grammar_file}")
-        grammar = parse_grammar_file(grammar_file)
-        parser_rules_count = len([r for r in grammar.rules.values() if r.type.value == 'parser'])
-        print(f"  [OK] Found {parser_rules_count} parser rules")
+        try:
+            # Find grammar files
+            grammar_file = self.find_grammar_file(dialect)
+            lexer_file = self.find_lexer_file(dialect)
 
-        # Automated pipeline: ANTLR → Lemon → C++ wrapper
-        lemon_info = self.generate_lemon_parser(grammar_file, lemon_output_dir, dialect)
+            print(f"[OK] Using parser grammar: {grammar_file}")
+            if lexer_file:
+                print(f"[OK] Using lexer grammar: {lexer_file}")
 
-        if not lemon_info:
-            print(f"\n[ERROR] Lemon generation failed")
+            # Extract data
+            data = extract_from_file(grammar_file, dialect, lexer_file)
+
+            # Save to JSON
+            output_file = output_dir / f"{dialect}_grammar_data.json"
+            save_to_json(data, output_file)
+
+            print(f"[SUCCESS] Extracted {len(data.token_sequences)} patterns, {len(data.keywords)} keywords")
+            print(f"{'='*80}\n")
+
+            self.extracted_data.append(output_file)
+            return output_file
+
+        except Exception as e:
+            print(f"[ERROR] Failed to extract {dialect}: {e}")
             return None
 
-        # Copy wrapper to output location
-        import shutil
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(lemon_info['wrapper_file'], output_file)
-
+    def extract_all_dialects(self, output_dir: Path) -> List[Path]:
+        """Extract grammar data from all available dialects"""
         print(f"\n{'='*80}")
-        print(f"[SUCCESS] 100% Automated Transpilation Complete!")
-        print(f"   Parser: {output_file}")
-        print(f"   Rules: {parser_rules_count} (all converted)")
-        print(f"   Manual work required: ZERO")
+        print(f"Extracting Grammar Data from All Dialects")
         print(f"{'='*80}\n")
 
-        return lemon_info
+        output_dir.mkdir(parents=True, exist_ok=True)
+        dialects = self.list_dialects()
+
+        print(f"[OK] Found {len(dialects)} SQL dialects\n")
+
+        extracted_files = []
+        for dialect in dialects:
+            output_file = self.extract_dialect_data(dialect, output_dir)
+            if output_file:
+                extracted_files.append(output_file)
+
+        print(f"\n{'='*80}")
+        print(f"[SUCCESS] Extracted {len(extracted_files)}/{len(dialects)} dialects")
+        print(f"{'='*80}\n")
+
+        return extracted_files
+
+    def generate_unified_headers(self, data_files: List[Path], output_dir: Path):
+        """Generate unified C++ headers from extracted data"""
+        print(f"\n{'='*80}")
+        print(f"Generating Unified C++ Headers")
+        print(f"Input: {len(data_files)} dialect data files")
+        print(f"Output: {output_dir}")
+        print(f"{'='*80}\n")
+
+        generator = UnifiedGrammarGenerator()
+
+        # Load all dialect data
+        for data_file in data_files:
+            generator.add_dialect_data(data_file)
+
+        # Generate all headers
+        generator.generate_all_headers(output_dir)
+
+        print(f"[SUCCESS] Unified headers generated!")
+        print(f"[INFO] Headers ready for libsqlglot's hand-written parser")
 
     def generate_keywords(self, output_file: Path):
         """Generate keywords.h from all dialects"""
@@ -200,18 +196,18 @@ class GrammarTranspiler:
 
 def main():
     parser = argparse.ArgumentParser(
-        description='ANTLR Grammar Transpiler - 100%% automated ANTLR → Lemon → C++',
+        description='ANTLR Grammar-to-LUT Compiler - Extract grammar data and generate C++ headers',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
   # List available dialects
   python transpile.py --list-dialects
 
-  # Generate parser for MySQL (100%% automated)
-  python transpile.py --grammar mysql
+  # Extract all dialects and generate unified headers (RECOMMENDED)
+  python transpile.py --extract-all
 
-  # Generate parser for PostgreSQL with custom output
-  python transpile.py --grammar postgresql --output parser_postgresql.h
+  # Extract single dialect only
+  python transpile.py --grammar mysql --extract-only
 
   # Generate keywords.h from all dialects
   python transpile.py --keywords-only
@@ -232,21 +228,41 @@ Examples:
     )
 
     parser.add_argument(
-        '--grammar',
-        type=str,
-        help='SQL dialect to transpile (e.g., mysql, postgresql, tsql)'
+        '--extract-all',
+        action='store_true',
+        help='Extract grammar data from all dialects and generate unified C++ headers (RECOMMENDED)'
     )
 
     parser.add_argument(
-        '--output',
-        type=Path,
-        help='Output C++ header file (default: include/libsqlglot/parser_<dialect>.h)'
+        '--grammar',
+        type=str,
+        help='SQL dialect to extract (e.g., mysql, postgresql, tsql)'
+    )
+
+    parser.add_argument(
+        '--extract-only',
+        action='store_true',
+        help='Only extract grammar data, do not generate headers'
     )
 
     parser.add_argument(
         '--keywords-only',
         action='store_true',
-        help='Only generate keywords.h, skip parser code generation'
+        help='Only generate keywords.h, skip grammar extraction'
+    )
+
+    parser.add_argument(
+        '--data-output-dir',
+        type=Path,
+        default=Path('generated/grammar_data'),
+        help='Output directory for extracted JSON data (default: generated/grammar_data)'
+    )
+
+    parser.add_argument(
+        '--header-output-dir',
+        type=Path,
+        default=Path('include/libsqlglot'),
+        help='Output directory for generated C++ headers (default: include/libsqlglot)'
     )
 
     parser.add_argument(
@@ -254,13 +270,6 @@ Examples:
         type=Path,
         default=Path('include/libsqlglot/keywords_generated.h'),
         help='Output file for keywords.h (default: include/libsqlglot/keywords_generated.h)'
-    )
-
-    parser.add_argument(
-        '--lemon-output-dir',
-        type=Path,
-        default=Path('generated/lemon'),
-        help='Output directory for Lemon intermediate files (default: generated/lemon)'
     )
 
     args = parser.parse_args()
@@ -280,31 +289,47 @@ Examples:
             transpiler.generate_keywords(args.keywords_output)
             return 0
 
-        # Normal transpilation mode
-        if not args.grammar:
-            print("Error: --grammar is required (or use --keywords-only or --list-dialects)")
-            print("Run with --help for usage information")
-            return 1
+        # Extract all dialects mode (RECOMMENDED)
+        if args.extract_all:
+            # Extract all dialects
+            data_files = transpiler.extract_all_dialects(args.data_output_dir)
 
-        # Determine output file
-        if args.output:
-            output_file = args.output
-        else:
-            output_file = Path(f'include/libsqlglot/parser_{args.grammar}_generated.h')
+            if not data_files:
+                print("[ERROR] No dialect data extracted")
+                return 1
 
-        # Transpile (100% automated)
-        transpiler.transpile_dialect(
-            args.grammar,
-            output_file,
-            lemon_output_dir=args.lemon_output_dir
-        )
+            # Generate unified headers
+            transpiler.generate_unified_headers(data_files, args.header_output_dir)
 
-        print("[INFO] Next steps:")
-        print(f"  1. Compile Lemon parser: see {args.lemon_output_dir}")
-        print(f"  2. Integrate {output_file} into include/libsqlglot/parser.h")
-        print(f"  3. Build and test: cmake --build build && ./build/tests/libsqlglot_tests")
+            print("\n[INFO] Next steps:")
+            print(f"  1. Review generated headers in {args.header_output_dir}")
+            print(f"  2. Include headers in libsqlglot parser")
+            print(f"  3. Build and test: cmake --build build && ./build/tests/libsqlglot_tests")
 
-        return 0
+            return 0
+
+        # Single dialect extraction mode
+        if args.grammar:
+            output_file = transpiler.extract_dialect_data(args.grammar, args.data_output_dir)
+
+            if not output_file:
+                print(f"[ERROR] Failed to extract {args.grammar}")
+                return 1
+
+            # Generate headers if not extract-only
+            if not args.extract_only:
+                transpiler.generate_unified_headers([output_file], args.header_output_dir)
+
+            return 0
+
+        # No mode specified
+        print("Error: Please specify an action:")
+        print("  --extract-all        (extract all dialects and generate headers)")
+        print("  --grammar DIALECT    (extract single dialect)")
+        print("  --keywords-only      (generate keywords.h)")
+        print("  --list-dialects      (list available dialects)")
+        print("\nRun with --help for usage information")
+        return 1
 
     except Exception as e:
         print(f"\n[ERROR] Error: {e}", file=sys.stderr)

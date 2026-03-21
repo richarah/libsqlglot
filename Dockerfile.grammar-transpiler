@@ -88,13 +88,15 @@ CMD ["--help"]
 # List available SQL dialects:
 #   docker run --rm libsqlglot-transpiler --list-dialects
 #
-# Generate parser for MySQL (100% automated):
-#   docker run --rm -v $(pwd)/generated:/workspace/generated \
-#       libsqlglot-transpiler --grammar mysql
+# Extract ALL dialects and generate C++ headers (RECOMMENDED):
+#   docker run --rm \
+#       -v $(pwd)/generated:/workspace/generated \
+#       -v $(pwd)/include:/workspace/include \
+#       libsqlglot-transpiler --extract-all
 #
-# Generate parser for PostgreSQL (100% automated):
+# Extract single dialect only (for testing):
 #   docker run --rm -v $(pwd)/generated:/workspace/generated \
-#       libsqlglot-transpiler --grammar postgresql
+#       libsqlglot-transpiler --grammar mysql --extract-only
 #
 # Generate keywords.h from all dialects:
 #   docker run --rm -v $(pwd)/include:/workspace/include \

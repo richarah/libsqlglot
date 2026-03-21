@@ -205,19 +205,28 @@ class UnifiedGrammarGenerator:
         lines.append("};")
         lines.append("")
 
-        # Deduplicate operators by token name
+        # Deduplicate operators by mapped TokenType enum (not ANTLR token name)
         unique_operators = {}
         for op in self.unified_data.operators:
             token = op['token']
-            if token not in unique_operators:
-                unique_operators[token] = op
+            # Map to TokenType enum to check for duplicates
+            token_enum = self._token_to_enum(token)
+
+            # Only add if we haven't seen this TokenType enum before
+            # If duplicate, prefer higher precedence
+            if token_enum not in unique_operators:
+                unique_operators[token_enum] = op
+            else:
+                # Keep the one with higher precedence
+                if op['precedence'] > unique_operators[token_enum]['precedence']:
+                    unique_operators[token_enum] = op
 
         lines.append("/// Operator precedence table (higher number = higher precedence)")
         lines.append("constexpr OperatorPrecedence operator_precedence[] = {")
 
         op_entries = []
-        for token, op in sorted(unique_operators.items(), key=lambda x: x[1]['precedence'], reverse=True):
-            token_enum = self._token_to_enum(token)
+        # Sort by precedence (highest first), then by token name for stability
+        for token_enum, op in sorted(unique_operators.items(), key=lambda x: (-x[1]['precedence'], x[0])):
             prec = op['precedence']
             assoc = op['associativity'].upper()
 

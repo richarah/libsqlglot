@@ -435,9 +435,12 @@ public:
                             if (current().type == TokenType::LPAREN) paren_depth++;
                             else if (current().type == TokenType::RPAREN) paren_depth--;
 
-                            if (paren_depth > 0 && current().text) {
-                                if (!check_expr.empty()) check_expr += " ";
-                                check_expr += std::string(current().text);
+                            if (paren_depth > 0) {
+                                const char* text = get_token_text(current());
+                                if (text) {
+                                    if (!check_expr.empty()) check_expr += " ";
+                                    check_expr += std::string(text);
+                                }
                             }
                             advance();
                         }
@@ -1499,7 +1502,7 @@ public:
         // Read up to 3 consecutive tokens that could form a delimiter
         // Examples: $ + $ = $$, / + / = //, | = |, ; = ;
         // Note: $ may tokenize as ERROR, so we accept ERROR tokens here
-        for (int i = 0; i < 3 && !is_at_end() && current().text; ++i) {
+        for (int i = 0; i < 3 && !is_at_end(); ++i) {
             TokenType t = current().type;
 
             // Stop if we hit keywords, identifiers, numbers, or strings
@@ -1512,7 +1515,13 @@ public:
             }
 
             // Accumulate the token text
-            delim += std::string(current().text);
+            const char* text = get_token_text(current());
+            if (text) {
+                delim += std::string(text);
+            } else {
+                // Fallback to source view for tokens without text (e.g., ERROR tokens like $)
+                delim += std::string(current().view(source_));
+            }
             advance();
 
             // Check if next token would form a reasonable delimiter continuation
@@ -2382,7 +2391,7 @@ private:
     }
 
     Expression* parse_comparison_expression() {
-        auto left = parse_additive_expression();
+        auto left = parse_bitwise_or_expression();
 
         while (true) {
             ExprType op;
@@ -2483,8 +2492,41 @@ private:
                 break;
             }
 
-            auto right = parse_additive_expression();
+            auto right = parse_bitwise_or_expression();
             left = arena_.create<BinaryOp>(op, left, right);
+        }
+
+        return left;
+    }
+
+    Expression* parse_bitwise_or_expression() {
+        auto left = parse_bitwise_and_expression();
+
+        while (match(TokenType::PIPE)) {
+            auto right = parse_bitwise_and_expression();
+            left = arena_.create<BinaryOp>(ExprType::BITWISE_OR, left, right);
+        }
+
+        return left;
+    }
+
+    Expression* parse_bitwise_and_expression() {
+        auto left = parse_concat_expression();
+
+        while (match(TokenType::AMPERSAND)) {
+            auto right = parse_concat_expression();
+            left = arena_.create<BinaryOp>(ExprType::BITWISE_AND, left, right);
+        }
+
+        return left;
+    }
+
+    Expression* parse_concat_expression() {
+        auto left = parse_additive_expression();
+
+        while (match(TokenType::CONCAT)) {
+            auto right = parse_additive_expression();
+            left = arena_.create<BinaryOp>(ExprType::CONCAT, left, right);
         }
 
         return left;
@@ -2500,8 +2542,6 @@ private:
                 op = ExprType::PLUS;
             } else if (match(TokenType::MINUS)) {
                 op = ExprType::MINUS;
-            } else if (match(TokenType::CONCAT)) {
-                op = ExprType::CONCAT;
             } else {
                 break;
             }
@@ -2514,7 +2554,7 @@ private:
     }
 
     Expression* parse_multiplicative_expression() {
-        auto left = parse_unary_expression();
+        auto left = parse_exponentiation_expression();
 
         while (true) {
             ExprType op;
@@ -2529,8 +2569,20 @@ private:
                 break;
             }
 
-            auto right = parse_unary_expression();
+            auto right = parse_exponentiation_expression();
             left = arena_.create<BinaryOp>(op, left, right);
+        }
+
+        return left;
+    }
+
+    Expression* parse_exponentiation_expression() {
+        auto left = parse_unary_expression();
+
+        // Right-associative: 2^3^4 = 2^(3^4) = 2^81 = big number
+        if (match(TokenType::CARET)) {
+            auto right = parse_exponentiation_expression();  // Recursive for right-associativity
+            return arena_.create<BinaryOp>(ExprType::POWER, left, right);
         }
 
         return left;
@@ -2538,14 +2590,23 @@ private:
 
     Expression* parse_unary_expression() {
         RecursionGuard guard(recursion_depth_, kMaxRecursionDepth, this);
+
+        // Unary minus: -x = 0 - x
         if (match(TokenType::MINUS)) {
             auto operand = parse_unary_expression();
             auto zero = arena_.create<Literal>("0");
             return arena_.create<BinaryOp>(ExprType::MINUS, zero, operand);
         }
 
+        // Unary plus: +x = x
         if (match(TokenType::PLUS)) {
             return parse_unary_expression();
+        }
+
+        // Bitwise NOT: ~x
+        if (match(TokenType::TILDE)) {
+            auto operand = parse_unary_expression();
+            return arena_.create<UnaryOp>(ExprType::BITWISE_NOT, operand);
         }
 
         return parse_primary_expression();

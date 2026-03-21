@@ -1,0 +1,109 @@
+{
+  "dialect_name": "vertica",
+  "base_dialect": "postgresql",
+  "description": "Vertica - Columnar analytical database with PostgreSQL compatibility",
+  "keywords": {
+    "add": [
+      {"name": "SEGMENTED", "token_type": "SEGMENTED"},
+      {"name": "ALL_NODES", "token_type": "ALL_NODES"},
+      {"name": "UNSEGMENTED", "token_type": "UNSEGMENTED"},
+      {"name": "PROJECTION", "token_type": "PROJECTION"},
+      {"name": "BUDDY", "token_type": "BUDDY"},
+      {"name": "KSAFE", "token_type": "KSAFE"},
+      {"name": "NODES", "token_type": "NODES"},
+      {"name": "OFFSET_CLAUSE", "token_type": "OFFSET_CLAUSE"},
+      {"name": "TIMESERIES", "token_type": "TIMESERIES"},
+      {"name": "GAP_FILL", "token_type": "GAP_FILL"},
+      {"name": "INTERPOLATE", "token_type": "INTERPOLATE"},
+      {"name": "DIRECTED", "token_type": "DIRECTED"},
+      {"name": "COPY_DIRECT", "token_type": "COPY_DIRECT"},
+      {"name": "REJECTED", "token_type": "REJECTED"},
+      {"name": "EXCEPTIONS", "token_type": "EXCEPTIONS"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "APPROXIMATE_COUNT_DISTINCT", "category": "aggregate"},
+      {"name": "APPROXIMATE_MEDIAN", "category": "aggregate"},
+      {"name": "APPROXIMATE_PERCENTILE", "category": "aggregate"},
+      {"name": "CONDITIONAL_CHANGE_EVENT", "category": "analytic"},
+      {"name": "CONDITIONAL_TRUE_EVENT", "category": "analytic"},
+      {"name": "EVENT_SESSION_START", "category": "analytic"},
+      {"name": "SESSIONIZE", "category": "analytic"},
+      {"name": "INTERPOLATE_LINEAR", "category": "timeseries"},
+      {"name": "TS_FIRST_VALUE", "category": "timeseries"},
+      {"name": "TS_LAST_VALUE", "category": "timeseries"},
+      {"name": "DECODE", "category": "conditional"},
+      {"name": "ZEROIFNULL", "category": "conditional"},
+      {"name": "NULLIFZERO", "category": "conditional"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "LONG_VARCHAR", "token_type": "LONG_VARCHAR"},
+      {"name": "LONG_VARBINARY", "token_type": "LONG_VARBINARY"},
+      {"name": "MONEY", "token_type": "MONEY"},
+      {"name": "TIMETZ", "token_type": "TIMETZ"},
+      {"name": "GEOMETRY", "token_type": "GEOMETRY"},
+      {"name": "GEOGRAPHY", "token_type": "GEOGRAPHY"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": true,
+    "supports_unnest": true,
+    "supports_array_literals": false,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Projections",
+      "note": "CREATE PROJECTION for pre-aggregated columnar storage"
+    },
+    {
+      "feature": "Segmentation",
+      "note": "SEGMENTED BY for hash distribution across nodes"
+    },
+    {
+      "feature": "K-safety",
+      "note": "KSAFE for fault tolerance level"
+    },
+    {
+      "feature": "Timeseries",
+      "note": "TIMESERIES clause for gap-filling and interpolation"
+    },
+    {
+      "feature": "Event analytics",
+      "note": "SESSIONIZE and event functions for behavioral analysis"
+    },
+    {
+      "feature": "COPY DIRECT",
+      "note": "High-speed bulk loading bypassing WOS"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://www.vertica.com/docs/latest/HTML/",
+      "notes": "Official Vertica documentation"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/vertica.py",
+      "notes": "SQLGlot Vertica dialect implementation"
+    }
+  ]
+}

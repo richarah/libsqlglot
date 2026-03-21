@@ -1,0 +1,71 @@
+{
+  "dialect_name": "risingwave",
+  "base_dialect": "postgresql",
+  "description": "RisingWave - Cloud-native streaming database with PostgreSQL compatibility",
+  "keywords": {
+    "add": [
+      {"name": "EMIT", "token_type": "EMIT"},
+      {"name": "CHANGES", "token_type": "CHANGES"},
+      {"name": "WATERMARK", "token_type": "WATERMARK"},
+      {"name": "APPEND_ONLY", "token_type": "APPEND_ONLY"},
+      {"name": "KAFKA", "token_type": "KAFKA"},
+      {"name": "KINESIS", "token_type": "KINESIS"},
+      {"name": "PULSAR", "token_type": "PULSAR"},
+      {"name": "INCLUDE", "token_type": "INCLUDE"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "PROCTIME", "category": "streaming"},
+      {"name": "NOW", "category": "streaming"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": true,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Streaming semantics",
+      "note": "EMIT CHANGES for continuous queries"
+    },
+    {
+      "feature": "Watermarks",
+      "note": "WATERMARK clause for event-time processing"
+    },
+    {
+      "feature": "Sources",
+      "note": "CREATE SOURCE for Kafka, Kinesis, Pulsar"
+    },
+    {
+      "feature": "Materialized views",
+      "note": "Incrementally maintained streaming materialized views"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.risingwave.com/docs/current/sql-references/",
+      "notes": "Official RisingWave SQL reference"
+    }
+  ]
+}

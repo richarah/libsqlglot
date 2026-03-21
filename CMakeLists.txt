@@ -34,6 +34,85 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     list(APPEND LIBSQLGLOT_CXX_FLAGS -O0 -g)
 endif()
 
+# Generate merged dialect grammars from patches
+find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
+# Find all dialect patches
+file(GLOB DIALECT_PATCHES "${CMAKE_SOURCE_DIR}/dialects/patches/*.json")
+
+# Map patch names to base grammars
+set(PATCH_BASE_MAP
+    "redshift:postgresql"
+    "duckdb:postgresql"
+    "cockroachdb:postgresql"
+    "materialize:postgresql"
+    "vertica:postgresql"
+    "greenplum:postgresql"
+    "risingwave:postgresql"
+    "timescaledb:postgresql"
+    "yugabytedb:postgresql"
+    "dune:postgresql"
+    "bigquery:postgresql"
+    "spark:hive"
+    "databricks:hive"
+    "impala:hive"
+    "spark2:hive"
+    "singlestore:mysql"
+    "doris:mysql"
+    "tidb:mysql"
+    "presto:trino"
+    "dremio:trino"
+    "oracle:plsql"
+    "fabric:tsql"
+    "druid:mysql"
+    "db2:derby"
+    "netezza:postgresql"
+    "tableau:postgresql"
+    "exasol:postgresql"
+    "solr:derby"
+    "calcite:derby"
+)
+
+set(MERGED_GRAMMARS "")
+foreach(PATCH_FILE ${DIALECT_PATCHES})
+    get_filename_component(PATCH_NAME ${PATCH_FILE} NAME_WE)
+
+    # Find base grammar for this patch
+    set(BASE_GRAMMAR "")
+    foreach(MAPPING ${PATCH_BASE_MAP})
+        string(REGEX MATCH "^${PATCH_NAME}:(.+)$" MATCHED "${MAPPING}")
+        if(MATCHED)
+            set(BASE_GRAMMAR "${CMAKE_MATCH_1}")
+            break()
+        endif()
+    endforeach()
+
+    if(BASE_GRAMMAR)
+        set(BASE_GRAMMAR_FILE "${CMAKE_SOURCE_DIR}/generated/grammar_data/${BASE_GRAMMAR}_grammar_data.json")
+        set(OUTPUT_FILE "${CMAKE_BINARY_DIR}/generated/grammar_data/${PATCH_NAME}_grammar_data.json")
+
+        # Create output directory
+        file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/generated/grammar_data")
+
+        # Add custom command to merge grammar
+        add_custom_command(
+            OUTPUT ${OUTPUT_FILE}
+            COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/merge_grammar.py
+                    ${BASE_GRAMMAR_FILE} ${PATCH_FILE} ${OUTPUT_FILE}
+            DEPENDS ${BASE_GRAMMAR_FILE} ${PATCH_FILE} ${CMAKE_SOURCE_DIR}/scripts/merge_grammar.py
+            COMMENT "Merging ${PATCH_NAME} dialect grammar (base: ${BASE_GRAMMAR})"
+            VERBATIM
+        )
+
+        list(APPEND MERGED_GRAMMARS ${OUTPUT_FILE})
+    else()
+        message(WARNING "No base grammar mapping found for patch: ${PATCH_NAME}")
+    endif()
+endforeach()
+
+# Create custom target for all merged grammars
+add_custom_target(merge_dialects ALL DEPENDS ${MERGED_GRAMMARS})
+
 # Header-only interface target
 add_library(libsqlglot INTERFACE)
 target_include_directories(libsqlglot INTERFACE
@@ -41,6 +120,7 @@ target_include_directories(libsqlglot INTERFACE
     $<INSTALL_INTERFACE:include>
 )
 target_compile_features(libsqlglot INTERFACE cxx_std_23)
+add_dependencies(libsqlglot merge_dialects)
 
 # Optional compiled shared library
 if(LIBSQLGLOT_BUILD_SHARED)

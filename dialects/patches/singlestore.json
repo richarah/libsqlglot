@@ -1,0 +1,113 @@
+{
+  "dialect_name": "singlestore",
+  "base_dialect": "mysql",
+  "description": "SingleStore (MemSQL) - Distributed SQL database with MySQL compatibility and vector search",
+  "keywords": {
+    "add": [
+      {"name": "REFERENCE", "token_type": "REFERENCE"},
+      {"name": "SHARD", "token_type": "SHARD"},
+      {"name": "SORT", "token_type": "SORT"},
+      {"name": "COLUMNSTORE", "token_type": "COLUMNSTORE"},
+      {"name": "ROWSTORE", "token_type": "ROWSTORE"},
+      {"name": "DISTRIBUTED", "token_type": "DISTRIBUTED"},
+      {"name": "AGGREGATOR", "token_type": "AGGREGATOR"},
+      {"name": "LEAF", "token_type": "LEAF"},
+      {"name": "PIPELINE", "token_type": "PIPELINE"},
+      {"name": "LINK", "token_type": "LINK"},
+      {"name": "SYNC", "token_type": "SYNC"},
+      {"name": "SKIP", "token_type": "SKIP"},
+      {"name": "ERRORS", "token_type": "ERRORS"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [
+      {"symbol": "<>", "token_type": "NEQ", "precedence": "comparison", "associativity": "left"},
+      {"symbol": "::", "token_type": "DOUBLE_COLON", "precedence": "unary", "associativity": "left"}
+    ],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "JSON_AGG", "category": "json"},
+      {"name": "JSON_ARRAY_AGG", "category": "json"},
+      {"name": "JSON_OBJECT_AGG", "category": "json"},
+      {"name": "VECTOR", "category": "vector"},
+      {"name": "DOT_PRODUCT", "category": "vector"},
+      {"name": "EUCLIDEAN_DISTANCE", "category": "vector"},
+      {"name": "SCALAR_VECTOR_MUL", "category": "vector"},
+      {"name": "VECTOR_ADD", "category": "vector"},
+      {"name": "VECTOR_SUB", "category": "vector"},
+      {"name": "VECTOR_MUL", "category": "vector"},
+      {"name": "VECTOR_NUM_ELEMENTS", "category": "vector"},
+      {"name": "VECTOR_KTH_ELEMENT", "category": "vector"},
+      {"name": "VECTOR_SUBVECTOR", "category": "vector"},
+      {"name": "APPROX_COUNT_DISTINCT", "category": "aggregate"},
+      {"name": "APPROX_PERCENTILE", "category": "aggregate"},
+      {"name": "PERCENTILE_CONT", "category": "aggregate"},
+      {"name": "PERCENTILE_DISC", "category": "aggregate"},
+      {"name": "MEDIAN", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "VECTOR", "token_type": "VECTOR"},
+      {"name": "BSON", "token_type": "BSON"},
+      {"name": "GEOGRAPHY", "token_type": "GEOGRAPHY"},
+      {"name": "GEOGRAPHYPOINT", "token_type": "GEOGRAPHYPOINT"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": true,
+    "supports_pivot": true,
+    "supports_unnest": false,
+    "supports_array_literals": true,
+    "supports_struct_literals": true,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "`",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Distributed architecture",
+      "note": "SHARD KEY, SORT KEY for distributed table design"
+    },
+    {
+      "feature": "Storage types",
+      "note": "COLUMNSTORE vs ROWSTORE table types"
+    },
+    {
+      "feature": "Vector operations",
+      "note": "Native vector data type and similarity search functions"
+    },
+    {
+      "feature": "Pipelines",
+      "note": "CREATE PIPELINE for streaming data ingestion"
+    },
+    {
+      "feature": "Links",
+      "note": "CREATE LINK for federated query across databases"
+    },
+    {
+      "feature": "SKIP ERRORS",
+      "note": "LOAD DATA with SKIP <n> ERRORS for fault-tolerant loading"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.singlestore.com/db/latest/",
+      "notes": "Official SingleStore documentation"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/mysql.py",
+      "notes": "SQLGlot uses extended MySQL for SingleStore"
+    }
+  ]
+}

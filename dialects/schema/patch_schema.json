@@ -1,0 +1,265 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "SQL Dialect Patch Schema",
+  "description": "Defines additive/subtractive patches to create SQL dialect grammars from base grammars",
+  "type": "object",
+  "required": ["dialect_name", "base_dialect"],
+  "properties": {
+    "dialect_name": {
+      "type": "string",
+      "description": "Name of this SQL dialect (e.g., 'redshift', 'bigquery')"
+    },
+    "base_dialect": {
+      "type": "string",
+      "description": "Name of base dialect to inherit from (e.g., 'postgresql', 'mysql', 'hive')"
+    },
+    "description": {
+      "type": "string",
+      "description": "Human-readable description of this dialect and its purpose"
+    },
+    "keywords": {
+      "type": "object",
+      "properties": {
+        "add": {
+          "type": "array",
+          "description": "Keywords to add to this dialect",
+          "items": {
+            "type": "object",
+            "required": ["name", "token_type"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Keyword text (e.g., 'DISTKEY', 'QUALIFY')"
+              },
+              "token_type": {
+                "type": "string",
+                "description": "TokenType enum value (e.g., 'DISTKEY', 'QUALIFY')"
+              },
+              "aliases": {
+                "type": "array",
+                "description": "Alternative spellings or synonyms",
+                "items": {"type": "string"}
+              }
+            }
+          }
+        },
+        "remove": {
+          "type": "array",
+          "description": "Keywords to remove from base dialect",
+          "items": {
+            "type": "string",
+            "description": "Keyword name to remove"
+          }
+        },
+        "remap": {
+          "type": "object",
+          "description": "Map base keyword to different token type",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "operators": {
+      "type": "object",
+      "properties": {
+        "add": {
+          "type": "array",
+          "description": "Operators to add to this dialect",
+          "items": {
+            "type": "object",
+            "required": ["symbol", "token_type"],
+            "properties": {
+              "symbol": {
+                "type": "string",
+                "description": "Operator symbol (e.g., '!~', '@>', '&&')"
+              },
+              "token_type": {
+                "type": "string",
+                "description": "TokenType enum value"
+              },
+              "precedence": {
+                "type": "string",
+                "description": "Precedence level (e.g., 'comparison', 'additive')"
+              },
+              "associativity": {
+                "type": "string",
+                "enum": ["left", "right", "none"],
+                "description": "Operator associativity"
+              }
+            }
+          }
+        },
+        "remove": {
+          "type": "array",
+          "description": "Operators to remove from base dialect",
+          "items": {
+            "type": "string",
+            "description": "Operator symbol to remove"
+          }
+        }
+      }
+    },
+    "functions": {
+      "type": "object",
+      "properties": {
+        "add": {
+          "type": "array",
+          "description": "Functions to add to this dialect",
+          "items": {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Function name (e.g., 'STRTOL', 'DECODE')"
+              },
+              "category": {
+                "type": "string",
+                "description": "Function category (e.g., 'string', 'numeric', 'date')"
+              },
+              "token_type": {
+                "type": "string",
+                "description": "TokenType if function is a keyword"
+              }
+            }
+          }
+        },
+        "remove": {
+          "type": "array",
+          "description": "Functions to remove from base dialect",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "data_types": {
+      "type": "object",
+      "properties": {
+        "add": {
+          "type": "array",
+          "description": "Data types to add to this dialect",
+          "items": {
+            "type": "object",
+            "required": ["name", "token_type"],
+            "properties": {
+              "name": {
+                "type": "string",
+                "description": "Type name (e.g., 'SUPER', 'BIGNUMERIC', 'VARIANT')"
+              },
+              "token_type": {
+                "type": "string",
+                "description": "TokenType enum value"
+              },
+              "aliases": {
+                "type": "array",
+                "items": {"type": "string"}
+              }
+            }
+          }
+        },
+        "remove": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "syntax_features": {
+      "type": "object",
+      "description": "Special syntax features enabled/disabled in this dialect",
+      "properties": {
+        "supports_qualify": {
+          "type": "boolean",
+          "description": "QUALIFY clause support (Snowflake, BigQuery, etc.)"
+        },
+        "supports_tablesample": {
+          "type": "boolean",
+          "description": "TABLESAMPLE clause support"
+        },
+        "supports_lateral": {
+          "type": "boolean",
+          "description": "LATERAL join support"
+        },
+        "supports_pivot": {
+          "type": "boolean",
+          "description": "PIVOT/UNPIVOT support"
+        },
+        "supports_unnest": {
+          "type": "boolean",
+          "description": "UNNEST support"
+        },
+        "supports_array_literals": {
+          "type": "boolean",
+          "description": "Array literal syntax [1,2,3]"
+        },
+        "supports_struct_literals": {
+          "type": "boolean",
+          "description": "Struct literal syntax"
+        },
+        "supports_json_operators": {
+          "type": "boolean",
+          "description": "JSON operators (->, ->>, @>, etc.)"
+        },
+        "case_sensitive_keywords": {
+          "type": "boolean",
+          "description": "Whether keywords are case-sensitive"
+        },
+        "identifier_quote_char": {
+          "type": "string",
+          "description": "Character(s) for quoting identifiers (e.g., '\"', '`', '[]')"
+        },
+        "string_quote_char": {
+          "type": "string",
+          "description": "Character(s) for quoting strings (e.g., \"'\", '\"')"
+        }
+      }
+    },
+    "precedence_overrides": {
+      "type": "object",
+      "description": "Override operator precedence from base dialect",
+      "additionalProperties": {
+        "type": "integer",
+        "description": "Precedence level (higher = tighter binding)"
+      }
+    },
+    "special_handling": {
+      "type": "array",
+      "description": "Special parsing/transpiling notes for this dialect",
+      "items": {
+        "type": "object",
+        "properties": {
+          "feature": {
+            "type": "string",
+            "description": "Feature name"
+          },
+          "note": {
+            "type": "string",
+            "description": "Implementation note"
+          }
+        }
+      }
+    },
+    "sources": {
+      "type": "array",
+      "description": "References to grammar sources (ANTLR, SQLGlot, documentation)",
+      "items": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": ["antlr", "sqlglot", "documentation", "other"]
+          },
+          "url": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,92 @@
+{
+  "dialect_name": "doris",
+  "base_dialect": "mysql",
+  "description": "Apache Doris - MPP analytical database with MySQL protocol compatibility",
+  "keywords": {
+    "add": [
+      {"name": "DISTRIBUTED", "token_type": "DISTRIBUTED"},
+      {"name": "BUCKETS", "token_type": "BUCKETS"},
+      {"name": "PROPERTIES", "token_type": "PROPERTIES"},
+      {"name": "DUPLICATE", "token_type": "DUPLICATE"},
+      {"name": "AGGREGATE", "token_type": "AGGREGATE"},
+      {"name": "UNIQUE", "token_type": "UNIQUE"},
+      {"name": "BITMAP", "token_type": "BITMAP"},
+      {"name": "HLL", "token_type": "HLL"},
+      {"name": "QUANTILE_STATE", "token_type": "QUANTILE_STATE"},
+      {"name": "ROLLUP", "token_type": "ROLLUP"},
+      {"name": "BROKER", "token_type": "BROKER"},
+      {"name": "CANCEL", "token_type": "CANCEL"},
+      {"name": "REFRESH", "token_type": "REFRESH"},
+      {"name": "MATERIALIZED", "token_type": "MATERIALIZED"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "BITMAP_UNION", "category": "bitmap"},
+      {"name": "BITMAP_COUNT", "category": "bitmap"},
+      {"name": "BITMAP_INTERSECT", "category": "bitmap"},
+      {"name": "HLL_UNION_AGG", "category": "aggregate"},
+      {"name": "HLL_CARDINALITY", "category": "aggregate"},
+      {"name": "PERCENTILE_APPROX", "category": "aggregate"},
+      {"name": "ARRAY_AGG", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "BITMAP", "token_type": "BITMAP"},
+      {"name": "HLL", "token_type": "HLL"},
+      {"name": "QUANTILE_STATE", "token_type": "QUANTILE_STATE"},
+      {"name": "LARGEINT", "token_type": "LARGEINT"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": true,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "`",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Table models",
+      "note": "DUPLICATE, AGGREGATE, UNIQUE key models for different query patterns"
+    },
+    {
+      "feature": "Bucketing",
+      "note": "DISTRIBUTED BY HASH ... BUCKETS for data distribution"
+    },
+    {
+      "feature": "Rollup",
+      "note": "Materialized rollup tables for pre-aggregation"
+    },
+    {
+      "feature": "Bitmap indexes",
+      "note": "Bitmap column type and functions for set operations"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://doris.apache.org/docs/sql-manual/sql-reference/",
+      "notes": "Official Apache Doris SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/doris.py",
+      "notes": "SQLGlot Doris dialect implementation"
+    }
+  ]
+}

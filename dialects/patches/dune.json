@@ -1,0 +1,68 @@
+{
+  "dialect_name": "dune",
+  "base_dialect": "postgresql",
+  "description": "Dune SQL - Blockchain analytics SQL with PostgreSQL base",
+  "keywords": {
+    "add": [
+      {"name": "BLOCKCHAIN", "token_type": "BLOCKCHAIN"},
+      {"name": "CONTRACT", "token_type": "CONTRACT"},
+      {"name": "EVENT", "token_type": "EVENT"},
+      {"name": "TRANSACTION", "token_type": "TRANSACTION"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "BYTEARRAY_TO_BIGINT", "category": "conversion"},
+      {"name": "BYTEARRAY_TO_UINT256", "category": "conversion"},
+      {"name": "UINT256_TO_INT256", "category": "conversion"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "UINT256", "token_type": "UINT256"},
+      {"name": "INT256", "token_type": "INT256"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": false,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Blockchain types",
+      "note": "UINT256/INT256 for blockchain addresses and values"
+    },
+    {
+      "feature": "Bytearrays",
+      "note": "Conversion functions for blockchain data"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.dune.com/query-engine/",
+      "notes": "Official Dune SQL documentation"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/dune.py",
+      "notes": "SQLGlot Dune dialect implementation"
+    }
+  ]
+}

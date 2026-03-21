@@ -1,0 +1,88 @@
+{
+  "dialect_name": "greenplum",
+  "base_dialect": "postgresql",
+  "description": "Greenplum - MPP database based on PostgreSQL for analytics",
+  "keywords": {
+    "add": [
+      {"name": "DISTRIBUTED", "token_type": "DISTRIBUTED"},
+      {"name": "RANDOMLY", "token_type": "RANDOMLY"},
+      {"name": "REPLICATED", "token_type": "REPLICATED"},
+      {"name": "APPENDONLY", "token_type": "APPENDONLY"},
+      {"name": "ORIENTATION", "token_type": "ORIENTATION"},
+      {"name": "COMPRESSTYPE", "token_type": "COMPRESSTYPE"},
+      {"name": "COMPRESSLEVEL", "token_type": "COMPRESSLEVEL"},
+      {"name": "BLOCKSIZE", "token_type": "BLOCKSIZE"},
+      {"name": "CHECKSUM", "token_type": "CHECKSUM"},
+      {"name": "FILLFACTOR", "token_type": "FILLFACTOR"},
+      {"name": "EXTERNAL", "token_type": "EXTERNAL"},
+      {"name": "READABLE", "token_type": "READABLE"},
+      {"name": "WRITABLE", "token_type": "WRITABLE"},
+      {"name": "WEB", "token_type": "WEB"},
+      {"name": "EXECUTE", "token_type": "EXECUTE"},
+      {"name": "FORMAT", "token_type": "FORMAT"},
+      {"name": "LOG_ERRORS", "token_type": "LOG_ERRORS"},
+      {"name": "SEGMENT_REJECT_LIMIT", "token_type": "SEGMENT_REJECT_LIMIT"},
+      {"name": "SCATTER", "token_type": "SCATTER"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "MEDIAN", "category": "aggregate"},
+      {"name": "PERCENTILE_CONT", "category": "aggregate"},
+      {"name": "PERCENTILE_DISC", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": false,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Distribution",
+      "note": "DISTRIBUTED BY, DISTRIBUTED RANDOMLY, DISTRIBUTED REPLICATED"
+    },
+    {
+      "feature": "Append-only tables",
+      "note": "APPENDONLY tables with columnar orientation for analytics"
+    },
+    {
+      "feature": "External tables",
+      "note": "CREATE EXTERNAL TABLE for files, web, execution"
+    },
+    {
+      "feature": "Error handling",
+      "note": "LOG ERRORS and SEGMENT REJECT LIMIT for fault-tolerant loading"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://docs.vmware.com/en/VMware-Greenplum/",
+      "notes": "Official Greenplum documentation"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/postgres.py",
+      "notes": "SQLGlot extends Postgres for Greenplum"
+    }
+  ]
+}

@@ -1,0 +1,166 @@
+{
+  "dialect_name": "duckdb",
+  "base_dialect": "postgresql",
+  "description": "DuckDB - In-process analytical database with PostgreSQL compatibility and extensive OLAP features",
+  "keywords": {
+    "add": [
+      {"name": "QUALIFY", "token_type": "QUALIFY"},
+      {"name": "ASOF", "token_type": "ASOF"},
+      {"name": "EXCLUDE", "token_type": "EXCLUDE"},
+      {"name": "REPLACE", "token_type": "REPLACE_DDB"},
+      {"name": "SUMMARIZE", "token_type": "SUMMARIZE"},
+      {"name": "SAMPLE", "token_type": "SAMPLE"},
+      {"name": "ATTACH", "token_type": "ATTACH"},
+      {"name": "DETACH", "token_type": "DETACH"},
+      {"name": "INSTALL", "token_type": "INSTALL"},
+      {"name": "LOAD", "token_type": "LOAD"},
+      {"name": "COLUMNS", "token_type": "COLUMNS"},
+      {"name": "POSITIONAL", "token_type": "POSITIONAL"},
+      {"name": "BY_NAME", "token_type": "BY_NAME"},
+      {"name": "ANTI", "token_type": "ANTI"},
+      {"name": "SEMI", "token_type": "SEMI"},
+      {"name": "MACRO", "token_type": "MACRO"},
+      {"name": "RETURNING", "token_type": "RETURNING_KW"},
+      {"name": "GREATEST", "token_type": "GREATEST"},
+      {"name": "LEAST", "token_type": "LEAST"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [
+      {"symbol": "//", "token_type": "INT_DIV", "precedence": "multiplicative", "associativity": "left"},
+      {"symbol": "**", "token_type": "POWER_OP", "precedence": "exponentiation", "associativity": "right"},
+      {"symbol": "!~", "token_type": "NOT_MATCH", "precedence": "comparison", "associativity": "left"},
+      {"symbol": "!~~", "token_type": "NOT_LIKE_CASE", "precedence": "comparison", "associativity": "left"},
+      {"symbol": "~~", "token_type": "LIKE_CASE", "precedence": "comparison", "associativity": "left"},
+      {"symbol": "@>", "token_type": "AT_GT", "precedence": "comparison", "associativity": "left"},
+      {"symbol": "<@", "token_type": "LT_AT", "precedence": "comparison", "associativity": "left"}
+    ],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "LIST_VALUE", "category": "array"},
+      {"name": "LIST_EXTRACT", "category": "array"},
+      {"name": "LIST_CONTAINS", "category": "array"},
+      {"name": "LIST_CONCAT", "category": "array"},
+      {"name": "LIST_DISTINCT", "category": "array"},
+      {"name": "LIST_SORT", "category": "array"},
+      {"name": "LIST_REVERSE", "category": "array"},
+      {"name": "LIST_SLICE", "category": "array"},
+      {"name": "STRUCT_PACK", "category": "struct"},
+      {"name": "STRUCT_EXTRACT", "category": "struct"},
+      {"name": "MAP_FROM_ENTRIES", "category": "map"},
+      {"name": "MAP_EXTRACT", "category": "map"},
+      {"name": "READ_CSV", "category": "table"},
+      {"name": "READ_PARQUET", "category": "table"},
+      {"name": "READ_JSON", "category": "table"},
+      {"name": "PARQUET_SCAN", "category": "table"},
+      {"name": "CSV_SCAN", "category": "table"},
+      {"name": "JSON_SCAN", "category": "table"},
+      {"name": "EPOCH", "category": "date"},
+      {"name": "EPOCH_MS", "category": "date"},
+      {"name": "STRFTIME", "category": "date"},
+      {"name": "STRPTIME", "category": "date"},
+      {"name": "TO_TIMESTAMP", "category": "date"},
+      {"name": "MAKE_DATE", "category": "date"},
+      {"name": "MAKE_TIME", "category": "date"},
+      {"name": "MAKE_TIMESTAMP", "category": "date"},
+      {"name": "APPROX_COUNT_DISTINCT", "category": "aggregate"},
+      {"name": "APPROX_QUANTILE", "category": "aggregate"},
+      {"name": "ARBITRARY", "category": "aggregate"},
+      {"name": "ARG_MAX", "category": "aggregate"},
+      {"name": "ARG_MIN", "category": "aggregate"},
+      {"name": "FIRST", "category": "aggregate"},
+      {"name": "LAST", "category": "aggregate"},
+      {"name": "MODE", "category": "aggregate"},
+      {"name": "MEDIAN", "category": "aggregate"},
+      {"name": "QUANTILE", "category": "aggregate"},
+      {"name": "QUANTILE_CONT", "category": "aggregate"},
+      {"name": "QUANTILE_DISC", "category": "aggregate"},
+      {"name": "RESERVOIR_QUANTILE", "category": "aggregate"},
+      {"name": "TRY_CAST", "category": "conversion"},
+      {"name": "UNION_VALUE", "category": "union"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "HUGEINT", "token_type": "HUGEINT"},
+      {"name": "UHUGEINT", "token_type": "UHUGEINT"},
+      {"name": "UBIGINT", "token_type": "UBIGINT"},
+      {"name": "UINTEGER", "token_type": "UINTEGER"},
+      {"name": "USMALLINT", "token_type": "USMALLINT"},
+      {"name": "UTINYINT", "token_type": "UTINYINT"},
+      {"name": "LIST", "token_type": "LIST"},
+      {"name": "UNION", "token_type": "UNION"},
+      {"name": "BIT", "token_type": "BIT"},
+      {"name": "BITSTRING", "token_type": "BITSTRING"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": true,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": true,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": true,
+    "supports_json_operators": true,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "QUALIFY clause",
+      "note": "Filters results after window functions, similar to HAVING for aggregates"
+    },
+    {
+      "feature": "ASOF joins",
+      "note": "Temporal joins matching on nearest timestamp"
+    },
+    {
+      "feature": "EXCLUDE/REPLACE in SELECT",
+      "note": "SELECT * EXCLUDE (col) or SELECT * REPLACE (expr AS col)"
+    },
+    {
+      "feature": "SUMMARIZE",
+      "note": "Automatic summary statistics generation"
+    },
+    {
+      "feature": "Positional joins",
+      "note": "Join using BY POSITION for column alignment"
+    },
+    {
+      "feature": "List and Struct types",
+      "note": "First-class support for nested data structures"
+    },
+    {
+      "feature": "Table functions",
+      "note": "read_csv, read_parquet, read_json as table sources"
+    },
+    {
+      "feature": "Extensions",
+      "note": "INSTALL/LOAD extension system for pluggable functionality"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://duckdb.org/docs/sql/introduction",
+      "notes": "Official DuckDB SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/duckdb.py",
+      "notes": "SQLGlot DuckDB dialect implementation"
+    },
+    {
+      "type": "other",
+      "url": "https://duckdb.org/docs/sql/functions/list",
+      "notes": "DuckDB list/array function reference"
+    }
+  ]
+}

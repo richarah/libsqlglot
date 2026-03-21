@@ -23,13 +23,18 @@ enum class ExprType : uint16_t {
     EQ, NEQ, LT, LTE, GT, GTE,
     LIKE, ILIKE, NOT_LIKE, NOT_ILIKE,
     PLUS, MINUS, MUL, DIV, MOD,
+    POWER,                  // Exponentiation (^)
     CONCAT,                 // String concatenation ||
     AND, OR,
+    BITWISE_AND,            // Bitwise AND (&)
+    BITWISE_OR,             // Bitwise OR (|)
+    BITWISE_XOR,            // Bitwise XOR (^)
     BETWEEN,            // BETWEEN x AND y
     IN,                 // IN (values)
 
     // Unary operations
     NOT, IS_NULL, IS_NOT_NULL,
+    BITWISE_NOT,            // Bitwise NOT (~)
     EXISTS,             // EXISTS (subquery)
 
     // Functions

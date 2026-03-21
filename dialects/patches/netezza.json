@@ -1,0 +1,68 @@
+{
+  "dialect_name": "netezza",
+  "base_dialect": "postgresql",
+  "description": "IBM Netezza - Data warehouse appliance with PostgreSQL base",
+  "keywords": {
+    "add": [
+      {"name": "DISTRIBUTE", "token_type": "DISTRIBUTE"},
+      {"name": "ORGANIZE", "token_type": "ORGANIZE"},
+      {"name": "GROOM", "token_type": "GROOM"},
+      {"name": "PAGES", "token_type": "PAGES"},
+      {"name": "RECORDS", "token_type": "RECORDS"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "MEDIAN", "category": "aggregate"},
+      {"name": "STDDEV", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "NCHAR", "token_type": "NCHAR"},
+      {"name": "NVARCHAR", "token_type": "NVARCHAR"},
+      {"name": "ST_GEOMETRY", "token_type": "ST_GEOMETRY"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": false,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "DISTRIBUTE ON",
+      "note": "Hash distribution key for MPP"
+    },
+    {
+      "feature": "ORGANIZE ON",
+      "note": "Zone map organization"
+    },
+    {
+      "feature": "GROOM TABLE",
+      "note": "Optimize table storage and reclaim space"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://www.ibm.com/docs/en/netezza",
+      "notes": "Official IBM Netezza documentation"
+    }
+  ]
+}

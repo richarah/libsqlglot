@@ -1,0 +1,79 @@
+{
+  "dialect_name": "druid",
+  "base_dialect": "mysql",
+  "description": "Apache Druid - Real-time analytics database",
+  "keywords": {
+    "add": [
+      {"name": "PARTITIONED", "token_type": "PARTITIONED"},
+      {"name": "CLUSTERED", "token_type": "CLUSTERED"},
+      {"name": "OVERWRITE", "token_type": "OVERWRITE"},
+      {"name": "EXTERN", "token_type": "EXTERN"},
+      {"name": "INLINE", "token_type": "INLINE"}
+    ],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "TIME_FLOOR", "category": "date"},
+      {"name": "TIME_CEIL", "category": "date"},
+      {"name": "TIME_SHIFT", "category": "date"},
+      {"name": "TIME_EXTRACT", "category": "date"},
+      {"name": "TIME_PARSE", "category": "date"},
+      {"name": "TIME_FORMAT", "category": "date"},
+      {"name": "APPROX_COUNT_DISTINCT_DS_THETA", "category": "aggregate"},
+      {"name": "APPROX_COUNT_DISTINCT_DS_HLL", "category": "aggregate"},
+      {"name": "DS_THETA", "category": "aggregate"},
+      {"name": "DS_HLL", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "COMPLEX", "token_type": "COMPLEX"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": false,
+    "supports_lateral": false,
+    "supports_pivot": false,
+    "supports_unnest": false,
+    "supports_array_literals": true,
+    "supports_struct_literals": false,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Time functions",
+      "note": "Extensive time manipulation for time-series analytics"
+    },
+    {
+      "feature": "Approximate aggregations",
+      "note": "DataSketches-based approximate count distinct"
+    },
+    {
+      "feature": "EXTERN",
+      "note": "Query external data sources inline"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://druid.apache.org/docs/latest/querying/sql.html",
+      "notes": "Official Apache Druid SQL reference"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/druid.py",
+      "notes": "SQLGlot Druid dialect implementation"
+    }
+  ]
+}

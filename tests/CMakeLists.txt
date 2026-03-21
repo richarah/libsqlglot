@@ -48,6 +48,7 @@ add_executable(libsqlglot_tests
     test_scalar_functions.cpp
     test_loop_break_continue.cpp
     test_returns_comprehensive.cpp
+    test_dialect_coverage.cpp
     test_main.cpp
 )
 
@@ -58,6 +59,11 @@ target_link_libraries(libsqlglot_tests PRIVATE
 
 target_compile_features(libsqlglot_tests PRIVATE cxx_std_23)
 target_compile_options(libsqlglot_tests PRIVATE ${LIBSQLGLOT_CXX_FLAGS})
+
+# Copy mad_queries directory to test build directory
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/benchmarks/mad_queries)
+file(GLOB MAD_QUERY_FILES ${CMAKE_SOURCE_DIR}/benchmarks/mad_queries/*.sql)
+file(COPY ${MAD_QUERY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/benchmarks/mad_queries)
 
 # Discover tests
 catch_discover_tests(libsqlglot_tests)

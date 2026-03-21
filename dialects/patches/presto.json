@@ -1,0 +1,69 @@
+{
+  "dialect_name": "presto",
+  "base_dialect": "trino",
+  "description": "Presto - Distributed SQL query engine (predecessor to Trino)",
+  "keywords": {
+    "add": [],
+    "remove": []
+  },
+  "operators": {
+    "add": [],
+    "remove": []
+  },
+  "functions": {
+    "add": [
+      {"name": "ARBITRARY", "category": "aggregate"},
+      {"name": "APPROX_DISTINCT", "category": "aggregate"},
+      {"name": "APPROX_PERCENTILE", "category": "aggregate"},
+      {"name": "APPROX_SET", "category": "aggregate"},
+      {"name": "MERGE", "category": "aggregate"},
+      {"name": "QDIGEST_AGG", "category": "aggregate"},
+      {"name": "NUMERIC_HISTOGRAM", "category": "aggregate"}
+    ],
+    "remove": []
+  },
+  "data_types": {
+    "add": [
+      {"name": "IPADDRESS", "token_type": "IPADDRESS"},
+      {"name": "HYPERLOGLOG", "token_type": "HYPERLOGLOG"},
+      {"name": "QDIGEST", "token_type": "QDIGEST"},
+      {"name": "TDIGEST", "token_type": "TDIGEST"}
+    ],
+    "remove": []
+  },
+  "syntax_features": {
+    "supports_qualify": false,
+    "supports_tablesample": true,
+    "supports_lateral": true,
+    "supports_pivot": false,
+    "supports_unnest": true,
+    "supports_array_literals": true,
+    "supports_struct_literals": true,
+    "supports_json_operators": false,
+    "case_sensitive_keywords": false,
+    "identifier_quote_char": "\"",
+    "string_quote_char": "'"
+  },
+  "special_handling": [
+    {
+      "feature": "Approximate algorithms",
+      "note": "HyperLogLog and quantile digest functions for approximate aggregations"
+    },
+    {
+      "feature": "Lambda expressions",
+      "note": "Higher-order functions with lambda syntax"
+    }
+  ],
+  "sources": [
+    {
+      "type": "documentation",
+      "url": "https://prestodb.io/docs/current/",
+      "notes": "Official Presto documentation"
+    },
+    {
+      "type": "sqlglot",
+      "url": "https://github.com/tobymao/sqlglot/blob/main/sqlglot/dialects/presto.py",
+      "notes": "SQLGlot Presto dialect implementation"
+    }
+  ]
+}

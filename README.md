@@ -221,7 +221,7 @@ ctest --test-dir build
 
 ### Advanced optimisations
 
-**Compiler optimisations** (Release builds): Link-Time Optimisation (LTO), aggressive inlining, constant folding, constant merging, symbol visibility optimization. All enabled by default with `-DCMAKE_BUILD_TYPE=Release`.
+**Compiler optimisations** (Release builds): Link-Time Optimisation (LTO), aggressive inlining, constant folding, constant merging, symbol visibility optimisation. All enabled by default with `-DCMAKE_BUILD_TYPE=Release`.
 
 **Architecture-specific builds**: For maximum performance on your specific CPU, build with native architecture optimisations:
 
@@ -233,8 +233,6 @@ cmake --build build
 This enables CPU-specific instructions (AVX2, AVX-512, etc.) for your exact processor, typically 5-15% faster than generic builds.
 
 **Benchmarking**: Comprehensive benchmark suite available. Build with `-DLIBSQLGLOT_BUILD_BENCHMARKS=ON` to measure performance on your workload.
-
-See `docs/OPTIMIZATION_STRATEGY.md` for profiling tools, per-file optimization levels, and advanced techniques like Profile-Guided Optimistion (useful only for specialized, consistent workloads).
 
 ## Architecture
 

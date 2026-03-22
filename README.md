@@ -28,7 +28,7 @@ DB proxies, linters, migration tools, query rewriters, and a proper replacement 
 
 ## Functionality
 
-Transpiles between 45 SQL dialects via sqlglot AST. Full stored procedure support. Fail-fast errors with exact line and column. Python bindings available at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
+Transpiles SQL dialects via sqlglot AST. Full stored procedure support. Fail-fast errors with exact line and column. Python bindings available at 95-98% of C++ speed (`import libsqlglot as sqlglot` and go).
 
 Handles the full SQL surface: SELECT, INSERT, UPDATE, DELETE, CREATE TABLE, ALTER TABLE, DROP TABLE, TRUNCATE, MERGE, plus stored procedures (CALL, RETURN, DECLARE, IF/ELSEIF/ELSE, WHILE, FOR loops). Also handles CTEs, window functions, subqueries, and various JOIN types.
 
@@ -128,19 +128,19 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available dialect 
 | **Optimiser** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
 | **Codebase** | Header-only C++26 library | 50,000+ lines Python |
 | **Keywords** | C++26 reflection: auto-generated from enum (300+ keywords, zero maintenance) | Manually maintained dictionaries |
-| **Binary** | 15KB lib, optional 258KB Python extension | N/A |
-
-**Dialects**: libsqlglot supports 45 SQL dialects (14 unique to libsqlglot, including ANSI). Python sqlglot supports 32 dialects (including PRQL query language, which libsqlglot does not support). Both share 31 common SQL dialects.
-
-**SQL coverage and runtime dependencies**: Same as Python sqlglot (no runtime deps).
+| **Binary** | 14KB lib, optional 1.5MB Python wheel | N/A |
+| **Dialects** | 45 SQL dialects (14 unique to libsqlglot, including ANSI) | 32 dialects (including PRQL, which libsqlglot doesn't support) |
+| **SQL coverage** | Same as Python sqlglot | Full SQL support |
+| **Dependencies** | None (no runtime deps) | None |
 
 ## Building
 
 Requires C++26 (GCC 14+ with `-freflection`) and CMake 3.21+.
 
 **C++26 features used:**
-- **Static reflection** (`std::meta`): Auto-generates 300+ keyword mappings from `TokenType` enum at compile time. Zero maintenance, impossible to desync.
-- **Advanced constexpr**: Perfect hash tables, compile-time string processing, full keyword system generated during compilation.
+- **Keyword reflection** (`std::meta`): Auto-generates 300+ keyword mappings from `TokenType` enum at compile time. Zero maintenance, impossible to desync.
+- **Dialect reflection**: Build-time code generation parses the `Dialect` enum and generates compile-time mappings (CMake → Python script → generated header). When GCC fixes the reflection bug, will switch to pure C++26 reflection.
+- **Advanced constexpr**: Perfect hash tables, compile-time string processing.
 
 ### Docker (Recommended)
 

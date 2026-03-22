@@ -1587,7 +1587,7 @@ public:
                 pos_ = saved_pos;  // Restore position
                 stmt->is_role_grant = true;
 
-                // Parse role names (preserve case using source view)
+                // Parse role names (use .view(source_) to preserve original case)
                 do {
                     if (current().type == TokenType::IDENTIFIER) {
                         stmt->roles.push_back(std::string(current().view(source_)));
@@ -1771,7 +1771,8 @@ public:
                 if (obj_type == "SEQUENCE" || obj_type == "VIEW" || obj_type == "PROCEDURE" ||
                     obj_type == "ROUTINE" || obj_type == "TABLESPACE" || obj_type == "TYPE" ||
                     obj_type == "DOMAIN" || obj_type == "FOREIGN" || obj_type == "SERVER" ||
-                    obj_type == "WAREHOUSE" || obj_type == "DATASET" || obj_type == "LOGIN") {
+                    obj_type == "WAREHOUSE" || obj_type == "DATASET" || obj_type == "LOGIN" ||
+                    obj_type == "STAGE") {
                     stmt->object_type = obj_type;
                     advance();
 
@@ -1814,7 +1815,11 @@ public:
                         if (match(TokenType::DOT)) {
                             std::string second_segment;
 
-                            if (current().type == TokenType::IDENTIFIER) {
+                            if (current().type == TokenType::IDENTIFIER ||
+                                current().type == TokenType::TABLE ||
+                                current().type == TokenType::VIEW ||
+                                current().type == TokenType::DATABASE ||
+                                current().type == TokenType::SCHEMA) {
                                 second_segment = std::string(current().text);
                                 advance();
                             } else if (current().type == TokenType::STAR) {
@@ -1825,7 +1830,12 @@ public:
                             // Check for third segment: catalog.schema.table
                             if (match(TokenType::DOT)) {
                                 // Three-segment name: store as full qualified name
-                                if (current().type == TokenType::IDENTIFIER) {
+                                // Note: third segment can be TABLE/VIEW/etc keywords or identifiers
+                                if (current().type == TokenType::IDENTIFIER ||
+                                    current().type == TokenType::TABLE ||
+                                    current().type == TokenType::VIEW ||
+                                    current().type == TokenType::DATABASE ||
+                                    current().type == TokenType::SCHEMA) {
                                     obj_name = obj_name + "." + second_segment + "." + std::string(current().text);
                                     advance();
                                 } else if (current().type == TokenType::STAR) {
@@ -1975,22 +1985,23 @@ public:
                 }
             }
 
-            if (current().type == TokenType::IDENTIFIER &&
-                (std::string(current().text) == "FROM" || std::string(current().text) == "from")) {
+            // FROM is a keyword (TokenType::FROM), not an IDENTIFIER
+            if (current().type == TokenType::FROM) {
                 // This is a role revoke
                 pos_ = saved_pos;
                 stmt->is_role_revoke = true;
 
-                // Parse role names (preserve case using source view)
+                // Parse role names (REVOKE-specific - use .view(source_) to preserve case)
                 do {
                     if (current().type == TokenType::IDENTIFIER) {
+                        // CRITICAL: Use view(source_) not .text to preserve original case!
                         stmt->roles.push_back(std::string(current().view(source_)));
                         advance();
                     }
                 } while (match(TokenType::COMMA));
 
-                // FROM clause
-                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FROM") {
+                // FROM clause (FROM is a keyword token, not IDENTIFIER)
+                if (current().type == TokenType::FROM) {
                     advance();
 
                     do {
@@ -2154,7 +2165,8 @@ public:
                 if (obj_type == "SEQUENCE" || obj_type == "VIEW" || obj_type == "PROCEDURE" ||
                     obj_type == "ROUTINE" || obj_type == "TABLESPACE" || obj_type == "TYPE" ||
                     obj_type == "DOMAIN" || obj_type == "FOREIGN" || obj_type == "SERVER" ||
-                    obj_type == "WAREHOUSE" || obj_type == "DATASET" || obj_type == "LOGIN") {
+                    obj_type == "WAREHOUSE" || obj_type == "DATASET" || obj_type == "LOGIN" ||
+                    obj_type == "STAGE") {
                     stmt->object_type = obj_type;
                     advance();
 

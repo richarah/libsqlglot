@@ -8,7 +8,7 @@ Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls
 
 #### What it's for
 
-Anywhere SQL hits a hot path: proxies, sidecars, migration tools, linters, etc. Also a replacement for every regex that's pretending to be a parser.
+Anything that parses/transpiles SQL on the hot path: proxies, sidecars, migration tools, linters, CI/CD, Git pre-commit hooks where Python would be too slow. Also a replacement for every regex that's pretending to be a parser.
 
 #### Why this exists
 
@@ -239,7 +239,7 @@ cmake --build build
 
 ## Architecture
 
-Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (4157 lines), `generator.h` (2137), `expression.h` (1385, 115 expression types). Entry point is `transpiler.h` (86 lines).
+Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (4171 lines), `generator.h` (2149), `expression.h` (1385, 115 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 

@@ -1586,10 +1586,10 @@ public:
                 pos_ = saved_pos;  // Restore position
                 stmt->is_role_grant = true;
 
-                // Parse role names
+                // Parse role names (preserve case using source view)
                 do {
                     if (current().type == TokenType::IDENTIFIER) {
-                        stmt->roles.push_back(std::string(current().text));
+                        stmt->roles.push_back(std::string(current().view(source_)));
                         advance();
                     }
                 } while (match(TokenType::COMMA));
@@ -1792,32 +1792,46 @@ public:
             // Parse object name(s) - support multiple objects (only if not already parsed like LOGIN::sa)
             if (stmt->object_name.empty()) {
                 do {
-                    if (current().type == TokenType::IDENTIFIER) {
-                        std::string obj_name(current().text);
-                        advance();
+                    if (current().type == TokenType::IDENTIFIER || current().type == TokenType::STAR) {
+                        std::string obj_name;
 
-                        // Check for schema.object notation or schema.*
+                        if (current().type == TokenType::STAR) {
+                            obj_name = "*";
+                            advance();
+                        } else {
+                            obj_name = std::string(current().text);
+                            advance();
+                        }
+
+                        // Check for multi-segment names: schema.table, catalog.schema.table, *.*
                         if (match(TokenType::DOT)) {
-                            stmt->schema_name = obj_name;
+                            std::string second_segment;
+
                             if (current().type == TokenType::IDENTIFIER) {
-                                obj_name = std::string(current().text);
+                                second_segment = std::string(current().text);
                                 advance();
                             } else if (current().type == TokenType::STAR) {
-                                // Handle wildcard: schema.*
-                                obj_name = "*";
+                                second_segment = "*";
                                 advance();
+                            }
+
+                            // Check for third segment: catalog.schema.table
+                            if (match(TokenType::DOT)) {
+                                stmt->schema_name = second_segment;  // catalog.schema becomes schema
+                                if (current().type == TokenType::IDENTIFIER) {
+                                    obj_name = obj_name + "." + second_segment + "." + std::string(current().text);
+                                    advance();
+                                } else if (current().type == TokenType::STAR) {
+                                    obj_name = obj_name + "." + second_segment + ".*";
+                                    advance();
+                                }
+                            } else {
+                                // Two-segment name: schema.table or *.*
+                                stmt->schema_name = obj_name;
+                                obj_name = second_segment;
                             }
                         }
 
-                        if (stmt->object_name.empty()) {
-                            stmt->object_name = obj_name;
-                        } else {
-                            stmt->object_list.push_back(obj_name);
-                        }
-                    } else if (current().type == TokenType::STAR) {
-                        // Handle standalone wildcard: *
-                        std::string obj_name = "*";
-                        advance();
                         if (stmt->object_name.empty()) {
                             stmt->object_name = obj_name;
                         } else {
@@ -1952,10 +1966,10 @@ public:
                 pos_ = saved_pos;
                 stmt->is_role_revoke = true;
 
-                // Parse role names
+                // Parse role names (preserve case using source view)
                 do {
                     if (current().type == TokenType::IDENTIFIER) {
-                        stmt->roles.push_back(std::string(current().text));
+                        stmt->roles.push_back(std::string(current().view(source_)));
                         advance();
                     }
                 } while (match(TokenType::COMMA));

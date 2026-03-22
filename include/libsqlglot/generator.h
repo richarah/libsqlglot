@@ -1917,7 +1917,13 @@ private:
         if (!stmt->object_name.empty() || !stmt->object_type.empty()) {
             sql_ << " ON ";
             if (!stmt->object_type.empty()) {
-                sql_ << stmt->object_type << " ";
+                sql_ << stmt->object_type;
+                // SQL Server uses :: for LOGIN::sa syntax
+                if (stmt->object_type == "LOGIN") {
+                    sql_ << "::";
+                } else {
+                    sql_ << " ";
+                }
             }
 
             // Schema-qualified object
@@ -2019,7 +2025,13 @@ private:
         if (!stmt->object_name.empty() || !stmt->object_type.empty()) {
             sql_ << " ON ";
             if (!stmt->object_type.empty()) {
-                sql_ << stmt->object_type << " ";
+                sql_ << stmt->object_type;
+                // SQL Server uses :: for LOGIN::sa syntax
+                if (stmt->object_type == "LOGIN") {
+                    sql_ << "::";
+                } else {
+                    sql_ << " ";
+                }
             }
 
             // Schema-qualified object

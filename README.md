@@ -2,7 +2,7 @@
 
 #### What is this?
 
-sqlglot, in C++. 45 dialects, 126× faster on benchmark SQL, 235× on the kind your ORM generates when nobody's looking. Performance gap scales with query complexity, see [Benchmarks](#benchmarks).
+sqlglot, in C++. 45 dialects, 126× faster on benchmark SQL, 252× on the kind your ORM generates when nobody's looking. Performance gap scales with query complexity, see [Benchmarks](#benchmarks).
 
 Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls back to passthrough, libsqlglot parses them into the AST.
 
@@ -56,7 +56,7 @@ Arena arena;
 auto stmt = Transpiler::parse(arena, "SELECT name FROM users WHERE age > 18");
 // Returns: AST with SelectStmt node
 
-// Optimize AST (column qualification, predicate pushdown, constant folding)
+// Optimise AST (column qualification, predicate pushdown, constant folding)
 Transpiler::optimize(arena, stmt);
 // Modifies AST: name → users.name, age → users.age
 
@@ -202,12 +202,12 @@ cmake --build build
 # Step 2: Run with representative workload to collect profile data
 ./build/benchmarks/bench_transpiler  # or your own queries
 
-# Step 3: Rebuild using profile data for optimization (10-30% faster)
+# Step 3: Rebuild using profile data for optimisation (10-30% faster)
 cmake -B build -DCMAKE_BUILD_TYPE=Release -DLIBSQLGLOT_PGO_USE=ON
 cmake --build build
 ```
 
-**Compiler optimizations enabled** (Release builds): Link-Time Optimization (LTO), constant merging, symbol visibility optimization.
+**Compiler optimisations enabled** (Release builds): Link-Time Optimisation (LTO), constant merging, symbol visibility optimisation.
 
 ## Architecture
 
@@ -218,7 +218,7 @@ Header-only C++ library. 19 header files, no `.cpp` files. See `include/libsqlgl
 Arena allocation: all AST nodes allocated in contiguous chunks, freed together in O(1) time. String interning deduplicates identifiers. Tokenisation is zero-copy via `string_view`. Everything uses RAII, no manual `delete` calls.
 
 ### Grammar pipeline
-Grammar definitions from multiple sources (ANTLR and normalized JSON specs) are unified into a canonical IR, then compiled into a cache-efficient LUT used by the runtime parser.
+Grammar definitions from multiple sources (ANTLR and normalised JSON specs) are unified into a canonical IR, then compiled into a cache-efficient LUT used by the runtime parser.
 
 ### SQL support
 
@@ -258,7 +258,6 @@ ctest --output-on-failure
 ./benchmarks/bench_tokenizer
 ./benchmarks/bench_parser
 ./benchmarks/bench_transpiler
-./benchmarks/bench_sqlglot_comparison
 ```
 
 ## Security
@@ -448,7 +447,7 @@ Benchmarks run on x86-64 Linux with `-O3` optimisation. libsqlglot compared agai
 
 **Measurement:** `std::chrono::high_resolution_clock` with 1000 iterations per query, averaged.
 
-The 16 standard queries are sqlglot's benchmark. The 8 stress tests are ours, excluded from the average. They're here to show the scaling doesn't stop: 178.6× on benchmarks, 235× on these. What happens past 235× is left as an exercise for the reader.
+The 16 standard queries are sqlglot's benchmark. The 8 stress tests are ours, excluded from the average. They're here to show the scaling doesn't stop: 178.6× on benchmarks, 252× on these. What happens past 252× is left as an exercise for the reader.
 
 ### Standard benchmarks (16 queries)
 
@@ -474,9 +473,9 @@ The 16 standard queries are sqlglot's benchmark. The 8 stress tests are ours, ex
 **Average: 126.1× faster** (range: 32.4× to 242.4×). A million queries: 29 seconds vs 52 minutes.
 
 libsqlglot achieves this through:
-- **Memory**: Arena allocation (O(1) cleanup), string interning (pointer equality), zero-copy tokenization (`string_view`)
+- **Memory**: Arena allocation (O(1) cleanup), string interning (pointer equality), zero-copy tokenisation (`string_view`)
 - **Algorithms**: Perfect hash keyword lookup (O(1)), branchless uppercase conversion (no branch misprediction)
-- **Compiler**: LTO (whole-program optimization), aggressive inlining, constant folding, C++23 `constexpr`
+- **Compiler**: LTO (whole-program optimisation), aggressive inlining, constant folding, C++23 `constexpr`
 - **Cache**: Contiguous memory layout, spatial locality, no per-node `malloc`/`new` fragmentation
 
 ### Stress tests (8 queries, supplementary)
@@ -485,16 +484,16 @@ Designed to break parsers: 15-level nested CTEs, 35-level CASE expressions, 100+
 
 | Query                    | sqlglot (μs) | libsqlglot (μs) | Speedup  |
 |--------------------------|--------------|-----------------|----------|
-| Correlated subqueries    | 14,238.29    | 60.60           | 235.0×   |
-| Complex subqueries       | 16,108.10    | 73.18           | 220.1×   |
-| Complex string functions | 14,029.58    | 71.42           | 196.4×   |
-| Deep CTE nesting         | 14,768.54    | 82.36           | 179.3×   |
-| Union chains             | 19,411.56    | 115.77          | 167.7×   |
-| Complex WHERE clause     | 13,039.82    | 81.99           | 159.0×   |
-| Deep CASE nesting        | 13,831.84    | 103.10          | 134.2×   |
-| Multi-table joins        | 12,791.94    | 141.16          | 90.6×    |
+| Correlated subqueries    | 14,400.86    | 60.60           | 237.6×   |
+| Complex subqueries       | 18,414.37    | 73.18           | 251.6×   |
+| Complex string functions | 15,609.81    | 71.42           | 218.6×   |
+| Deep CTE nesting         | 17,214.85    | 82.36           | 209.0×   |
+| Union chains             | 24,075.57    | 115.77          | 208.0×   |
+| Complex WHERE clause     | 14,499.12    | 81.99           | 176.8×   |
+| Deep CASE nesting        | 14,651.62    | 103.10          | 142.1×   |
+| Multi-table joins        | 13,862.49    | 141.16          | 98.2×    |
 
-**Average: 172.8× faster** (range: 90.6× to 235.0×). A million queries: 91 seconds vs 4 hours.
+**Average: 192.7× faster** (range: 98.2× to 251.6×). A million queries: 86 seconds vs 4.6 hours.
 
 ### Validation
 
@@ -558,7 +557,7 @@ These dialects inherit features from a compatible base dialect and add specific 
 | CockroachDB | CockroachDB | PostgreSQL | UPSERT statement, distributed transactions, RETURNING clause |
 | Databricks | Databricks | Spark | OPTIMIZE tables, ZORDER BY clustering, Delta Lake operations |
 | Doris | Doris | MySQL | DUPLICATE KEY model, BUCKETS distribution, DISTRIBUTED BY HASH |
-| Dremio | Dremio | Presto | CREATE REFLECTION for materialization, data lakehouse queries |
+| Dremio | Dremio | Presto | CREATE REFLECTION for materialisation, data lakehouse queries |
 | Druid | Druid | MySQL | TIME_FLOOR for time bucketing, approximate aggregations, roll-up |
 | Dune | Dune | PostgreSQL | Blockchain analytics: bytearray_to_uint256, ETH address functions |
 | Exasol | Exasol | PostgreSQL | DISTRIBUTE BY for parallel execution, Lua scripting UDFs |

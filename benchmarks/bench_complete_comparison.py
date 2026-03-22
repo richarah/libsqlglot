@@ -218,7 +218,7 @@ def main():
     print("-" * 100)
 
     mad_results = []
-    base_path = Path("../benchmarks/mad_queries")
+    base_path = Path("mad_queries")
     for name, filename in mad_queries:
         try:
             sql = read_file(base_path / filename)

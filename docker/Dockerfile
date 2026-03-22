@@ -98,7 +98,7 @@ RUN cd build && ctest --output-on-failure --parallel $(nproc)
 # Python wheel builder
 FROM builder AS wheel-builder
 RUN cd build && \
-    pip3 install --no-cache-dir build wheel && \
+    pip3 install --break-system-packages --no-cache-dir build wheel && \
     python3 -m build --wheel
 
 # Development environment - includes all tools

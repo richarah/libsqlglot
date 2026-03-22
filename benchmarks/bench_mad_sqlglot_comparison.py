@@ -60,7 +60,7 @@ def main():
     print("=" * 85)
     print()
 
-    base_path = Path("../benchmarks/mad_queries")
+    base_path = Path("mad_queries")
 
     queries = [
         ("Deep CTE nesting", "query1_deep_ctes_windows.sql"),

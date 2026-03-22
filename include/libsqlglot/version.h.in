@@ -1,0 +1,7 @@
+#pragma once
+
+// Auto-generated from CMakeLists.txt - DO NOT EDIT
+#define LIBSQLGLOT_VERSION_MAJOR @libsqlglot_VERSION_MAJOR@
+#define LIBSQLGLOT_VERSION_MINOR @libsqlglot_VERSION_MINOR@
+#define LIBSQLGLOT_VERSION_PATCH @libsqlglot_VERSION_PATCH@
+#define LIBSQLGLOT_VERSION "@libsqlglot_VERSION@"

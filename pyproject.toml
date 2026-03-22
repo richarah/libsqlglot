@@ -4,7 +4,7 @@ build-backend = "scikit_build_core.build"
 
 [project]
 name = "libsqlglot"
-version = "0.2.9"
+dynamic = ["version"]
 description = "Python bindings for libsqlglot, a high-performance SQL parser, transpiler, and optimiser written in C++"
 readme = "README.md"
 authors = [
@@ -35,6 +35,7 @@ Repository = "https://github.com/richarah/libsqlglot"
 minimum-version = "0.5"
 cmake.minimum-version = "3.24"
 cmake.args = ["-DLIBSQLGLOT_BUILD_PYTHON=ON"]
+cmake.version-file = "CMakeLists.txt"
 wheel.packages = ["src/python/libsqlglot"]
 wheel.platlib = true
 

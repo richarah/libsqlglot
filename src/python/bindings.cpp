@@ -10,6 +10,7 @@
 #include <libsqlglot/arena.h>
 #include <libsqlglot/dialects.h>
 #include <libsqlglot/dialect_reflection.h>
+#include <libsqlglot/version.h>
 
 #include <functional>
 #include <vector>
@@ -55,11 +56,20 @@ NB_MODULE(_libsqlglot, m) {
     // Expression base
     nb::class_<Expression>(m, "Expression")
         .def_ro("type", &Expression::type)
-        .def("sql", [](Expression* expr, Dialect dialect = Dialect::ANSI, bool pretty = false) {
+        .def("sql", [](Expression* expr, nb::object dialect = nb::none(), bool pretty = false) {
+            Dialect d = Dialect::ANSI;
+            if (!dialect.is_none()) {
+                if (nb::isinstance<nb::str>(dialect))
+                    d = dialects::from_name(nb::cast<std::string>(dialect));
+                else if (nb::isinstance<nb::int_>(dialect))
+                    d = static_cast<Dialect>(nb::cast<int>(dialect));
+                else
+                    d = nb::cast<Dialect>(dialect);
+            }
             Generator::Options opts;
             opts.pretty = pretty;
-            return Generator::generate(expr, dialect, opts);
-        }, nb::arg("dialect") = Dialect::ANSI, nb::arg("pretty") = false)
+            return Generator::generate(expr, d, opts);
+        }, nb::arg("dialect") = nb::none(), nb::arg("pretty") = false)
         .def("find_all", [](Expression* expr, ExprType type_to_find) -> nb::list {
             nb::list result;
             // TODO: Implement find_all traversal
@@ -138,11 +148,20 @@ NB_MODULE(_libsqlglot, m) {
         .def("parse_create_table", &Parser::parse_create_table);
 
     // Generator
-    m.def("generate", [](Expression* expr, Dialect dialect = Dialect::ANSI, bool pretty = false) -> std::string {
+    m.def("generate", [](Expression* expr, nb::object dialect = nb::none(), bool pretty = false) -> std::string {
+        Dialect d = Dialect::ANSI;
+        if (!dialect.is_none()) {
+            if (nb::isinstance<nb::str>(dialect))
+                d = dialects::from_name(nb::cast<std::string>(dialect));
+            else if (nb::isinstance<nb::int_>(dialect))
+                d = static_cast<Dialect>(nb::cast<int>(dialect));
+            else
+                d = nb::cast<Dialect>(dialect);
+        }
         Generator::Options opts;
         opts.pretty = pretty;
-        return Generator::generate(expr, dialect, opts);
-    }, nb::arg("expr"), nb::arg("dialect") = Dialect::ANSI, nb::arg("pretty") = false);
+        return Generator::generate(expr, d, opts);
+    }, nb::arg("expr"), nb::arg("dialect") = nb::none(), nb::arg("pretty") = false);
 
     // High-level parse functions
     m.def("parse", [](const std::string& sql) -> Expression* {
@@ -236,6 +255,6 @@ NB_MODULE(_libsqlglot, m) {
     }, nb::rv_policy::reference);
 
     // Version and dialect count
-    m.attr("__version__") = "0.1.0";
+    m.attr("__version__") = LIBSQLGLOT_VERSION;
     m.attr("__dialect_count__") = static_cast<int>(dialects::DIALECT_COUNT);
 }

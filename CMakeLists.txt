@@ -1,5 +1,12 @@
-cmake_minimum_required(VERSION 3.21)
-project(libsqlglot VERSION 0.2.9 LANGUAGES CXX)
+cmake_minimum_required(VERSION 0.3.0)
+project(libsqlglot VERSION 0.3.0 LANGUAGES CXX)
+
+# Generate version header
+configure_file(
+    "${CMAKE_SOURCE_DIR}/include/libsqlglot/version.h.in"
+    "${CMAKE_BINARY_DIR}/include/libsqlglot/version.h"
+    @ONLY
+)
 
 include(CheckCXXCompilerFlag)
 
@@ -21,7 +28,7 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
     add_compile_options(-freflection)
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
     add_compile_options(/std:c++26)
-    if(CMAKE_CXX_COMPILER_VERSION VERSION_LESS "19.40")
+    if(CMAKE_CXX_COMPILER_VERSION 0.3.0VERSION_LESS "19.40")
         message(FATAL_ERROR "MSVC 19.40+ required for C++26 reflection (found ${CMAKE_CXX_COMPILER_VERSION})")
     endif()
 else()
@@ -188,8 +195,8 @@ if(LIBSQLGLOT_BUILD_SHARED)
     target_compile_options(libsqlglot_shared PRIVATE ${LIBSQLGLOT_CXX_FLAGS})
     set_target_properties(libsqlglot_shared PROPERTIES
         OUTPUT_NAME sqlglot
-        VERSION ${PROJECT_VERSION}
-        SOVERSION 0
+        VERSION 0.3.0${PROJECT_VERSION}
+        SOVERSION 0.3.0
     )
 endif()
 

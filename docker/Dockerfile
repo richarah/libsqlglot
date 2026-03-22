@@ -99,8 +99,7 @@ RUN cd build && ctest --output-on-failure --parallel $(nproc)
 FROM builder AS wheel-builder
 RUN pip3 install --break-system-packages --no-cache-dir build wheel && \
     python3 -m build --wheel && \
-    cd dist && \
-    mv libsqlglot-*-linux_x86_64.whl libsqlglot-0.2.9-cp312-cp312-manylinux_2_35_x86_64.whl
+    cd dist && for f in libsqlglot-*-linux_x86_64.whl; do mv "$f" "${f%-linux_x86_64.whl}-manylinux_2_35_x86_64.whl"; done
 
 # Development environment - includes all tools
 FROM builder-base AS dev

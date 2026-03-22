@@ -556,7 +556,7 @@ If somehow a dialect is missing from the map, get_features() returns ANSI SQL de
 
 These dialects inherit features from a compatible base dialect and add specific extensions.
 
-| Database | Dialect | Inherits From | Dialect-Specific Features |
+| Database | Dialect | Inherits from | Supported features |
 |----------|---------|---------------|---------------------------|
 | Athena | Athena | Presto | AWS Athena Presto syntax, S3 partitioning |
 | CockroachDB | CockroachDB | PostgreSQL | UPSERT statement, distributed transactions, RETURNING clause |
@@ -564,7 +564,7 @@ These dialects inherit features from a compatible base dialect and add specific 
 | Doris | Doris | MySQL | DUPLICATE KEY model, BUCKETS distribution, DISTRIBUTED BY HASH |
 | Dremio | Dremio | Presto | CREATE REFLECTION for materialisation, data lakehouse queries |
 | Druid | Druid | MySQL | TIME_FLOOR for time bucketing, approximate aggregations, roll-up |
-| Dune | Dune | PostgreSQL | Blockchain analytics: bytearray_to_uint256, ETH address functions |
+| Dune | Dune | PostgreSQL | Analytics: bytearray_to_uint256, ETH address functions |
 | Exasol | Exasol | PostgreSQL | DISTRIBUTE BY for parallel execution, Lua scripting UDFs |
 | Fabric | Fabric | SQL Server | Three-part lakehouse.schema.table naming, OneLake integration |
 | Greenplum | Greenplum | PostgreSQL | DISTRIBUTED BY/RANDOMLY, column/append-optimised tables, GPORCA optimiser |

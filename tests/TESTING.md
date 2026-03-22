@@ -201,29 +201,29 @@ docker compose -f docker/docker-compose.yml run --rm test
 | **Feature Combinations** | 3,150+ |
 | **Pass Rate** | 100% |
 
-## Code Quality Standards
+## Code quality
 
-### Memory Safety
-✅ Arena allocator with:
+### Memory safety
+Arena allocator with:
 - Integer overflow protection
 - Maximum allocation limits (1GB)
 - Alignment safety checks
 - RAII with `std::unique_ptr`
 
-✅ No manual memory management:
+No manual memory management:
 - No `malloc/free`
 - No `new/delete` (except placement new in arena)
 - No unsafe C functions (`strcpy`, `strcat`, `sprintf`)
 
-### Parser Safety
-✅ Bounds checking on all token access:
+### Parser safety
+Bounds checking on all token access:
 ```cpp
 void advance() {
     if (!is_at_end()) pos_++;  // Safe advancement
 }
 ```
 
-✅ Null pointer checks before string construction:
+Null pointer checks before string construction:
 ```cpp
 if (is_at_end() || current().text == nullptr) {
     break;
@@ -291,17 +291,6 @@ When adding dialect-specific features:
 - [ ] Performance regression testing
 - [ ] Continuous fuzzing integration
 - [ ] Dialect compliance testing against vendor documentation
-
-## Contributing
-
-When submitting code:
-
-1. ✅ **All 492 tests must pass**
-2. ✅ Add tests for new features
-3. ✅ Add fuzzing tests for edge cases
-4. ✅ Update this document
-5. ✅ Follow security best practices
-6. ✅ Maintain code quality standards
 
 ## Continuous Integration
 

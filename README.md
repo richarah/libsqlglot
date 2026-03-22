@@ -221,22 +221,20 @@ ctest --test-dir build
 
 ### Advanced optimisations
 
-**Profile-Guided Optimisation (PGO)**: For production deployments requiring maximum performance, enable PGO in 3 steps:
+**Compiler optimisations** (Release builds): Link-Time Optimisation (LTO), aggressive inlining, constant folding, constant merging, symbol visibility optimization. All enabled by default with `-DCMAKE_BUILD_TYPE=Release`.
+
+**Architecture-specific builds**: For maximum performance on your specific CPU, build with native architecture optimizations:
 
 ```bash
-# Step 1: Build with profiling instrumentation
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DLIBSQLGLOT_PGO_GENERATE=ON
-cmake --build build
-
-# Step 2: Run with representative workload to collect profile data
-./build/benchmarks/bench_transpiler  # or your own queries
-
-# Step 3: Rebuild using profile data for optimisation (10-30% faster)
-cmake -B build -DCMAKE_BUILD_TYPE=Release -DLIBSQLGLOT_PGO_USE=ON
+cmake -B build -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_FLAGS="-march=native"
 cmake --build build
 ```
 
-**Compiler optimisations enabled** (Release builds): Link-Time Optimisation (LTO), constant merging, symbol visibility optimisation.
+This enables CPU-specific instructions (AVX2, AVX-512, etc.) for your exact processor, typically 5-15% faster than generic builds.
+
+**Benchmarking**: Comprehensive benchmark suite available. Build with `-DLIBSQLGLOT_BUILD_BENCHMARKS=ON` to measure performance on your workload.
+
+See `docs/OPTIMIZATION_STRATEGY.md` for profiling tools, per-file optimization levels, and advanced techniques like Profile-Guided Optimization (useful only for specialized, consistent workloads).
 
 ## Architecture
 

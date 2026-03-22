@@ -35,7 +35,6 @@ Repository = "https://github.com/richarah/libsqlglot"
 minimum-version = "0.5"
 cmake.minimum-version = "3.24"
 cmake.args = ["-DLIBSQLGLOT_BUILD_PYTHON=ON"]
-cmake.version-file = "CMakeLists.txt"
 wheel.packages = ["src/python/libsqlglot"]
 wheel.platlib = true
 

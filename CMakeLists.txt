@@ -70,8 +70,29 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Debug")
     list(APPEND LIBSQLGLOT_CXX_FLAGS -O0 -g)
 endif()
 
-# Generate merged dialect grammars from patches
+# Find Python for code generation
 find_package(Python3 COMPONENTS Interpreter REQUIRED)
+
+# Generate dialect reflection mappings from the Dialect enum
+# This is a proper solution to the GCC 16 bug where enumerators_of() cannot be used in constexpr
+set(DIALECT_HEADER "${CMAKE_SOURCE_DIR}/include/libsqlglot/dialects.h")
+set(DIALECT_REFLECTION_GENERATED "${CMAKE_BINARY_DIR}/include/libsqlglot/dialect_reflection_generated.h")
+
+# Create output directory
+file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/include/libsqlglot")
+
+add_custom_command(
+    OUTPUT ${DIALECT_REFLECTION_GENERATED}
+    COMMAND ${Python3_EXECUTABLE} ${CMAKE_SOURCE_DIR}/scripts/generate_dialect_reflection.py
+            ${DIALECT_HEADER} ${DIALECT_REFLECTION_GENERATED}
+    DEPENDS ${DIALECT_HEADER} ${CMAKE_SOURCE_DIR}/scripts/generate_dialect_reflection.py
+    COMMENT "Generating dialect reflection mappings from Dialect enum"
+    VERBATIM
+)
+
+add_custom_target(generate_dialect_reflection ALL DEPENDS ${DIALECT_REFLECTION_GENERATED})
+
+# Generate merged dialect grammars from patches
 
 # Find all dialect patches
 file(GLOB DIALECT_PATCHES "${CMAKE_SOURCE_DIR}/dialects/patches/*.json")
@@ -153,11 +174,12 @@ add_custom_target(merge_dialects ALL DEPENDS ${MERGED_GRAMMARS})
 add_library(libsqlglot INTERFACE)
 target_include_directories(libsqlglot INTERFACE
     $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_BINARY_DIR}/include>
     $<INSTALL_INTERFACE:include>
 )
 # Note: CMake 3.28 doesn't support cxx_std_26, using manual flag above
 # target_compile_features(libsqlglot INTERFACE cxx_std_26)
-add_dependencies(libsqlglot merge_dialects)
+add_dependencies(libsqlglot generate_dialect_reflection merge_dialects)
 
 # Optional compiled shared library
 if(LIBSQLGLOT_BUILD_SHARED)

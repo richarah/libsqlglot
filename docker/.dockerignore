@@ -1,5 +1,8 @@
 # Build artifacts
 build/
+build-*/
+build_*/
+cmake-build-*/
 dist/
 *.egg-info/
 __pycache__/
@@ -14,6 +17,8 @@ __pycache__/
 *.a
 *.out
 a.out
+CMakeCache.txt
+CMakeFiles/
 
 # Git
 .git/

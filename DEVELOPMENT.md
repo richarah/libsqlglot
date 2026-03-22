@@ -14,7 +14,29 @@ Build instructions for libsqlglot internals, grammar generation pipeline, and in
 
 ## Building
 
-### Standard build
+### Docker (Recommended)
+
+Docker automatically builds GCC trunk with C++26 reflection support:
+
+```bash
+# Build project (first time compiles GCC trunk, ~30-45 min)
+docker compose -f docker/docker-compose.yml run --rm build
+
+# Run tests
+docker compose -f docker/docker-compose.yml run --rm test
+
+# Build Python wheel
+docker compose -f docker/docker-compose.yml run --rm wheel
+
+# Development shell
+docker compose -f docker/docker-compose.yml run --rm dev
+```
+
+See `docker/README.md` for full documentation.
+
+### Standard build (native)
+
+Requires GCC trunk with `-freflection` support:
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
@@ -55,28 +77,24 @@ cmake --build build
 
 Automated pipeline: ANTLR → C++ parser generation. Converts .g4 grammars into libsqlglot parser code.
 
-**Location**: `scripts/antlr/` (not root directory)
+**Location**: `scripts/antlr/`
 
-**Docker wrapper**: `build/grammar-transpiler/` (contains `Dockerfile.grammar-transpiler` and `docker-compose.grammar-transpiler.yml`)
+**Docker wrapper**: `docker/grammar-transpiler/` (contains `Dockerfile` and `docker-compose.yml`)
 
 ### Docker setup (recommended)
 
 ```bash
-# Build transpiler image
-docker build -f build/grammar-transpiler/Dockerfile.grammar-transpiler -t libsqlglot-transpiler .
-
-# List available SQL dialects
-docker run --rm libsqlglot-transpiler --list-dialects
-
 # Extract all grammars and generate keywords.h
-docker run --rm \
-    -v $(pwd)/generated:/workspace/generated \
-    -v $(pwd)/include:/workspace/include \
-    libsqlglot-transpiler --extract-all
+docker compose -f docker/grammar-transpiler/docker-compose.yml up extract-all
+
+# Extract single dialect
+docker compose -f docker/grammar-transpiler/docker-compose.yml up mysql
 
 # Interactive debugging
-docker run --rm -it -v $(pwd):/workspace --entrypoint /bin/bash libsqlglot-transpiler
+docker compose -f docker/grammar-transpiler/docker-compose.yml run --rm transpiler /bin/bash
 ```
+
+See `docker/grammar-transpiler/README.md` for full documentation.
 
 ### Local usage
 
@@ -173,7 +191,7 @@ python sqlglot_compat.py --sqlglot-path /path/to/sqlglot --limit 1000
 
 **Compiler flags** (Release): `-Wall -Wextra -Wpedantic -Werror`
 
-**Standards**: C++23 (Clang 18+, GCC 13+, MSVC 19.36+)
+**Standards**: C++26 (GCC trunk with `-freflection`, Clang 18+, MSVC 19.40+)
 
 **Dependencies**: None (no runtime deps, no RTTI)
 
@@ -181,7 +199,7 @@ python sqlglot_compat.py --sqlglot-path /path/to/sqlglot --limit 1000
 
 ```bash
 cd fuzzing
-clang++ -fsanitize=fuzzer,address -std=c++23 -I../include fuzz_parser.cpp -o fuzz_parser
+clang++ -fsanitize=fuzzer,address -std=c++26 -freflection -I../include fuzz_parser.cpp -o fuzz_parser
 ./fuzz_parser -max_len=10000 -timeout=10
 ```
 
@@ -252,9 +270,12 @@ Enables LTO, PGO (2-pass), aggressive inlining.
 │   ├── generate_keywords.py  # Keyword hash table generator
 │   └── update_readme_metrics.sh
 │
-├── build/grammar-transpiler/ # Docker setup for grammar transpiler
-│   ├── Dockerfile.grammar-transpiler
-│   └── docker-compose.grammar-transpiler.yml
+├── docker/                   # Docker build environments
+│   ├── Dockerfile            # GCC trunk + C++26 reflection
+│   ├── docker-compose.yml
+│   └── grammar-transpiler/   # ANTLR grammar transpiler
+│       ├── Dockerfile
+│       └── docker-compose.yml
 │
 ├── tests/                    # 378 test cases, 27,127 assertions
 │   ├── test_tokenizer.cpp
@@ -297,87 +318,26 @@ scripts/update_readme_metrics.sh
 # Updates README.md with current counts
 ```
 
-## Self-Hosted GitHub Runner for Python Wheels
+## GitHub Actions CI/CD
 
-Python wheel builds require C++26 with GCC 16+ trunk (`-freflection`). Standard GitHub runners don't have this yet.
+Python wheel builds use Docker to compile GCC trunk with C++26 reflection support. No self-hosted runner required.
 
-### Setup Self-Hosted Runner
+### How it works
 
-**Prerequisites**:
-- Ubuntu 20.04+ or Debian 11+
-- GCC 16+ trunk built from source with C++26 reflection support
-- Python 3.9+
-- 16GB+ RAM (for wheel builds)
+1. **On push/PR**: CI builds in Docker, runs tests
+2. **On release**: Builds manylinux wheels in Docker, publishes to PyPI
 
-**1. Build GCC 16 Trunk**:
+See `.github/workflows/ci.yml` and `.github/workflows/build-wheels.yml` for configuration.
 
-```bash
-# Install dependencies
-sudo apt-get update
-sudo apt-get install -y build-essential libgmp-dev libmpfr-dev libmpc-dev flex bison
-
-# Clone GCC trunk
-git clone --depth 1 https://gcc.gnu.org/git/gcc.git /tmp/gcc-trunk
-cd /tmp/gcc-trunk
-
-# Configure with C++26 reflection
-./configure --prefix=/usr/local/gcc-trunk --enable-languages=c,c++ --disable-multilib --disable-bootstrap
-
-# Build (takes 1-2 hours with -j8)
-make -j8
-
-# Install
-sudo make install
-```
-
-**2. Verify GCC 16+ Trunk**:
+### Local wheel testing
 
 ```bash
-/usr/local/gcc-trunk/bin/g++ --version  # Should show 16.0.0 or higher
-/usr/local/gcc-trunk/bin/g++ -std=c++26 -freflection -x c++ - <<< 'int main() {}' && echo "SUCCESS: C++26 reflection works"
+# Build wheel in Docker (same as CI)
+docker compose -f docker/docker-compose.yml run --rm wheel
+
+# Wheel appears in dist/
+ls -lh dist/*.whl
 ```
-
-**3. Add to PATH**:
-
-```bash
-export PATH="/usr/local/gcc-trunk/bin:$PATH"
-export LD_LIBRARY_PATH="/usr/local/gcc-trunk/lib64:$LD_LIBRARY_PATH"
-
-# Add to ~/.bashrc for persistence
-echo 'export PATH="/usr/local/gcc-trunk/bin:$PATH"' >> ~/.bashrc
-echo 'export LD_LIBRARY_PATH="/usr/local/gcc-trunk/lib64:$LD_LIBRARY_PATH"' >> ~/.bashrc
-```
-
-**4. Install GitHub Actions Runner**:
-
-Follow GitHub's instructions:
-1. Go to repo → Settings → Actions → Runners → New self-hosted runner
-2. Download and configure runner for Linux x64
-3. Install runner as a service: `sudo ./svc.sh install && sudo ./svc.sh start`
-
-**5. Test Wheel Build Locally**:
-
-```bash
-git clone https://github.com/richarah/libsqlglot.git
-cd libsqlglot
-pip install cibuildwheel==2.16.2
-python -m cibuildwheel --output-dir wheelhouse
-```
-
-**6. Trigger Workflow**:
-
-Go to Actions → Build Wheels → Run workflow (or create a release)
-
-### Troubleshooting
-
-**"g++ not found"**: Ensure `/usr/local/gcc-trunk/bin` is in PATH
-**"unrecognized option '-freflection'"**: GCC version too old, rebuild trunk
-**"cannot find -lstdc++"**: Set `LD_LIBRARY_PATH` to GCC lib64 directory
-**Wheel fails to import**: Ensure manylinux2014 compatibility
-
-### Security
-
-Self-hosted runners have access to repo secrets. Only use on trusted infrastructure.
 
 ## Release Process
 
@@ -386,8 +346,7 @@ libsqlglot uses an automated release process that publishes to both GitHub Relea
 ### Prerequisites
 
 1. **GitHub CLI** (`gh`) installed and authenticated
-2. **Self-hosted runner** configured with GCC 16+ trunk (see above)
-3. **PyPI API token** configured as `PYPI_API_TOKEN` secret in GitHub repo settings
+2. **PyPI API token** configured as `PYPI_API_TOKEN` secret in GitHub repo settings
 
 ### Creating a Release
 
@@ -408,9 +367,10 @@ Use the automated release script:
 
 **What GitHub Actions does automatically**:
 
-1. Builds Python wheels on self-hosted runner (requires GCC 16+ trunk with `-freflection`)
-2. Uploads wheels to GitHub release
-3. Publishes wheels to PyPI using `PYPI_API_TOKEN`
+1. Builds Docker image with GCC trunk + reflection (~30-45 min, cached)
+2. Builds manylinux Python wheels in Docker
+3. Uploads wheels to GitHub release
+4. Publishes wheels to PyPI using `PYPI_API_TOKEN`
 
 ### Manual Release (if script unavailable)
 
@@ -441,7 +401,9 @@ After creating the release:
 
 ### Troubleshooting
 
-**Wheel build fails**: Ensure self-hosted runner has GCC 16+ trunk with `-freflection` support
+**Docker build timeout**: First build compiles GCC trunk (~30-45 min). Subsequent builds use cached layers.
+
+**Wheel build fails**: Check Docker logs in GitHub Actions for GCC compilation errors
 
 **PyPI upload fails**: Check `PYPI_API_TOKEN` secret is configured correctly
 

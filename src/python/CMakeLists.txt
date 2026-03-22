@@ -1,6 +1,9 @@
 # Python bindings with nanobind
 nanobind_add_module(_libsqlglot bindings.cpp)
 
+# Ensure dialect reflection is generated before compiling bindings
+add_dependencies(_libsqlglot generate_dialect_reflection)
+
 # Link against the header-only library
 target_link_libraries(_libsqlglot PRIVATE libsqlglot)
 

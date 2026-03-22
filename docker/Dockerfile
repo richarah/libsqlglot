@@ -84,11 +84,11 @@ FROM builder-base AS builder
 # Copy only what's needed for build (use .dockerignore to filter)
 COPY . .
 
-# Build with all cores
-RUN cmake -B build -G Ninja \
-    -DCMAKE_BUILD_TYPE=Release \
-    -DLIBSQLGLOT_BUILD_PYTHON=ON \
-    -DLIBSQLGLOT_BUILD_TESTS=ON \
+RUN rm -rf build _deps && \
+    cmake -B build -G Ninja \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DLIBSQLGLOT_BUILD_PYTHON=ON \
+        -DLIBSQLGLOT_BUILD_TESTS=ON \
     && cmake --build build --parallel $(nproc)
 
 # Test stage - run tests

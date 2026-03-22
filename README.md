@@ -521,7 +521,6 @@ See `benchmarks/bench_complete_comparison.py` to reproduce.
 
 Each dialect includes proper identifier quoting, keyword handling, function name translation, and syntax transformations (e.g. LIMIT vs TOP vs FETCH FIRST).
 
-
 If somehow a dialect is missing from the map, get_features() returns ANSI SQL defaults.
 
 ### Core dialects (explicit configurations)
@@ -530,7 +529,7 @@ If somehow a dialect is missing from the map, get_features() returns ANSI SQL de
 |----------|---------|---------------------------|
 | ANSI SQL | ANSI | Standard SQL compliance: ANSI joins, standard aggregations, CTEs |
 | BigQuery | BigQuery | STRUCT types, ARRAY literals `[1,2,3]`, SAFE_CAST, INT64/STRING types, nested field access |
-| Calcite | Calcite | TABLESAMPLE BERNOULLI, Apache Calcite optimizer hints |
+| Calcite | Calcite | TABLESAMPLE BERNOULLI, Apache Calcite optimiser hints |
 | ClickHouse | ClickHouse | Column-oriented syntax, MergeTree engines, SAMPLE BY, ARRAY JOIN |
 | DB2 | DB2 | FETCH FIRST n ROWS ONLY, DB2 stored procedures, OLAP functions |
 | Drill | Drill | Schema-free JSON queries, nested data access, FLATTEN |
@@ -564,16 +563,16 @@ These dialects inherit features from a compatible base dialect and add specific 
 | Dune | Dune | PostgreSQL | Blockchain analytics: bytearray_to_uint256, ETH address functions |
 | Exasol | Exasol | PostgreSQL | DISTRIBUTE BY for parallel execution, Lua scripting UDFs |
 | Fabric | Fabric | SQL Server | Three-part lakehouse.schema.table naming, OneLake integration |
-| Greenplum | Greenplum | PostgreSQL | DISTRIBUTED BY/RANDOMLY, column/append-optimized tables, GPORCA optimizer |
+| Greenplum | Greenplum | PostgreSQL | DISTRIBUTED BY/RANDOMLY, column/append-optimised tables, GPORCA optimiser |
 | Impala | Impala | Hive | COMPUTE STATS, Kudu integration, CACHED IN pools |
 | MariaDB | MariaDB | MySQL | MySQL-compatible with RETURNING, window functions, JSON functions |
-| Materialize | Materialize | PostgreSQL | TAIL for streaming results, materialized views, temporal filters |
+| Materialize | Materialize | PostgreSQL | TAIL for streaming results, materialised views, temporal filters |
 | Netezza | Netezza | PostgreSQL | DISTRIBUTE ON distribution keys, zone maps, statistics |
 | Redshift | Redshift | PostgreSQL | DISTKEY distribution, SORTKEY ordering, SUPER type (JSON) |
 | RisingWave | RisingWave | PostgreSQL | EMIT CHANGES for streaming, temporal joins, watermarks |
 | SingleStore | SingleStore | MySQL | VECTOR type for embeddings, DOT_PRODUCT, columnstore/rowstore |
 | Spark2 | Spark2 | Spark | Legacy Spark 2.x: CACHE TABLE, broadcast joins, RDD compatibility |
-| StarRocks | StarRocks | MySQL | Vectorized execution, primary key model, materialized views, bitmap indexes |
+| StarRocks | StarRocks | MySQL | Vectorised execution, primary key model, materialised views, bitmap indexes |
 | Tableau | Tableau | PostgreSQL | ZN() null-to-zero, Tableau calculation functions, RAWSQL passthrough |
 | Teradata | Teradata | Teradata | MULTISET tables, BTEQ syntax, FastLoad/MultiLoad hints |
 | TiDB | TiDB | MySQL | AUTO_RANDOM for distributed primary keys, MySQL compatibility, TiKV storage |

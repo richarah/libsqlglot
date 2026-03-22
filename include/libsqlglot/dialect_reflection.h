@@ -5,115 +5,31 @@
 #include <string>
 #include <vector>
 #include <stdexcept>
-#include <meta>  // C++26 reflection
 
 /**
- * C++26 Reflection-Based Dialect System
+ * Automated Dialect Reflection System
  *
- * This file uses C++26 compile-time reflection to automatically generate
- * dialect name mappings from the Dialect enum itself.
+ * This file provides compile-time dialect name mappings automatically generated
+ * from the Dialect enum in dialects.h.
  *
- * ZERO RUNTIME COST: All reflection happens at compile time.
- * The generated code is identical to hand-written mappings.
+ * ZERO RUNTIME COST: All mappings are constexpr and compile-time generated.
  *
  * SINGLE SOURCE OF TRUTH: Only the Dialect enum in dialects.h needs maintenance.
  * Adding a new dialect means just adding one line to the enum.
  *
- * Benefits:
- * - Impossible to desync: Bindings are derived from enum automatically
- * - Maintenance-free: No manual lists to update
- * - Type-safe: Compile-time verification
+ * IMPLEMENTATION: Due to GCC 16 bug where enumerators_of() allocates memory
+ * and cannot be used in constexpr contexts, we use build-time code generation:
+ * - CMake runs scripts/generate_dialect_reflection.py
+ * - Parses dialects.h and generates dialect_reflection_generated.h
+ * - Generated file contains the constexpr mapping array
+ *
+ * When GCC fixes the reflection bug, this can be replaced with pure C++26 reflection.
  */
 
+// Include the auto-generated mappings from the build directory
+#include <libsqlglot/dialect_reflection_generated.h>
+
 namespace libsqlglot::dialects {
-
-/// Dialect name-value mapping
-/// Using const char* instead of std::string_view for better ABI stability with nanobind
-struct DialectMapping {
-    const char* name;   // Dialect name (e.g., "ANSI", "MySQL", "PostgreSQL")
-    Dialect value;      // Dialect enum value
-
-    constexpr DialectMapping() noexcept : name(""), value(Dialect::ANSI) {}
-    constexpr DialectMapping(const char* n, Dialect v) noexcept
-        : name(n), value(v) {}
-};
-
-/// Generate dialect mappings from Dialect enum using C++26 reflection
-/// This is 100% compile-time - ZERO runtime cost!
-consteval auto generate_dialect_mappings() {
-    using namespace std;
-    using namespace std::meta;
-
-    // Get all enum enumerators via C++26 reflection (^^Dialect gets reflection of Dialect)
-    constexpr auto enumerators = enumerators_of(^^Dialect);
-    constexpr size_t max_dialects = 64;  // Generous upper bound
-
-    std::array<DialectMapping, max_dialects> result{};
-    size_t idx = 0;
-
-    // Iterate over enum enumerators at compile time
-    template for (constexpr auto e : enumerators) {
-        // Get the enumerator name as a string_view
-        // identifier_of returns a std::string_view pointing to compiler-managed string storage
-        // which has static storage duration and is safe to use via .data()
-        constexpr auto name = identifier_of(e);
-
-        // Skip the COUNT sentinel
-        if constexpr (name != "COUNT") {
-            // Get the enumerator value
-            constexpr auto value = extract<Dialect>(e);
-
-            // Store the mapping
-            // The name.data() pointer is safe because it points to the compiler's
-            // internal storage of the identifier name, which has static lifetime
-            result[idx++] = DialectMapping{name.data(), value};
-        }
-    }
-
-    return result;
-}
-
-// Generate the mappings at compile time
-// Using a function that returns a static local to ensure single instantiation
-// This provides better ABI stability across shared library boundaries
-inline constexpr const auto& get_dialect_mappings_array() {
-    static constexpr auto array = generate_dialect_mappings();
-    return array;
-}
-
-// Access the mappings through the array
-inline constexpr const DialectMapping* dialect_mappings = get_dialect_mappings_array().data();
-
-/// Count of actual dialects (excluding COUNT sentinel)
-consteval size_t count_dialects() {
-    constexpr auto& arr = get_dialect_mappings_array();
-    size_t count = 0;
-    for (const auto& mapping : arr) {
-        if (mapping.name != nullptr && mapping.name[0] != '\0') {
-            count++;
-        }
-    }
-    return count;
-}
-
-inline constexpr size_t DIALECT_COUNT = count_dialects();
-
-// Compile-time verification
-static_assert(DIALECT_COUNT > 0, "No dialects found - reflection failed");
-static_assert(DIALECT_COUNT == static_cast<size_t>(Dialect::COUNT),
-              "Dialect count mismatch - enum may have changed");
-
-/// Compile-time validation: ensure no empty dialect names
-consteval bool validate_dialects() {
-    constexpr auto& arr = get_dialect_mappings_array();
-    for (size_t i = 0; i < DIALECT_COUNT; ++i) {
-        if (arr[i].name == nullptr || arr[i].name[0] == '\0') {
-            return false;
-        }
-    }
-    return true;
-}
-static_assert(validate_dialects(), "All dialects must have valid names");
 
 /// Find dialect by name (case-insensitive) - runtime function
 /// Uses compile-time generated mappings for zero-maintenance lookups

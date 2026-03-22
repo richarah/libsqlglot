@@ -6,15 +6,17 @@ sqlglot, in C++. 45 dialects, 126× faster on benchmark SQL, 252× on the kind y
 
 Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls back to passthrough, libsqlglot parses them into the AST.
 
-Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it. The algorithm was already O(n), the runtime was O(python).
+
 
 #### What it's for
 
-Proxies, sidecars, migration tools, linters, anything where SQL hits a hot path. Also a proper replacement for every regex that's pretending to parse queries.
+Proxies, sidecars, migration tools, linters, anything where SQL hits a hot path.
 
 #### Why it exists
 
-Because the highest praise one can pay a Python 
+Because regex is not a parsing strategy, and neither is patience.
+
+Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it. The algorithm was already O(n), the runtime was O(python).
 
 ## Contents
 

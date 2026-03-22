@@ -8,11 +8,11 @@ Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls
 
 #### What it's for
 
-Anything that parses/transpiles SQL on the hot path: proxies, sidecars, migration tools, linters, CI/CD, Git pre-commit hooks where Python would be too slow. Also a replacement for every regex that's pretending to be a parser.
+Anywhere SQL parsing meets the hot path: proxies, sidecars, migration, linters, Git pre-commit hooks, CI/CD pipelines. Also a replacement for every regex that's pretending to be a parser.
 
 #### Why this exists
 
-libsqlglot was born out of a gap in the C++ ecosystem: the lack of native tooling for efficient, high-volume and hassle-free parsing & transpilation between dozens of SQL dialects.
+Because life is too short to parse SQL in Python.
 
 Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it: the algorithm was already O(n), the runtime wasn't.
 
@@ -28,6 +28,7 @@ Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which di
 - [Benchmarks](#benchmarks)
 - [Examples](#examples)
 - [Supported SQL dialects](#supported-sql-dialects)
+- [Contributing](#contributing)
 - [Licence](#licence)
 
 ## Functionality
@@ -239,7 +240,7 @@ cmake --build build
 
 ## Architecture
 
-Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (4171 lines), `generator.h` (2149), `expression.h` (1385, 115 expression types). Entry point is `transpiler.h` (86 lines).
+Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (4191 lines), `generator.h` (2149), `expression.h` (1385, 115 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 
@@ -610,13 +611,15 @@ These dialects inherit features from a compatible base dialect and add specific 
 
 ## Contributing
 
-# Contributing
-
-libsqlglot is a solo project. Bug reports, test cases, and dialect edge cases are welcome via GitHub issues. If you have a dialect you wish to see added, please open an issue or PR.
+libsqlglot is currently a solo project. Bug reports, test cases, and dialect edge cases are welcome via GitHub issues. If you have a dialect you wish to see added, please open an issue or PR.
 
 If a query parses incorrectly, or a dialect transformation that produces wrong output, please open an issue with the input SQL, source dialect, target dialect, expected output and any other pertinent details.
 
 Pull requests are considered but there is no guarantee of merge. The codebase is intentionally small and opinionated.
+
+### How about a Rust rewrite?
+
+No.
 
 ## Licence
 

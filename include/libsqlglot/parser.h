@@ -1499,7 +1499,8 @@ public:
 
         // Database/Schema
         if (priv_upper == "CONNECT") return GrantStmt::PrivilegeType::CONNECT;
-        if (priv_upper == "TEMPORARY" || priv_upper == "TEMP") return GrantStmt::PrivilegeType::TEMPORARY;
+        if (priv_upper == "TEMPORARY") return GrantStmt::PrivilegeType::TEMPORARY;
+        if (priv_upper == "TEMP") return GrantStmt::PrivilegeType::TEMP;
         if (priv_upper == "USAGE") return GrantStmt::PrivilegeType::USAGE;
 
         // Procedures
@@ -1604,7 +1605,7 @@ public:
                             if (std::string(current().text) == "PUBLIC" || std::string(current().text) == "public") {
                                 stmt->to_public = true;
                             } else {
-                                stmt->grantees.push_back(std::string(current().text));
+                                stmt->grantees.push_back(std::string(current().view(source_)));
                             }
                             advance();
                         }
@@ -1738,6 +1739,12 @@ public:
                 } while (match(TokenType::COMMA));
 
                 expect(TokenType::RPAREN);
+
+                // Validate: column list cannot be empty
+                if (col_priv.columns.empty()) {
+                    error("Column list cannot be empty for column-level privilege");
+                }
+
                 stmt->column_privileges.push_back(std::move(col_priv));
                 handled_column_priv = true;
             }
@@ -1817,7 +1824,7 @@ public:
 
                             // Check for third segment: catalog.schema.table
                             if (match(TokenType::DOT)) {
-                                stmt->schema_name = second_segment;  // catalog.schema becomes schema
+                                // Three-segment name: store as full qualified name
                                 if (current().type == TokenType::IDENTIFIER) {
                                     obj_name = obj_name + "." + second_segment + "." + std::string(current().text);
                                     advance();
@@ -1825,10 +1832,18 @@ public:
                                     obj_name = obj_name + "." + second_segment + ".*";
                                     advance();
                                 }
+                                // Don't set schema_name for three-segment names - keep full name
                             } else {
                                 // Two-segment name: schema.table or *.*
-                                stmt->schema_name = obj_name;
-                                obj_name = second_segment;
+                                // For the first object, split into schema and name
+                                // For subsequent objects, store full qualified name
+                                if (stmt->object_name.empty()) {
+                                    stmt->schema_name = obj_name;
+                                    obj_name = second_segment;
+                                } else {
+                                    // Keep full qualified name for list items
+                                    obj_name = obj_name + "." + second_segment;
+                                }
                             }
                         }
 
@@ -1983,7 +1998,7 @@ public:
                             if (std::string(current().text) == "PUBLIC" || std::string(current().text) == "public") {
                                 stmt->from_public = true;
                             } else {
-                                stmt->grantees.push_back(std::string(current().text));
+                                stmt->grantees.push_back(std::string(current().view(source_)));
                             }
                             advance();
                         }
@@ -2108,6 +2123,12 @@ public:
                 } while (match(TokenType::COMMA));
 
                 expect(TokenType::RPAREN);
+
+                // Validate: column list cannot be empty
+                if (col_priv.columns.empty()) {
+                    error("Column list cannot be empty for column-level privilege");
+                }
+
                 stmt->column_privileges.push_back(std::move(col_priv));
                 handled_column_priv = true;
             }
@@ -2213,6 +2234,11 @@ public:
                     advance();
                 }
             } while (match(TokenType::COMMA));
+
+            // Validate: must have at least one grantee
+            if (!stmt->from_public && stmt->grantees.empty()) {
+                error("REVOKE statement must specify at least one grantee");
+            }
         }
 
         // CASCADE / RESTRICT
@@ -2629,26 +2655,20 @@ public:
 
         // Read up to 3 consecutive tokens that could form a delimiter
         // Examples: $ + $ = $$, / + / = //, | = |, ; = ;
-        // Note: $ may tokenize as ERROR, so we accept ERROR tokens here
+        // Be permissive: accept any non-keyword, non-identifier token
         for (int i = 0; i < 3 && !is_at_end(); ++i) {
             TokenType t = current().type;
 
-            // Stop if we hit keywords, identifiers, numbers, or strings
-            // But allow ERROR tokens (for $), and operator tokens (/, ;, |, etc.)
+            // Stop if we hit SQL keywords or identifiers (likely start of next statement)
             if (t == TokenType::IDENTIFIER ||
-                t == TokenType::NUMBER ||
-                t == TokenType::STRING ||
-                (t >= TokenType::SELECT && t < TokenType::EOF_TOKEN)) {  // Keywords range
+                (t >= TokenType::SELECT && t < TokenType::SEMICOLON)) {  // Keywords before punctuation
                 break;
             }
 
-            // Accumulate the token text
-            const char* text = get_token_text(current());
-            if (text) {
-                delim += std::string(text);
-            } else {
-                // Fallback to source view for tokens without text (e.g., ERROR tokens like $)
-                delim += std::string(current().view(source_));
+            // Accumulate the token text using source view (most reliable)
+            std::string_view token_view = current().view(source_);
+            if (!token_view.empty()) {
+                delim += std::string(token_view);
             }
             advance();
 

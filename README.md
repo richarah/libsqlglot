@@ -71,6 +71,8 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available `Dialect
 
 Available on PyPI: `pip install libsqlglot`
 
+**System requirements**: Linux with glibc 2.35+ (Ubuntu 22.04+, Debian 12+, RHEL 9+)
+
 ```python
 import libsqlglot as sqlglot
 
@@ -186,7 +188,7 @@ cmake --build build -j$(nproc)
 ctest --test-dir build
 ```
 
-**Compiled sizes** (stripped, `-O3`): C++ library 15KB, Python extension 258KB.
+**Compiled sizes** (stripped, `-O3`): C++ library 14KB, Python extension 2.0MB.
 
 **Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes 27,040 assertions across 361 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
 

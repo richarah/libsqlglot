@@ -339,6 +339,26 @@ docker compose -f docker/docker-compose.yml run --rm wheel
 ls -lh dist/*.whl
 ```
 
+### Building and Publishing to PyPI
+
+Automated script that builds wheel in Docker, verifies it, and publishes:
+
+```bash
+# Build wheel and publish to TestPyPI (recommended first)
+./scripts/build_and_publish.sh --test-pypi
+
+# Build wheel and publish to production PyPI
+./scripts/build_and_publish.sh
+```
+
+**What the script does**:
+
+1. Cleans previous builds
+2. Builds wheel using Docker
+3. Verifies wheel with `twine check`
+4. Prompts for confirmation before publishing
+5. Uploads to PyPI (or TestPyPI with `--test-pypi` flag)
+
 ## Release Process
 
 libsqlglot uses an automated release process that publishes to both GitHub Releases and PyPI.

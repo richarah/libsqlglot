@@ -1,104 +1,117 @@
 #!/bin/bash
 set -e
 
-# Release script for libsqlglot
-# Creates a GitHub release and automatically publishes to PyPI
-#
-# Usage: ./scripts/release.sh <version>
-# Example: ./scripts/release.sh v0.1.3
+# Build wheel using Docker and publish to PyPI
+# Usage: ./scripts/release.sh [--test-pypi]
 
-VERSION="$1"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
-if [ -z "$VERSION" ]; then
-    echo "Usage: $0 <version>"
-    echo "Example: $0 v0.1.3"
-    exit 1
+TEST_PYPI=false
+if [ "$1" = "--test-pypi" ]; then
+    TEST_PYPI=true
+    shift
 fi
 
-# Validate version format
-if ! [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-    echo "ERROR: Version must be in format vX.Y.Z (e.g., v0.1.3)"
-    exit 1
-fi
-
-# Check we're on master branch
-CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-if [ "$CURRENT_BRANCH" != "master" ]; then
-    echo "ERROR: Must be on master branch to create release (currently on: $CURRENT_BRANCH)"
-    exit 1
-fi
-
-# Check working directory is clean
-if ! git diff-index --quiet HEAD --; then
-    echo "ERROR: Working directory is not clean. Commit or stash changes first."
-    git status
-    exit 1
-fi
+cd "$PROJECT_ROOT"
 
 echo "========================================="
-echo "Creating release: $VERSION"
+echo "Building wheel with Docker"
 echo "========================================="
 echo ""
 
-# Update version in CMakeLists.txt
-VERSION_NO_V="${VERSION#v}"
-echo "Updating CMakeLists.txt to version $VERSION_NO_V..."
-sed -i "s/^project(libsqlglot VERSION .*/project(libsqlglot VERSION $VERSION_NO_V LANGUAGES CXX)/" CMakeLists.txt
+# Clean previous builds
+echo "Cleaning previous builds..."
+rm -rf dist/ build/ *.egg-info
+mkdir -p dist
 
-# Update version in pyproject.toml
-echo "Updating pyproject.toml to version $VERSION_NO_V..."
-sed -i "s/^version = .*/version = \"$VERSION_NO_V\"/" pyproject.toml
+# Build the wheel using Docker
+echo "Building wheel in Docker container..."
+docker-compose -f docker/docker-compose.yml up wheel
 
-# Commit version bumps
-git add CMakeLists.txt pyproject.toml
-git commit -m "Bump version to $VERSION"
+# Check if wheel was created
+if [ ! -f dist/*.whl ]; then
+    echo "ERROR: No wheel found in dist/"
+    echo "Docker build may have failed. Check logs with:"
+    echo "  docker-compose -f docker/docker-compose.yml logs wheel"
+    exit 1
+fi
 
-# Create and push tag
-echo "Creating tag $VERSION..."
-git tag -a "$VERSION" -m "Release $VERSION"
-
-echo "Pushing to origin..."
-git push origin master
-git push origin "$VERSION"
-
-# Create GitHub release (triggers wheel build and PyPI upload)
+WHEEL_FILE=$(ls -t dist/*.whl | head -1)
 echo ""
-echo "Creating GitHub release..."
-if command -v gh &> /dev/null; then
-    # Generate release notes from commits since last tag
-    LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+echo "✓ Wheel built successfully: $WHEEL_FILE"
+echo ""
 
-    if [ -n "$LAST_TAG" ]; then
-        RELEASE_NOTES=$(git log --pretty=format:"- %s" "$LAST_TAG..HEAD")
-    else
-        RELEASE_NOTES=$(git log --pretty=format:"- %s" HEAD~10..HEAD)
-    fi
+# Extract version from wheel filename
+VERSION=$(basename "$WHEEL_FILE" | sed 's/libsqlglot-\([0-9.]*\)-.*/\1/')
+echo "Version: $VERSION"
+echo ""
 
-    gh release create "$VERSION" \
-        --title "Release $VERSION" \
-        --notes "$RELEASE_NOTES" \
-        --generate-notes
+# Verify the wheel
+echo "========================================="
+echo "Verifying wheel"
+echo "========================================="
+echo ""
+
+if ! command -v twine &> /dev/null; then
+    echo "Installing twine..."
+    pip install twine
+fi
+
+echo "Running twine check..."
+twine check "$WHEEL_FILE"
+
+if [ $? -ne 0 ]; then
+    echo "ERROR: Wheel verification failed"
+    exit 1
+fi
+
+echo ""
+echo "✓ Wheel verification passed"
+echo ""
+
+# Upload to PyPI
+echo "========================================="
+echo "Publishing to PyPI"
+echo "========================================="
+echo ""
+
+if [ "$TEST_PYPI" = true ]; then
+    echo "Uploading to TestPyPI..."
+    twine upload --repository testpypi "$WHEEL_FILE"
 
     echo ""
     echo "========================================="
-    echo "✓ Release $VERSION created successfully!"
+    echo "✓ Published to TestPyPI"
     echo "========================================="
     echo ""
-    echo "GitHub Actions will now:"
-    echo "  1. Build Docker image with GCC trunk + reflection"
-    echo "  2. Build manylinux wheels in Docker"
-    echo "  3. Upload wheels to GitHub release"
-    echo "  4. Publish wheels to PyPI"
+    echo "Test installation with:"
+    echo "  pip install --index-url https://test.pypi.org/simple/ libsqlglot==$VERSION"
     echo ""
-    echo "Monitor progress at:"
-    echo "  https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\(.*\)\.git/\1/')/actions"
-    echo ""
-    echo "To build wheels locally:"
-    echo "  docker compose -f docker/docker-compose.yml run --rm wheel"
-    echo ""
+    echo "If everything works, publish to production PyPI with:"
+    echo "  ./scripts/build_and_publish.sh"
 else
-    echo "WARNING: 'gh' CLI not found. Please install it to auto-create releases."
-    echo "         Or manually create release at: https://github.com/$(git config --get remote.origin.url | sed 's/.*github.com[:/]\(.*\)\.git/\1/')/releases/new"
-    echo ""
-    echo "Tag $VERSION has been pushed. Create the release manually to trigger PyPI publish."
+    echo "Uploading to PyPI..."
+    read -p "Are you sure you want to publish libsqlglot $VERSION to PyPI? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        twine upload "$WHEEL_FILE"
+
+        echo ""
+        echo "========================================="
+        echo "✓ Published to PyPI"
+        echo "========================================="
+        echo ""
+        echo "Install with:"
+        echo "  pip install libsqlglot==$VERSION"
+        echo ""
+        echo "View on PyPI:"
+        echo "  https://pypi.org/project/libsqlglot/$VERSION/"
+    else
+        echo ""
+        echo "Upload cancelled."
+        echo ""
+        echo "To upload to TestPyPI first, run:"
+        echo "  ./scripts/build_and_publish.sh --test-pypi"
+    fi
 fi

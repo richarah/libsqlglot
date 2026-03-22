@@ -72,20 +72,11 @@ services:
       dockerfile: docker/Dockerfile
       target: wheel-builder
     volumes:
-      - ..:/workspace:cached
       - ../dist:/workspace/dist:delegated
-      - build-cache:/workspace/build
-      - ccache:/cache/ccache
     environment:
       <<: *common-env
     working_dir: /workspace
-    depends_on:
-      - build
-    command: bash -c "
-      python3 -m pip install --upgrade build wheel setuptools &&
-      python3 -m build --wheel --outdir dist &&
-      ls -lh dist/
-      "
+    command: bash -c "ls -lh dist/"
 
   # Interactive development shell with all tools
   dev:

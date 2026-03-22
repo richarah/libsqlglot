@@ -15,7 +15,11 @@ target_compile_options(_libsqlglot PRIVATE
 
 # Static link libstdc++ and libgcc for portability (wheel distribution)
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
-    target_link_options(_libsqlglot PRIVATE -static-libstdc++ -static-libgcc)
+    target_link_options(_libsqlglot PRIVATE
+        -static-libstdc++
+        -static-libgcc
+        -Wl,--strip-all  # Strip all symbols for smaller binary
+    )
 endif()
 
 # Set output directory

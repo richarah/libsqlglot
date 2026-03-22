@@ -20,11 +20,17 @@ file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/mad_queries)
 file(GLOB MAD_QUERY_FILES ${CMAKE_CURRENT_SOURCE_DIR}/mad_queries/*.sql)
 file(COPY ${MAD_QUERY_FILES} DESTINATION ${CMAKE_CURRENT_BINARY_DIR}/mad_queries)
 
+# Optimization levels benchmarks
+add_executable(bench_optimization_levels bench_optimization_levels.cpp)
+target_link_libraries(bench_optimization_levels PRIVATE libsqlglot benchmark::benchmark benchmark::benchmark_main)
+target_compile_options(bench_optimization_levels PRIVATE ${LIBSQLGLOT_CXX_FLAGS})
+
 # All benchmarks target
 add_custom_target(run_benchmarks
     COMMAND bench_tokenizer --benchmark_format=console
     COMMAND bench_parser --benchmark_format=console
     COMMAND bench_transpiler --benchmark_format=console
-    DEPENDS bench_tokenizer bench_parser bench_transpiler
+    COMMAND bench_optimization_levels --benchmark_format=console
+    DEPENDS bench_tokenizer bench_parser bench_transpiler bench_optimization_levels
     COMMENT "Running all benchmarks"
 )

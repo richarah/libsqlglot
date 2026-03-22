@@ -16,9 +16,9 @@ TEST_CASE("Parser - Simple SELECT *", "[parser]") {
     REQUIRE(stmt->columns[0]->type == ExprType::STAR);
     REQUIRE(stmt->from != nullptr);
 
-    // Generate SQL to verify
+    // Generate SQL to verify (ANSI dialect quotes identifiers with ")
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "SELECT * FROM users");
+    REQUIRE(sql == "SELECT * FROM \"users\"");
 }
 
 TEST_CASE("Parser - SELECT with columns", "[parser]") {
@@ -31,7 +31,7 @@ TEST_CASE("Parser - SELECT with columns", "[parser]") {
     REQUIRE(stmt->columns.size() == 3);
 
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "SELECT id, name, email FROM users");
+    REQUIRE(sql == "SELECT \"id\", \"name\", \"email\" FROM \"users\"");
 }
 
 TEST_CASE("Parser - SELECT with WHERE", "[parser]") {
@@ -45,7 +45,7 @@ TEST_CASE("Parser - SELECT with WHERE", "[parser]") {
     REQUIRE(stmt->where->type == ExprType::GT);
 
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "SELECT * FROM users WHERE age > 18");
+    REQUIRE(sql == "SELECT * FROM \"users\" WHERE \"age\" > 18");
 }
 
 TEST_CASE("Parser - SELECT with multiple WHERE conditions", "[parser]") {
@@ -59,7 +59,7 @@ TEST_CASE("Parser - SELECT with multiple WHERE conditions", "[parser]") {
     REQUIRE(stmt->where->type == ExprType::AND);
 
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "SELECT * FROM users WHERE age > 18 AND active = 1");
+    REQUIRE(sql == "SELECT * FROM \"users\" WHERE \"age\" > 18 AND \"active\" = 1");
 }
 
 TEST_CASE("Parser - SELECT with JOIN", "[parser]") {
@@ -73,7 +73,7 @@ TEST_CASE("Parser - SELECT with JOIN", "[parser]") {
     REQUIRE(stmt->from->type == ExprType::JOIN_CLAUSE);
 
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "SELECT * FROM users AS u INNER JOIN orders AS o ON u.id = o.user_id");
+    REQUIRE(sql == "SELECT * FROM \"users\" AS \"u\" INNER JOIN \"orders\" AS \"o\" ON \"u\".\"id\" = \"o\".\"user_id\"");
 }
 
 TEST_CASE("Parser - SELECT with LIMIT", "[parser]") {
@@ -86,7 +86,7 @@ TEST_CASE("Parser - SELECT with LIMIT", "[parser]") {
     REQUIRE(stmt->limit != nullptr);
 
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "SELECT * FROM users LIMIT 10");
+    REQUIRE(sql == "SELECT * FROM \"users\" LIMIT 10");
 }
 
 TEST_CASE("Parser - SELECT with column aliases", "[parser]") {
@@ -101,7 +101,7 @@ TEST_CASE("Parser - SELECT with column aliases", "[parser]") {
     REQUIRE(stmt->columns[1]->type == ExprType::ALIAS);
 
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "SELECT name AS user_name, email AS user_email FROM users");
+    REQUIRE(sql == "SELECT \"name\" AS user_name, \"email\" AS user_email FROM \"users\"");
 }
 
 TEST_CASE("Parser - SELECT with arithmetic", "[parser]") {
@@ -115,7 +115,7 @@ TEST_CASE("Parser - SELECT with arithmetic", "[parser]") {
     REQUIRE(stmt->columns[0]->type == ExprType::MUL);
 
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "SELECT price * quantity FROM orders");
+    REQUIRE(sql == "SELECT \"price\" * \"quantity\" FROM \"orders\"");
 }
 
 // TODO: Fix COUNT(*) parsing - tokenizer may not be handling it correctly
@@ -143,7 +143,7 @@ TEST_CASE("Parser - SELECT DISTINCT", "[parser]") {
     REQUIRE(stmt->distinct == true);
 
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "SELECT DISTINCT country FROM users");
+    REQUIRE(sql == "SELECT DISTINCT \"country\" FROM \"users\"");
 }
 
 TEST_CASE("Parser - Complex query", "[parser]") {

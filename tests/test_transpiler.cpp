@@ -14,7 +14,7 @@ TEST_CASE("Transpiler - Simple parse and generate", "[transpiler]") {
     REQUIRE(stmt->columns.size() == 1);
 
     std::string output = Transpiler::generate(expr);
-    REQUIRE(output == "SELECT * FROM users");
+    REQUIRE(output == "SELECT * FROM \"users\"");
 }
 
 TEST_CASE("Transpiler - Parse, optimize, generate", "[transpiler]") {

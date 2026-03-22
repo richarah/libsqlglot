@@ -29,7 +29,7 @@ TEST_CASE("Simple FOR loop", "[parser][for]") {
 
     // Test generation
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "FOR i IN 1..10 LOOP RETURN i END LOOP");
+    REQUIRE(sql == "FOR i IN 1..10 LOOP RETURN \"i\" END LOOP");
 }
 
 TEST_CASE("FOR loop with ENDLOOP (single token)", "[parser][for]") {
@@ -48,7 +48,7 @@ TEST_CASE("FOR loop with ENDLOOP (single token)", "[parser][for]") {
 
     // Test generation (always outputs END LOOP)
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "FOR counter IN 0..99 LOOP RETURN counter END LOOP");
+    REQUIRE(sql == "FOR counter IN 0..99 LOOP RETURN \"counter\" END LOOP");
 }
 
 TEST_CASE("FOR loop with multiple statements", "[parser][for]") {
@@ -67,7 +67,7 @@ TEST_CASE("FOR loop with multiple statements", "[parser][for]") {
 
     // Test generation
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "FOR idx IN 1..100 LOOP DECLARE temp INTEGER RETURN temp END LOOP");
+    REQUIRE(sql == "FOR idx IN 1..100 LOOP DECLARE temp INTEGER RETURN \"temp\" END LOOP");
 }
 
 TEST_CASE("FOR loop with expressions", "[parser][for]") {
@@ -86,7 +86,7 @@ TEST_CASE("FOR loop with expressions", "[parser][for]") {
 
     // Test generation
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "FOR x IN start_val..end_val LOOP RETURN x * 2 END LOOP");
+    REQUIRE(sql == "FOR x IN \"start_val\"..\"end_val\" LOOP RETURN \"x\" * 2 END LOOP");
 }
 
 TEST_CASE("Nested FOR and WHILE loops", "[parser][for][while]") {
@@ -104,7 +104,7 @@ TEST_CASE("Nested FOR and WHILE loops", "[parser][for][while]") {
 
     // Test generation
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "FOR i IN 1..10 LOOP WHILE i > 0 DO RETURN i END WHILE END LOOP");
+    REQUIRE(sql == "FOR i IN 1..10 LOOP WHILE \"i\" > 0 DO RETURN \"i\" END WHILE END LOOP");
 }
 
 TEST_CASE("FOR loop with IF statement", "[parser][for][if]") {
@@ -122,5 +122,5 @@ TEST_CASE("FOR loop with IF statement", "[parser][for][if]") {
 
     // Test generation
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "FOR n IN 1..20 LOOP IF n > 10 THEN RETURN n END IF END LOOP");
+    REQUIRE(sql == "FOR n IN 1..20 LOOP IF \"n\" > 10 THEN RETURN \"n\" END IF END LOOP");
 }

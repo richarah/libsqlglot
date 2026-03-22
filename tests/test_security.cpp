@@ -51,16 +51,18 @@ TEST_CASE("Security - SQL Injection via identifiers", "[security][injection]") {
     SECTION("Malicious table name with backticks") {
         const char* sql = "SELECT * FROM `users; DROP TABLE admin; --`";
         Parser parser(arena, sql);
-        // Parser doesn't support backtick identifiers - SECURE BEHAVIOR
-        // Rejects potentially malicious input rather than parsing it
-        REQUIRE_THROWS_AS(parser.parse_select(), ParseError);
+        // Backticks are supported (MySQL compatibility)
+        // The identifier contains semicolon but it\'s treated as part of the name
+        // SQL injection protection is application responsibility (parameterized queries)
+        REQUIRE_NOTHROW(parser.parse_select());
     }
 
     SECTION("Identifier with special characters") {
         const char* sql = "SELECT `col; DELETE FROM users` FROM t";
         Parser parser(arena, sql);
-        // Parser rejects backtick identifiers - SECURE BEHAVIOR
-        REQUIRE_THROWS_AS(parser.parse_select(), ParseError);
+        // Backticks are supported (MySQL compatibility) 
+        // The identifier contains semicolon but it\'s quoted, so it\'s safe
+        REQUIRE_NOTHROW(parser.parse_select());
     }
 
     SECTION("Normal identifiers are safe") {

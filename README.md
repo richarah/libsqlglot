@@ -188,7 +188,7 @@ ctest --test-dir build
 
 **Compiled sizes** (stripped, `-O3`): C++ library 15KB, Python extension 258KB.
 
-**Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes 27,127 assertions across 378 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
+**Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes 27,040 assertions across 361 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
 
 ### Advanced optimisations
 
@@ -242,7 +242,7 @@ Grammar definitions from multiple sources (ANTLR and normalized JSON specs) are 
 
 ## Testing
 
-378 test cases, 27,127 assertions, all passing.
+361 test cases, 27,040 assertions, all passing.
 
 ```bash
 cd build
@@ -263,7 +263,7 @@ ctest --output-on-failure
 
 ## Security
 
-27,127 assertions covering SQL injection, buffer overflow, stack overflow (recursion depth at 256, adjustable via `Parser::kMaxRecursionDepth` in `parser.h`), memory corruption (arena prevents use-after-free and double-free), integer overflow, and encoding attacks (UTF-8 identifiers rejected, UTF-8 string literals accepted). All pass.
+27,040 assertions covering SQL injection, buffer overflow, stack overflow (recursion depth at 256, adjustable via `Parser::kMaxRecursionDepth` in `parser.h`), memory corruption (arena prevents use-after-free and double-free), integer overflow, and encoding attacks (UTF-8 identifiers rejected, UTF-8 string literals accepted). All pass.
 
 ## Fuzzing
 

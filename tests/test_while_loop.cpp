@@ -26,7 +26,7 @@ TEST_CASE("Simple WHILE DO END WHILE", "[parser][while]") {
 
     // Test generation
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "WHILE x < 10 DO RETURN x END WHILE");
+    REQUIRE(sql == "WHILE \"x\" < 10 DO RETURN \"x\" END WHILE");
 }
 
 TEST_CASE("WHILE with ENDWHILE (single token)", "[parser][while]") {
@@ -43,7 +43,7 @@ TEST_CASE("WHILE with ENDWHILE (single token)", "[parser][while]") {
 
     // Test generation (always outputs END WHILE)
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "WHILE count > 0 DO RETURN count END WHILE");
+    REQUIRE(sql == "WHILE \"count\" > 0 DO RETURN \"count\" END WHILE");
 }
 
 TEST_CASE("WHILE with multiple statements", "[parser][while]") {
@@ -60,7 +60,7 @@ TEST_CASE("WHILE with multiple statements", "[parser][while]") {
 
     // Test generation
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "WHILE i < 100 DO DECLARE temp INTEGER RETURN temp END WHILE");
+    REQUIRE(sql == "WHILE \"i\" < 100 DO DECLARE temp INTEGER RETURN \"temp\" END WHILE");
 }
 
 TEST_CASE("WHILE with complex condition", "[parser][while]") {
@@ -77,5 +77,5 @@ TEST_CASE("WHILE with complex condition", "[parser][while]") {
 
     // Test generation
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "WHILE x > 0 AND y < 100 DO RETURN x + y END WHILE");
+    REQUIRE(sql == "WHILE \"x\" > 0 AND \"y\" < 100 DO RETURN \"x\" + \"y\" END WHILE");
 }

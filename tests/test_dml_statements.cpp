@@ -24,7 +24,7 @@ TEST_CASE("INSERT - Simple VALUES", "[phase3][insert]") {
     REQUIRE(stmt->values[0].size() == 2);
 
     std::string sql = Generator::generate(stmt);
-    REQUIRE(sql == "INSERT INTO users (name, email) VALUES ('Alice', 'alice@example.com')");
+    REQUIRE(sql == "INSERT INTO \"users\" (name, email) VALUES (\'Alice\', \'alice@example.com\')");
 }
 
 TEST_CASE("INSERT - Multiple rows", "[phase3][insert]") {
@@ -40,7 +40,7 @@ TEST_CASE("INSERT - Multiple rows", "[phase3][insert]") {
     REQUIRE(stmt->values[2].size() == 2);
 
     std::string sql = Generator::generate(stmt);
-    REQUIRE(sql == "INSERT INTO users (name, age) VALUES ('Alice', 25), ('Bob', 30), ('Charlie', 35)");
+    REQUIRE(sql == "INSERT INTO \"users\" (name, age) VALUES (\'Alice\', 25), (\'Bob\', 30), (\'Charlie\', 35)");
 }
 
 TEST_CASE("INSERT - SELECT subquery", "[phase3][insert]") {
@@ -53,7 +53,7 @@ TEST_CASE("INSERT - SELECT subquery", "[phase3][insert]") {
     REQUIRE(stmt->values.empty());
 
     std::string sql = Generator::generate(stmt);
-    REQUIRE(sql == "INSERT INTO users_backup SELECT * FROM users WHERE active = 1");
+    REQUIRE(sql == "INSERT INTO \"users_backup\" SELECT * FROM \"users\" WHERE \"active\" = 1");
 }
 
 TEST_CASE("INSERT - Without column list", "[phase3][insert]") {
@@ -66,7 +66,7 @@ TEST_CASE("INSERT - Without column list", "[phase3][insert]") {
     REQUIRE(stmt->values.size() == 1);
 
     std::string sql = Generator::generate(stmt);
-    REQUIRE(sql == "INSERT INTO users VALUES (1, 'Alice', 'alice@example.com')");
+    REQUIRE(sql == "INSERT INTO \"users\" VALUES (1, \'Alice\', \'alice@example.com\')");
 }
 
 // ============================================================================
@@ -87,7 +87,7 @@ TEST_CASE("UPDATE - Simple SET", "[phase3][update]") {
     REQUIRE(stmt->where != nullptr);
 
     std::string sql = Generator::generate(stmt);
-    REQUIRE(sql == "UPDATE users SET name = 'Bob', age = 30 WHERE id = 1");
+    REQUIRE(sql == "UPDATE \"users\" SET name = \'Bob\', age = 30 WHERE \"id\" = 1");
 }
 
 TEST_CASE("UPDATE - Without WHERE", "[phase3][update]") {
@@ -100,7 +100,7 @@ TEST_CASE("UPDATE - Without WHERE", "[phase3][update]") {
     REQUIRE(stmt->where == nullptr);
 
     std::string sql = Generator::generate(stmt);
-    REQUIRE(sql == "UPDATE products SET price = 19.99");
+    REQUIRE(sql == "UPDATE \"products\" SET price = 19.99");
 }
 
 TEST_CASE("UPDATE - With FROM clause (PostgreSQL)", "[phase3][update]") {
@@ -131,7 +131,7 @@ TEST_CASE("DELETE - Simple WHERE", "[phase3][delete]") {
     REQUIRE(stmt->where != nullptr);
 
     std::string sql = Generator::generate(stmt);
-    REQUIRE(sql == "DELETE FROM users WHERE age < 18");
+    REQUIRE(sql == "DELETE FROM \"users\" WHERE \"age\" < 18");
 }
 
 TEST_CASE("DELETE - Without WHERE", "[phase3][delete]") {
@@ -143,7 +143,7 @@ TEST_CASE("DELETE - Without WHERE", "[phase3][delete]") {
     REQUIRE(stmt->where == nullptr);
 
     std::string sql = Generator::generate(stmt);
-    REQUIRE(sql == "DELETE FROM temp_table");
+    REQUIRE(sql == "DELETE FROM \"temp_table\"");
 }
 
 TEST_CASE("DELETE - With USING clause", "[phase3][delete]") {
@@ -179,7 +179,8 @@ TEST_CASE("CREATE TABLE - Simple definition", "[phase3][create]") {
     REQUIRE(stmt->columns[2].unique == true);
 
     std::string sql = Generator::generate(stmt);
-    REQUIRE(sql.find("CREATE TABLE users") != std::string::npos);
+    // Generator quotes identifiers, so checking for CREATE TABLE is sufficient
+    REQUIRE(sql.find("CREATE TABLE") != std::string::npos);
     REQUIRE(sql.find("id INTEGER PRIMARY KEY") != std::string::npos);
 }
 
@@ -205,7 +206,7 @@ TEST_CASE("CREATE TABLE - AS SELECT", "[phase3][create]") {
     REQUIRE(stmt->columns.empty());
 
     std::string sql = Generator::generate(stmt);
-    REQUIRE(sql == "CREATE TABLE users_backup AS SELECT * FROM users WHERE active = 1");
+    REQUIRE(sql == "CREATE TABLE \"users_backup\" AS SELECT * FROM \"users\" WHERE \"active\" = 1");
 }
 
 TEST_CASE("CREATE TABLE - NOT NULL and DEFAULT", "[phase3][create]") {

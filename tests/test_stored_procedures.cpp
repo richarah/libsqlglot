@@ -145,7 +145,7 @@ TEST_CASE("CALL - Procedure call with column reference", "[call][column]") {
 
     // Test generator
     std::string sql = Generator::generate(expr);
-    REQUIRE(sql == "CALL update_price(product_id, new_amount)");
+    REQUIRE(sql == "CALL update_price(\"product_id\", \"new_amount\")");
 }
 
 TEST_CASE("CALL - Procedure call with subquery argument", "[call][subquery]") {

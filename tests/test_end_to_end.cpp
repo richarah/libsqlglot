@@ -16,7 +16,7 @@ TEST_CASE("End-to-end - Simple SELECT *", "[e2e]") {
     // Generate SQL
     std::string sql = Generator::generate(stmt);
 
-    REQUIRE(sql == "SELECT * FROM users");
+    REQUIRE(sql == "SELECT * FROM \"users\"");
 }
 
 TEST_CASE("End-to-end - SELECT with columns", "[e2e]") {
@@ -30,7 +30,7 @@ TEST_CASE("End-to-end - SELECT with columns", "[e2e]") {
 
     std::string sql = Generator::generate(stmt);
 
-    REQUIRE(sql == "SELECT id, name FROM users");
+    REQUIRE(sql == "SELECT \"id\", \"name\" FROM \"users\"");
 }
 
 TEST_CASE("End-to-end - SELECT with WHERE", "[e2e]") {
@@ -47,7 +47,7 @@ TEST_CASE("End-to-end - SELECT with WHERE", "[e2e]") {
 
     std::string sql = Generator::generate(stmt);
 
-    REQUIRE(sql == "SELECT * FROM users WHERE age > 18");
+    REQUIRE(sql == "SELECT * FROM \"users\" WHERE \"age\" > 18");
 }
 
 TEST_CASE("End-to-end - SELECT with table alias", "[e2e]") {
@@ -60,7 +60,7 @@ TEST_CASE("End-to-end - SELECT with table alias", "[e2e]") {
 
     std::string sql = Generator::generate(stmt);
 
-    REQUIRE(sql == "SELECT u.name FROM users AS u");
+    REQUIRE(sql == "SELECT \"u\".\"name\" FROM \"users\" AS \"u\"");
 }
 
 TEST_CASE("End-to-end - SELECT with JOIN", "[e2e]") {
@@ -81,7 +81,7 @@ TEST_CASE("End-to-end - SELECT with JOIN", "[e2e]") {
 
     std::string sql = Generator::generate(stmt);
 
-    REQUIRE(sql == "SELECT * FROM users AS u INNER JOIN orders AS o ON u.id = o.user_id");
+    REQUIRE(sql == "SELECT * FROM \"users\" AS \"u\" INNER JOIN \"orders\" AS \"o\" ON \"u\".\"id\" = \"o\".\"user_id\"");
 }
 
 TEST_CASE("End-to-end - SELECT with multiple conditions", "[e2e]") {
@@ -104,7 +104,7 @@ TEST_CASE("End-to-end - SELECT with multiple conditions", "[e2e]") {
 
     std::string sql = Generator::generate(stmt);
 
-    REQUIRE(sql == "SELECT * FROM users WHERE age > 18 AND active = 'true'");
+    REQUIRE(sql == "SELECT * FROM \"users\" WHERE \"age\" > 18 AND \"active\" = \'true\'");
 }
 
 TEST_CASE("End-to-end - SELECT with column alias", "[e2e]") {
@@ -120,7 +120,7 @@ TEST_CASE("End-to-end - SELECT with column alias", "[e2e]") {
 
     std::string sql = Generator::generate(stmt);
 
-    REQUIRE(sql == "SELECT name AS user_name FROM users");
+    REQUIRE(sql == "SELECT \"name\" AS user_name FROM \"users\"");
 }
 
 TEST_CASE("End-to-end - SELECT with LIMIT", "[e2e]") {
@@ -134,5 +134,5 @@ TEST_CASE("End-to-end - SELECT with LIMIT", "[e2e]") {
 
     std::string sql = Generator::generate(stmt);
 
-    REQUIRE(sql == "SELECT * FROM users LIMIT 10");
+    REQUIRE(sql == "SELECT * FROM \"users\" LIMIT 10");
 }

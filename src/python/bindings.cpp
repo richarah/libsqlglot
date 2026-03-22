@@ -93,14 +93,14 @@ NB_MODULE(_libsqlglot, m) {
     nb::class_<SelectStmt, Expression>(m, "SelectStmt")
         .def_ro("distinct", &SelectStmt::distinct)
         .def_ro("columns", &SelectStmt::columns)
-        .def_prop_ro("from_", [](SelectStmt* stmt) { return stmt->from; })
-        .def_ro("where", &SelectStmt::where)
-        .def_ro("group_by", &SelectStmt::group_by)
-        .def_ro("having", &SelectStmt::having)
-        .def_ro("order_by", &SelectStmt::order_by)
-        .def_ro("limit", &SelectStmt::limit)
-        .def_ro("offset", &SelectStmt::offset)
-        .def_ro("with", &SelectStmt::with)
+        .def_prop_ro("from_table", [](SelectStmt* stmt) { return stmt->from; })
+        .def_prop_ro("where_clause", [](SelectStmt* stmt) { return stmt->where; })
+        .def_prop_ro("group_by_clause", [](SelectStmt* stmt) { return stmt->group_by; })
+        .def_prop_ro("having_clause", [](SelectStmt* stmt) { return stmt->having; })
+        .def_prop_ro("order_by_clause", [](SelectStmt* stmt) { return stmt->order_by; })
+        .def_prop_ro("limit_value", [](SelectStmt* stmt) { return stmt->limit; })
+        .def_prop_ro("offset_value", [](SelectStmt* stmt) { return stmt->offset; })
+        .def_prop_ro("with_clause", [](SelectStmt* stmt) { return stmt->with; })
 
         // Fluent builder
         .def("from_", [](SelectStmt* self, const std::string& table) -> SelectStmt* {

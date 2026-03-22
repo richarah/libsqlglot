@@ -12,7 +12,7 @@ Anywhere SQL hits a hot path: proxies, sidecars, migration tools, linters, etc. 
 
 #### Why this exists
 
-libsqlglot was born out of a gap in the C++ ecosystem: the lack of native tooling for high-speed, hassle-free parsing & transpiling between dozens of SQL dialects.
+libsqlglot was born out of a gap in the C++ ecosystem: the lack of native tooling for efficient, high-volume and hassle-free parsing & transpilation between dozens of SQL dialects.
 
 Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it: the algorithm was already O(n), the runtime wasn't.
 
@@ -218,7 +218,7 @@ cmake --build build
 
 ## Architecture
 
-Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (3479 lines), `generator.h` (1913), `expression.h` (1248, 115 expression types). Entry point is `transpiler.h` (86 lines).
+Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (4016 lines), `generator.h` (2092), `expression.h` (1376, 115 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 
@@ -586,6 +586,16 @@ These dialects inherit features from a compatible base dialect and add specific 
 | Trino | Trino | Presto | Presto-compatible: UNNEST, lambda expressions, ROW types |
 | Vertica | Vertica | PostgreSQL | CREATE PROJECTION for physical design, SEGMENTED BY HASH, columnar storage |
 | YugabyteDB | YugabyteDB | PostgreSQL | SPLIT INTO n TABLETS, distributed SQL, PostgreSQL compatibility |
+
+## Contributing
+
+# Contributing
+
+libsqlglot is a solo project. Bug reports, test cases, and dialect edge cases are welcome via GitHub issues.
+
+If you find a query that parses incorrectly, or a dialect transformation that produces wrong output, please open an issue with the input SQL, source dialect, target dialect, and expected output.
+
+Pull requests are considered but there is no guarantee of merge. The codebase is intentionally small and opinionated.
 
 ## Licence
 

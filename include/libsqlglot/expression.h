@@ -1165,29 +1165,157 @@ struct VacuumStmt : Expression {
         : Expression(ExprType::VACUUM_STMT) {}
 };
 
-/// GRANT statement
+/// GRANT statement - Production-grade with comprehensive privilege support
 struct GrantStmt : Expression {
-    enum class PrivilegeType { SELECT, INSERT, UPDATE, DELETE, ALL, EXECUTE, USAGE };
+    // SQL Standard + Database-specific privileges
+    enum class PrivilegeType {
+        // Basic SQL Standard privileges
+        SELECT,
+        INSERT,
+        UPDATE,
+        DELETE,
+        TRUNCATE,
+        REFERENCES,
+        TRIGGER,
 
-    std::vector<PrivilegeType> privileges;
-    std::string object_type;                      // TABLE, DATABASE, SCHEMA, FUNCTION, etc.
+        // DDL privileges
+        CREATE,
+        ALTER,
+        DROP,
+
+        // Database/Schema-level privileges
+        CONNECT,
+        TEMPORARY,
+        TEMP,              // Alias for TEMPORARY
+        USAGE,
+
+        // Procedure/Function privileges
+        EXECUTE,
+        ROUTINE,           // MySQL-style for procedures/functions
+
+        // Role/Administrative privileges
+        CREATEROLE,
+        CREATEDB,
+        REPLICATION,
+        BYPASSRLS,         // Bypass row-level security (PostgreSQL)
+
+        // Table-specific column privileges
+        UPDATE_COLUMN,     // UPDATE on specific columns
+        REFERENCES_COLUMN, // REFERENCES on specific columns
+
+        // Administrative
+        ALL,               // ALL PRIVILEGES
+        ALL_PRIVILEGES,    // Explicit ALL PRIVILEGES
+
+        // BigQuery-specific
+        BIGQUERY_READER,
+        BIGQUERY_EDITOR,
+        BIGQUERY_OWNER,
+        BIGQUERY_VIEWER,
+
+        // Snowflake-specific
+        OWNERSHIP,
+        OPERATE,
+        MONITOR,
+        MODIFY,
+        READ,
+        WRITE,
+
+        // Oracle-specific
+        INDEX,
+        DEBUG,
+        FLASHBACK,
+
+        // MySQL-specific
+        SHOW_VIEW,
+        CREATE_VIEW,
+        EVENT,
+        LOCK_TABLES,
+        RELOAD,
+        SHUTDOWN,
+        PROCESS,
+        FILE,
+        GRANT_OPTION,
+        SUPER,
+
+        // SQL Server-specific
+        CONTROL,
+        TAKE_OWNERSHIP,
+        IMPERSONATE,
+        VIEW_DEFINITION,
+        ALTER_ANY_USER,
+        ALTER_ANY_ROLE,
+
+        // Custom/Unrecognized (for forward compatibility)
+        CUSTOM
+    };
+
+    struct ColumnPrivilege {
+        PrivilegeType privilege;                  // UPDATE or REFERENCES
+        std::vector<std::string> columns;         // Column names
+    };
+
+    // Privileges
+    std::vector<PrivilegeType> privileges;        // Global privileges
+    std::vector<ColumnPrivilege> column_privileges;  // Column-level privileges
+
+    // Object specification
+    std::string object_type;                      // TABLE, DATABASE, SCHEMA, FUNCTION, SEQUENCE, etc.
     std::string object_name;
+    std::string schema_name;                      // Optional schema qualifier
+    std::vector<std::string> object_list;         // For multiple objects: GRANT ... ON table1, table2, table3
+
+    // Grantees
     std::vector<std::string> grantees;            // Users/roles to grant to
-    bool with_grant_option = false;
+    bool to_public = false;                       // GRANT ... TO PUBLIC
+
+    // Options
+    bool with_grant_option = false;               // Allow grantees to grant privileges
+    bool with_admin_option = false;               // For role grants (PostgreSQL/Oracle)
+    bool with_hierarchy_option = false;           // For object hierarchy (SQL Server)
+
+    // Role grants (GRANT role TO user)
+    bool is_role_grant = false;                   // True if granting role membership
+    std::vector<std::string> roles;               // Roles being granted
+
+    // Custom privileges (for extensibility)
+    std::vector<std::string> custom_privileges;   // Unrecognized privilege names
 
     GrantStmt()
         : Expression(ExprType::GRANT_STMT) {}
 };
 
-/// REVOKE statement
+/// REVOKE statement - Production-grade with comprehensive privilege support
 struct RevokeStmt : Expression {
     using PrivilegeType = GrantStmt::PrivilegeType;
+    using ColumnPrivilege = GrantStmt::ColumnPrivilege;
 
+    // Privileges
     std::vector<PrivilegeType> privileges;
+    std::vector<ColumnPrivilege> column_privileges;
+
+    // Object specification
     std::string object_type;
     std::string object_name;
+    std::string schema_name;
+    std::vector<std::string> object_list;
+
+    // Grantees
     std::vector<std::string> grantees;
-    bool cascade = false;
+    bool from_public = false;                     // REVOKE ... FROM PUBLIC
+
+    // Options
+    bool cascade = false;                         // CASCADE revoke (revoke dependents)
+    bool restrict = false;                        // RESTRICT (fail if dependents)
+    bool grant_option_for = false;                // REVOKE GRANT OPTION FOR
+    bool admin_option_for = false;                // REVOKE ADMIN OPTION FOR (roles)
+
+    // Role revokes
+    bool is_role_revoke = false;
+    std::vector<std::string> roles;
+
+    // Custom privileges
+    std::vector<std::string> custom_privileges;
 
     RevokeStmt()
         : Expression(ExprType::REVOKE_STMT) {}

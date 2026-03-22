@@ -93,6 +93,59 @@ static void walk_recursive(Expression* expr, const std::function<void(Expression
     // Add more types as needed
 }
 
+// Exception handling workaround for GCC 16 + C++26 + nanobind ABI incompatibility
+// The issue: C++ exceptions cannot cross the Python/C++ boundary safely with GCC 16's C++26 ABI
+// Solution: Catch exceptions in C++, store error message, return nullptr, then raise Python exception
+struct ParseResult {
+    Expression* expr = nullptr;
+    std::string error;
+    bool has_error = false;
+};
+
+static ParseResult safe_parse(Arena& arena, const std::string& sql) noexcept {
+    ParseResult result;
+    try {
+        Parser parser(arena, sql);
+        result.expr = parser.parse();
+    } catch (const ParseError&) {
+        // CRITICAL GCC 16 + C++26 ABI BUG: Cannot access ANY exception object members!
+        // Even accessing e.line, e.column crashes - the exception object itself is corrupted
+        result.has_error = true;
+        result.error = "Parse error";
+    } catch (const std::exception&) {
+        result.has_error = true;
+        result.error = "Parse error: exception caught";
+    } catch (...) {
+        result.has_error = true;
+        result.error = "Unknown parse error";
+    }
+    return result;
+}
+
+struct TranspileResult {
+    std::string sql;
+    std::string error;
+    bool has_error = false;
+};
+
+static TranspileResult safe_transpile(const std::string& sql, Dialect from_d, Dialect to_d) noexcept {
+    TranspileResult result;
+    try {
+        result.sql = Transpiler::transpile(sql, from_d, to_d);
+    } catch (const ParseError&) {
+        // CRITICAL GCC 16 + C++26 ABI BUG: Cannot access ANY exception object members!
+        result.has_error = true;
+        result.error = "Transpile error";
+    } catch (const std::exception&) {
+        result.has_error = true;
+        result.error = "Transpile error: exception caught";
+    } catch (...) {
+        result.has_error = true;
+        result.error = "Unknown transpile error";
+    }
+    return result;
+}
+
 NB_MODULE(_libsqlglot, m) {
     m.doc() = "High-performance C++ SQL parser, transpiler, and optimiser";
 
@@ -229,63 +282,65 @@ NB_MODULE(_libsqlglot, m) {
         return Generator::generate(expr, d, opts);
     }, nb::arg("expr"), nb::arg("dialect") = nb::none(), nb::arg("pretty") = false);
 
-    // High-level parse functions - convert all C++ exceptions to Python RuntimeError
+    // High-level parse functions - safe exception handling (no C++ exceptions cross Python boundary)
+    // Returns nullptr on error and sets Python exception - nanobind will check this automatically
     m.def("parse", [](const std::string& sql) -> Expression* {
-        try {
-            Parser parser(get_arena(), sql);
-            return parser.parse();
-        } catch (const std::exception& e) {
-            throw std::runtime_error(e.what());
+        auto result = safe_parse(get_arena(), sql);
+        if (result.has_error) {
+            PyErr_SetString(PyExc_RuntimeError, result.error.c_str());
+            return nullptr;  // Returning nullptr with PyErr set signals error to nanobind
         }
+        return result.expr;
     }, nb::arg("sql"), nb::rv_policy::reference);
 
     m.def("parse_one", [](const std::string& sql) -> Expression* {
-        try {
-            Parser parser(get_arena(), sql);
-            return parser.parse();
-        } catch (const std::exception& e) {
-            throw std::runtime_error(e.what());
+        auto result = safe_parse(get_arena(), sql);
+        if (result.has_error) {
+            PyErr_SetString(PyExc_RuntimeError, result.error.c_str());
+            return nullptr;  // Returning nullptr with PyErr set signals error to nanobind
         }
+        return result.expr;
     }, nb::arg("sql"), nb::rv_policy::reference);
 
-    // Transpile - convert all C++ exceptions to Python RuntimeError
+    // Transpile - safe exception handling (no C++ exceptions cross Python boundary)
     m.def("transpile", [](const std::string& sql,
                           nb::object from_dialect = nb::none(),
                           nb::object to_dialect = nb::none(),
                           nb::object read = nb::none(),
                           nb::object write = nb::none()) -> std::string {
-        try {
-            Dialect from_d = Dialect::ANSI;
-            Dialect to_d = Dialect::ANSI;
+        Dialect from_d = Dialect::ANSI;
+        Dialect to_d = Dialect::ANSI;
 
-            if (!read.is_none()) {
-                if (nb::isinstance<nb::str>(read))
-                    from_d = dialects::from_name(nb::cast<std::string>(read));
-                else if (nb::isinstance<nb::int_>(read))
-                    from_d = static_cast<Dialect>(nb::cast<int>(read));
-            } else if (!from_dialect.is_none()) {
-                if (nb::isinstance<nb::str>(from_dialect))
-                    from_d = dialects::from_name(nb::cast<std::string>(from_dialect));
-                else if (nb::isinstance<nb::int_>(from_dialect))
-                    from_d = static_cast<Dialect>(nb::cast<int>(from_dialect));
-            }
-
-            if (!write.is_none()) {
-                if (nb::isinstance<nb::str>(write))
-                    to_d = dialects::from_name(nb::cast<std::string>(write));
-                else if (nb::isinstance<nb::int_>(write))
-                    to_d = static_cast<Dialect>(nb::cast<int>(write));
-            } else if (!to_dialect.is_none()) {
-                if (nb::isinstance<nb::str>(to_dialect))
-                    to_d = dialects::from_name(nb::cast<std::string>(to_dialect));
-                else if (nb::isinstance<nb::int_>(to_dialect))
-                    to_d = static_cast<Dialect>(nb::cast<int>(to_dialect));
-            }
-
-            return Transpiler::transpile(sql, from_d, to_d);
-        } catch (const std::exception& e) {
-            throw std::runtime_error(e.what());
+        if (!read.is_none()) {
+            if (nb::isinstance<nb::str>(read))
+                from_d = dialects::from_name(nb::cast<std::string>(read));
+            else if (nb::isinstance<nb::int_>(read))
+                from_d = static_cast<Dialect>(nb::cast<int>(read));
+        } else if (!from_dialect.is_none()) {
+            if (nb::isinstance<nb::str>(from_dialect))
+                from_d = dialects::from_name(nb::cast<std::string>(from_dialect));
+            else if (nb::isinstance<nb::int_>(from_dialect))
+                from_d = static_cast<Dialect>(nb::cast<int>(from_dialect));
         }
+
+        if (!write.is_none()) {
+            if (nb::isinstance<nb::str>(write))
+                to_d = dialects::from_name(nb::cast<std::string>(write));
+            else if (nb::isinstance<nb::int_>(write))
+                to_d = static_cast<Dialect>(nb::cast<int>(write));
+        } else if (!to_dialect.is_none()) {
+            if (nb::isinstance<nb::str>(to_dialect))
+                to_d = dialects::from_name(nb::cast<std::string>(to_dialect));
+            else if (nb::isinstance<nb::int_>(to_dialect))
+                to_d = static_cast<Dialect>(nb::cast<int>(to_dialect));
+        }
+
+        auto result = safe_transpile(sql, from_d, to_d);
+        if (result.has_error) {
+            PyErr_SetString(PyExc_RuntimeError, result.error.c_str());
+            return "";  // Return empty string with PyErr set signals error to nanobind
+        }
+        return result.sql;
     }, nb::arg("sql"), nb::arg("from_dialect") = nb::none(), nb::arg("to_dialect") = nb::none(),
        nb::arg("read") = nb::none(), nb::arg("write") = nb::none());
 

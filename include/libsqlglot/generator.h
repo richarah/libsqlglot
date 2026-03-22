@@ -1757,75 +1757,254 @@ private:
         }
     }
 
+    // Helper: Convert privilege type to SQL string
+    std::string privilege_to_string(GrantStmt::PrivilegeType priv) {
+        switch (priv) {
+            case GrantStmt::PrivilegeType::SELECT: return "SELECT";
+            case GrantStmt::PrivilegeType::INSERT: return "INSERT";
+            case GrantStmt::PrivilegeType::UPDATE: return "UPDATE";
+            case GrantStmt::PrivilegeType::DELETE: return "DELETE";
+            case GrantStmt::PrivilegeType::TRUNCATE: return "TRUNCATE";
+            case GrantStmt::PrivilegeType::REFERENCES: return "REFERENCES";
+            case GrantStmt::PrivilegeType::TRIGGER: return "TRIGGER";
+            case GrantStmt::PrivilegeType::CREATE: return "CREATE";
+            case GrantStmt::PrivilegeType::ALTER: return "ALTER";
+            case GrantStmt::PrivilegeType::DROP: return "DROP";
+            case GrantStmt::PrivilegeType::CONNECT: return "CONNECT";
+            case GrantStmt::PrivilegeType::TEMPORARY: return "TEMPORARY";
+            case GrantStmt::PrivilegeType::TEMP: return "TEMP";
+            case GrantStmt::PrivilegeType::USAGE: return "USAGE";
+            case GrantStmt::PrivilegeType::EXECUTE: return "EXECUTE";
+            case GrantStmt::PrivilegeType::ROUTINE: return "ROUTINE";
+            case GrantStmt::PrivilegeType::CREATEROLE: return "CREATEROLE";
+            case GrantStmt::PrivilegeType::CREATEDB: return "CREATEDB";
+            case GrantStmt::PrivilegeType::REPLICATION: return "REPLICATION";
+            case GrantStmt::PrivilegeType::BYPASSRLS: return "BYPASSRLS";
+            case GrantStmt::PrivilegeType::ALL: return "ALL PRIVILEGES";
+            case GrantStmt::PrivilegeType::ALL_PRIVILEGES: return "ALL PRIVILEGES";
+            case GrantStmt::PrivilegeType::INDEX: return "INDEX";
+            case GrantStmt::PrivilegeType::DEBUG: return "DEBUG";
+            case GrantStmt::PrivilegeType::FLASHBACK: return "FLASHBACK";
+            case GrantStmt::PrivilegeType::SHOW_VIEW: return "SHOW VIEW";
+            case GrantStmt::PrivilegeType::CREATE_VIEW: return "CREATE VIEW";
+            case GrantStmt::PrivilegeType::EVENT: return "EVENT";
+            case GrantStmt::PrivilegeType::LOCK_TABLES: return "LOCK TABLES";
+            case GrantStmt::PrivilegeType::RELOAD: return "RELOAD";
+            case GrantStmt::PrivilegeType::SHUTDOWN: return "SHUTDOWN";
+            case GrantStmt::PrivilegeType::PROCESS: return "PROCESS";
+            case GrantStmt::PrivilegeType::FILE: return "FILE";
+            case GrantStmt::PrivilegeType::GRANT_OPTION: return "GRANT OPTION";
+            case GrantStmt::PrivilegeType::SUPER: return "SUPER";
+            case GrantStmt::PrivilegeType::OWNERSHIP: return "OWNERSHIP";
+            case GrantStmt::PrivilegeType::OPERATE: return "OPERATE";
+            case GrantStmt::PrivilegeType::MONITOR: return "MONITOR";
+            case GrantStmt::PrivilegeType::MODIFY: return "MODIFY";
+            case GrantStmt::PrivilegeType::READ: return "READ";
+            case GrantStmt::PrivilegeType::WRITE: return "WRITE";
+            case GrantStmt::PrivilegeType::CONTROL: return "CONTROL";
+            case GrantStmt::PrivilegeType::TAKE_OWNERSHIP: return "TAKE OWNERSHIP";
+            case GrantStmt::PrivilegeType::IMPERSONATE: return "IMPERSONATE";
+            case GrantStmt::PrivilegeType::VIEW_DEFINITION: return "VIEW DEFINITION";
+            case GrantStmt::PrivilegeType::ALTER_ANY_USER: return "ALTER ANY USER";
+            case GrantStmt::PrivilegeType::ALTER_ANY_ROLE: return "ALTER ANY ROLE";
+            case GrantStmt::PrivilegeType::BIGQUERY_READER: return "BIGQUERY READER";
+            case GrantStmt::PrivilegeType::BIGQUERY_EDITOR: return "BIGQUERY EDITOR";
+            case GrantStmt::PrivilegeType::BIGQUERY_OWNER: return "BIGQUERY OWNER";
+            case GrantStmt::PrivilegeType::BIGQUERY_VIEWER: return "BIGQUERY VIEWER";
+            default: return "UNKNOWN";
+        }
+    }
+
     void visit_grant(const GrantStmt* stmt) {
         sql_ << "GRANT ";
 
-        // Privileges
+        // Role grant: GRANT role TO user
+        if (stmt->is_role_grant) {
+            for (size_t i = 0; i < stmt->roles.size(); ++i) {
+                if (i > 0) sql_ << ", ";
+                sql_ << stmt->roles[i];
+            }
+
+            sql_ << " TO ";
+            if (stmt->to_public) {
+                sql_ << "PUBLIC";
+            } else {
+                for (size_t i = 0; i < stmt->grantees.size(); ++i) {
+                    if (i > 0) sql_ << ", ";
+                    sql_ << stmt->grantees[i];
+                }
+            }
+
+            if (stmt->with_admin_option) {
+                sql_ << " WITH ADMIN OPTION";
+            }
+            return;
+        }
+
+        // Privileges with column-level support
+        bool first = true;
         for (size_t i = 0; i < stmt->privileges.size(); ++i) {
-            if (i > 0) sql_ << ", ";
-            switch (stmt->privileges[i]) {
-                case GrantStmt::PrivilegeType::SELECT: sql_ << "SELECT"; break;
-                case GrantStmt::PrivilegeType::INSERT: sql_ << "INSERT"; break;
-                case GrantStmt::PrivilegeType::UPDATE: sql_ << "UPDATE"; break;
-                case GrantStmt::PrivilegeType::DELETE: sql_ << "DELETE"; break;
-                case GrantStmt::PrivilegeType::ALL: sql_ << "ALL PRIVILEGES"; break;
-                case GrantStmt::PrivilegeType::EXECUTE: sql_ << "EXECUTE"; break;
-                case GrantStmt::PrivilegeType::USAGE: sql_ << "USAGE"; break;
+            if (!first) sql_ << ", ";
+            sql_ << privilege_to_string(stmt->privileges[i]);
+            first = false;
+        }
+
+        // Column-level privileges: UPDATE(col1, col2)
+        for (const auto& col_priv : stmt->column_privileges) {
+            if (!first) sql_ << ", ";
+            sql_ << privilege_to_string(col_priv.privilege) << "(";
+            for (size_t i = 0; i < col_priv.columns.size(); ++i) {
+                if (i > 0) sql_ << ", ";
+                sql_ << col_priv.columns[i];
+            }
+            sql_ << ")";
+            first = false;
+        }
+
+        // Custom privileges
+        for (const auto& custom : stmt->custom_privileges) {
+            if (!first) sql_ << ", ";
+            sql_ << custom;
+            first = false;
+        }
+
+        // ON clause (only if object_name is not empty)
+        if (!stmt->object_name.empty() || !stmt->object_type.empty()) {
+            sql_ << " ON ";
+            if (!stmt->object_type.empty()) {
+                sql_ << stmt->object_type << " ";
+            }
+
+            // Schema-qualified object
+            if (!stmt->schema_name.empty()) {
+                sql_ << stmt->schema_name << ".";
+            }
+            sql_ << stmt->object_name;
+
+            // Multiple objects
+            for (const auto& obj : stmt->object_list) {
+                sql_ << ", " << obj;
             }
         }
 
-        // ON clause
-        sql_ << " ON ";
-        if (!stmt->object_type.empty()) {
-            sql_ << stmt->object_type << " ";
-        }
-        sql_ << stmt->object_name;
-
         // TO clause
         sql_ << " TO ";
-        for (size_t i = 0; i < stmt->grantees.size(); ++i) {
-            if (i > 0) sql_ << ", ";
-            sql_ << stmt->grantees[i];
+        if (stmt->to_public) {
+            sql_ << "PUBLIC";
+        } else {
+            for (size_t i = 0; i < stmt->grantees.size(); ++i) {
+                if (i > 0) sql_ << ", ";
+                sql_ << stmt->grantees[i];
+            }
         }
 
+        // Options
         if (stmt->with_grant_option) {
             sql_ << " WITH GRANT OPTION";
+        } else if (stmt->with_admin_option) {
+            sql_ << " WITH ADMIN OPTION";
+        } else if (stmt->with_hierarchy_option) {
+            sql_ << " WITH HIERARCHY OPTION";
         }
     }
 
     void visit_revoke(const RevokeStmt* stmt) {
         sql_ << "REVOKE ";
 
-        // Privileges
+        // GRANT OPTION FOR / ADMIN OPTION FOR
+        if (stmt->grant_option_for) {
+            sql_ << "GRANT OPTION FOR ";
+        } else if (stmt->admin_option_for) {
+            sql_ << "ADMIN OPTION FOR ";
+        }
+
+        // Role revoke: REVOKE role FROM user
+        if (stmt->is_role_revoke) {
+            for (size_t i = 0; i < stmt->roles.size(); ++i) {
+                if (i > 0) sql_ << ", ";
+                sql_ << stmt->roles[i];
+            }
+
+            sql_ << " FROM ";
+            if (stmt->from_public) {
+                sql_ << "PUBLIC";
+            } else {
+                for (size_t i = 0; i < stmt->grantees.size(); ++i) {
+                    if (i > 0) sql_ << ", ";
+                    sql_ << stmt->grantees[i];
+                }
+            }
+
+            if (stmt->cascade) {
+                sql_ << " CASCADE";
+            } else if (stmt->restrict) {
+                sql_ << " RESTRICT";
+            }
+            return;
+        }
+
+        // Privileges with column-level support (use same helper as GRANT)
+        bool first = true;
         for (size_t i = 0; i < stmt->privileges.size(); ++i) {
-            if (i > 0) sql_ << ", ";
-            switch (stmt->privileges[i]) {
-                case RevokeStmt::PrivilegeType::SELECT: sql_ << "SELECT"; break;
-                case RevokeStmt::PrivilegeType::INSERT: sql_ << "INSERT"; break;
-                case RevokeStmt::PrivilegeType::UPDATE: sql_ << "UPDATE"; break;
-                case RevokeStmt::PrivilegeType::DELETE: sql_ << "DELETE"; break;
-                case RevokeStmt::PrivilegeType::ALL: sql_ << "ALL PRIVILEGES"; break;
-                case RevokeStmt::PrivilegeType::EXECUTE: sql_ << "EXECUTE"; break;
-                case RevokeStmt::PrivilegeType::USAGE: sql_ << "USAGE"; break;
+            if (!first) sql_ << ", ";
+            sql_ << privilege_to_string(stmt->privileges[i]);
+            first = false;
+        }
+
+        // Column-level privileges
+        for (const auto& col_priv : stmt->column_privileges) {
+            if (!first) sql_ << ", ";
+            sql_ << privilege_to_string(col_priv.privilege) << "(";
+            for (size_t i = 0; i < col_priv.columns.size(); ++i) {
+                if (i > 0) sql_ << ", ";
+                sql_ << col_priv.columns[i];
+            }
+            sql_ << ")";
+            first = false;
+        }
+
+        // Custom privileges
+        for (const auto& custom : stmt->custom_privileges) {
+            if (!first) sql_ << ", ";
+            sql_ << custom;
+            first = false;
+        }
+
+        // ON clause (only if object_name is not empty)
+        if (!stmt->object_name.empty() || !stmt->object_type.empty()) {
+            sql_ << " ON ";
+            if (!stmt->object_type.empty()) {
+                sql_ << stmt->object_type << " ";
+            }
+
+            // Schema-qualified object
+            if (!stmt->schema_name.empty()) {
+                sql_ << stmt->schema_name << ".";
+            }
+            sql_ << stmt->object_name;
+
+            // Multiple objects
+            for (const auto& obj : stmt->object_list) {
+                sql_ << ", " << obj;
             }
         }
 
-        // ON clause
-        sql_ << " ON ";
-        if (!stmt->object_type.empty()) {
-            sql_ << stmt->object_type << " ";
-        }
-        sql_ << stmt->object_name;
-
         // FROM clause
         sql_ << " FROM ";
-        for (size_t i = 0; i < stmt->grantees.size(); ++i) {
-            if (i > 0) sql_ << ", ";
-            sql_ << stmt->grantees[i];
+        if (stmt->from_public) {
+            sql_ << "PUBLIC";
+        } else {
+            for (size_t i = 0; i < stmt->grantees.size(); ++i) {
+                if (i > 0) sql_ << ", ";
+                sql_ << stmt->grantees[i];
+            }
         }
 
+        // CASCADE / RESTRICT
         if (stmt->cascade) {
             sql_ << " CASCADE";
+        } else if (stmt->restrict) {
+            sql_ << " RESTRICT";
         }
     }
 

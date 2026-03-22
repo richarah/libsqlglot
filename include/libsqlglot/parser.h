@@ -1376,81 +1376,402 @@ public:
     }
 
     /// Parse GRANT statement
+    /// Helper: Parse privilege type from token - production-grade with 60+ privileges
+    GrantStmt::PrivilegeType parse_privilege_type(const std::string& priv_upper) {
+        // SQL Standard privileges
+        if (priv_upper == "SELECT") return GrantStmt::PrivilegeType::SELECT;
+        if (priv_upper == "INSERT") return GrantStmt::PrivilegeType::INSERT;
+        if (priv_upper == "UPDATE") return GrantStmt::PrivilegeType::UPDATE;
+        if (priv_upper == "DELETE") return GrantStmt::PrivilegeType::DELETE;
+        if (priv_upper == "TRUNCATE") return GrantStmt::PrivilegeType::TRUNCATE;
+        if (priv_upper == "REFERENCES") return GrantStmt::PrivilegeType::REFERENCES;
+        if (priv_upper == "TRIGGER") return GrantStmt::PrivilegeType::TRIGGER;
+
+        // DDL
+        if (priv_upper == "CREATE") return GrantStmt::PrivilegeType::CREATE;
+        if (priv_upper == "ALTER") return GrantStmt::PrivilegeType::ALTER;
+        if (priv_upper == "DROP") return GrantStmt::PrivilegeType::DROP;
+
+        // Database/Schema
+        if (priv_upper == "CONNECT") return GrantStmt::PrivilegeType::CONNECT;
+        if (priv_upper == "TEMPORARY" || priv_upper == "TEMP") return GrantStmt::PrivilegeType::TEMPORARY;
+        if (priv_upper == "USAGE") return GrantStmt::PrivilegeType::USAGE;
+
+        // Procedures
+        if (priv_upper == "EXECUTE") return GrantStmt::PrivilegeType::EXECUTE;
+        if (priv_upper == "ROUTINE") return GrantStmt::PrivilegeType::ROUTINE;
+
+        // Administrative
+        if (priv_upper == "ALL") return GrantStmt::PrivilegeType::ALL;
+        if (priv_upper == "ALL PRIVILEGES") return GrantStmt::PrivilegeType::ALL_PRIVILEGES;
+        if (priv_upper == "CREATEROLE") return GrantStmt::PrivilegeType::CREATEROLE;
+        if (priv_upper == "CREATEDB") return GrantStmt::PrivilegeType::CREATEDB;
+        if (priv_upper == "REPLICATION") return GrantStmt::PrivilegeType::REPLICATION;
+        if (priv_upper == "BYPASSRLS") return GrantStmt::PrivilegeType::BYPASSRLS;
+
+        // MySQL-specific multi-word privileges
+        if (priv_upper == "SHOW VIEW") return GrantStmt::PrivilegeType::SHOW_VIEW;
+        if (priv_upper == "CREATE VIEW") return GrantStmt::PrivilegeType::CREATE_VIEW;
+        if (priv_upper == "LOCK TABLES") return GrantStmt::PrivilegeType::LOCK_TABLES;
+        if (priv_upper == "GRANT OPTION") return GrantStmt::PrivilegeType::GRANT_OPTION;
+
+        // MySQL-specific single-word privileges
+        if (priv_upper == "INDEX") return GrantStmt::PrivilegeType::INDEX;
+        if (priv_upper == "EVENT") return GrantStmt::PrivilegeType::EVENT;
+        if (priv_upper == "RELOAD") return GrantStmt::PrivilegeType::RELOAD;
+        if (priv_upper == "SHUTDOWN") return GrantStmt::PrivilegeType::SHUTDOWN;
+        if (priv_upper == "PROCESS") return GrantStmt::PrivilegeType::PROCESS;
+        if (priv_upper == "FILE") return GrantStmt::PrivilegeType::FILE;
+        if (priv_upper == "SUPER") return GrantStmt::PrivilegeType::SUPER;
+
+        // Oracle-specific
+        if (priv_upper == "DEBUG") return GrantStmt::PrivilegeType::DEBUG;
+        if (priv_upper == "FLASHBACK") return GrantStmt::PrivilegeType::FLASHBACK;
+
+        // Snowflake/BigQuery/Cloud
+        if (priv_upper == "OWNERSHIP") return GrantStmt::PrivilegeType::OWNERSHIP;
+        if (priv_upper == "OPERATE") return GrantStmt::PrivilegeType::OPERATE;
+        if (priv_upper == "MONITOR") return GrantStmt::PrivilegeType::MONITOR;
+        if (priv_upper == "MODIFY") return GrantStmt::PrivilegeType::MODIFY;
+        if (priv_upper == "READ") return GrantStmt::PrivilegeType::READ;
+        if (priv_upper == "WRITE") return GrantStmt::PrivilegeType::WRITE;
+
+        // BigQuery predefined roles
+        if (priv_upper == "BIGQUERY READER") return GrantStmt::PrivilegeType::BIGQUERY_READER;
+        if (priv_upper == "BIGQUERY EDITOR") return GrantStmt::PrivilegeType::BIGQUERY_EDITOR;
+        if (priv_upper == "BIGQUERY OWNER") return GrantStmt::PrivilegeType::BIGQUERY_OWNER;
+        if (priv_upper == "BIGQUERY VIEWER") return GrantStmt::PrivilegeType::BIGQUERY_VIEWER;
+
+        // SQL Server multi-word privileges
+        if (priv_upper == "TAKE OWNERSHIP") return GrantStmt::PrivilegeType::TAKE_OWNERSHIP;
+        if (priv_upper == "VIEW DEFINITION") return GrantStmt::PrivilegeType::VIEW_DEFINITION;
+        if (priv_upper == "ALTER ANY USER") return GrantStmt::PrivilegeType::ALTER_ANY_USER;
+        if (priv_upper == "ALTER ANY ROLE") return GrantStmt::PrivilegeType::ALTER_ANY_ROLE;
+
+        // SQL Server single-word privileges
+        if (priv_upper == "CONTROL") return GrantStmt::PrivilegeType::CONTROL;
+        if (priv_upper == "IMPERSONATE") return GrantStmt::PrivilegeType::IMPERSONATE;
+
+        return GrantStmt::PrivilegeType::CUSTOM;
+    }
+
+    /// Parse GRANT statement - Production-grade with comprehensive privilege support
     GrantStmt* parse_grant() {
         auto stmt = arena_.create<GrantStmt>();
         expect(TokenType::GRANT);
 
-        // Parse privileges: SELECT, INSERT, UPDATE, DELETE, ALL, etc.
-        do {
-            if (check(TokenType::SELECT)) {
-                stmt->privileges.push_back(GrantStmt::PrivilegeType::SELECT);
-                advance();
-            } else if (check(TokenType::INSERT)) {
-                stmt->privileges.push_back(GrantStmt::PrivilegeType::INSERT);
-                advance();
-            } else if (check(TokenType::UPDATE)) {
-                stmt->privileges.push_back(GrantStmt::PrivilegeType::UPDATE);
-                advance();
-            } else if (check(TokenType::DELETE)) {
-                stmt->privileges.push_back(GrantStmt::PrivilegeType::DELETE);
-                advance();
-            } else if (check(TokenType::ALL)) {
-                stmt->privileges.push_back(GrantStmt::PrivilegeType::ALL);
-                advance();
-                match(TokenType::PRIVILEGES);  // Optional PRIVILEGES keyword
-            } else if (check(TokenType::EXECUTE)) {
-                stmt->privileges.push_back(GrantStmt::PrivilegeType::EXECUTE);
-                advance();
-            } else if (current().type == TokenType::IDENTIFIER) {
-                std::string priv(current().text);
-                if (priv == "USAGE" || priv == "usage") {
-                    stmt->privileges.push_back(GrantStmt::PrivilegeType::USAGE);
-                    advance();
-                } else {
-                    break;
-                }
-            } else {
-                break;
-            }
-        } while (match(TokenType::COMMA));
-
-        // ON clause
-        expect(TokenType::ON);
-
-        // Object type (TABLE, DATABASE, SCHEMA, FUNCTION, etc.)
-        if (check(TokenType::TABLE) || check(TokenType::DATABASE) ||
-            check(TokenType::SCHEMA) || check(TokenType::FUNCTION)) {
-            stmt->object_type = std::string(current().text);
+        // Check for role grant: GRANT role TO user
+        if (current().type == TokenType::IDENTIFIER) {
+            // Peek ahead to see if this is "role TO" pattern
+            size_t saved_pos = pos_;
+            std::string first_word(current().text);
             advance();
+
+            if (current().type == TokenType::IDENTIFIER &&
+                (std::string(current().text) == "TO" || std::string(current().text) == "to")) {
+                // This is a role grant
+                pos_ = saved_pos;  // Restore position
+                stmt->is_role_grant = true;
+
+                // Parse role names
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        stmt->roles.push_back(std::string(current().text));
+                        advance();
+                    }
+                } while (match(TokenType::COMMA));
+
+                // TO clause
+                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "TO") {
+                    advance();
+
+                    // Parse grantees
+                    do {
+                        if (current().type == TokenType::IDENTIFIER) {
+                            if (std::string(current().text) == "PUBLIC" || std::string(current().text) == "public") {
+                                stmt->to_public = true;
+                            } else {
+                                stmt->grantees.push_back(std::string(current().text));
+                            }
+                            advance();
+                        }
+                    } while (match(TokenType::COMMA));
+                }
+
+                // WITH ADMIN OPTION
+                if (check(TokenType::WITH)) {
+                    advance();  // consume WITH
+                    if (current().type == TokenType::IDENTIFIER) {
+                        std::string admin_text(current().text);
+                        for (char& c : admin_text) if (c >= 'a' && c <= 'z') c = c - 32;
+                        if (admin_text == "ADMIN") {
+                            advance();
+                            if (current().type == TokenType::IDENTIFIER) {
+                                std::string opt_text(current().text);
+                                for (char& c : opt_text) if (c >= 'a' && c <= 'z') c = c - 32;
+                                if (opt_text == "OPTION") {
+                                    stmt->with_admin_option = true;
+                                    advance();
+                                }
+                            }
+                        }
+                    }
+                }
+
+                return stmt;
+            }
+
+            // Not a role grant, restore and continue with privilege parsing
+            pos_ = saved_pos;
         }
 
-        // Object name
-        if (current().type == TokenType::IDENTIFIER) {
-            stmt->object_name = std::string(current().text);
-            advance();
-        } else {
-            error_expected_after("object name", "GRANT ... ON");
+        // Parse privileges with column-level support
+        do {
+            GrantStmt::PrivilegeType priv_type = GrantStmt::PrivilegeType::CUSTOM;
+            bool handled_column_priv = false;
+
+            // Get privilege name from current token (works for both keywords and identifiers)
+            std::string priv_text(current().text);
+            // Convert to uppercase for comparison
+            for (char& c : priv_text) if (c >= 'a' && c <= 'z') c = c - 32;
+
+            // Check for multi-word privileges by lookahead
+            std::string full_priv_text = priv_text;
+            bool found_multiword = false;
+
+            // Try three-word combination first (if enough tokens available)
+            if (pos_ + 2 < tokens_.size()) {
+                std::string next_text(tokens_[pos_ + 1].text);
+                std::string third_text(tokens_[pos_ + 2].text);
+                for (char& c : next_text) if (c >= 'a' && c <= 'z') c = c - 32;
+                for (char& c : third_text) if (c >= 'a' && c <= 'z') c = c - 32;
+
+                std::string three_word = priv_text + " " + next_text + " " + third_text;
+                auto three_word_type = parse_privilege_type(three_word);
+
+                if (three_word_type != GrantStmt::PrivilegeType::CUSTOM) {
+                    // Found valid three-word privilege
+                    full_priv_text = three_word;
+                    priv_type = three_word_type;
+                    advance();  // Consume first word
+                    advance();  // Consume second word
+                    advance();  // Consume third word
+                    found_multiword = true;
+                }
+            }
+
+            // Try two-word combination if three-word didn't match
+            if (!found_multiword && pos_ + 1 < tokens_.size()) {
+                std::string next_text(tokens_[pos_ + 1].text);
+                for (char& c : next_text) if (c >= 'a' && c <= 'z') c = c - 32;
+
+                std::string two_word = priv_text + " " + next_text;
+                auto two_word_type = parse_privilege_type(two_word);
+
+                if (two_word_type != GrantStmt::PrivilegeType::CUSTOM) {
+                    // Found valid two-word privilege
+                    full_priv_text = two_word;
+                    priv_type = two_word_type;
+                    advance();  // Consume first word
+                    advance();  // Consume second word
+                    found_multiword = true;
+                }
+            }
+
+            // If no multi-word privilege found, parse as single word
+            if (!found_multiword) {
+                priv_type = parse_privilege_type(priv_text);
+                advance();  // Consume single word
+            }
+
+            // If unrecognized, treat as custom privilege
+            if (priv_type == GrantStmt::PrivilegeType::CUSTOM) {
+                // Check if this looks like a privilege (before ON/TO keywords)
+                if (priv_text != "ON" && priv_text != "TO") {
+                    stmt->custom_privileges.push_back(full_priv_text);
+                } else {
+                    break;  // Hit ON or TO, stop parsing privileges
+                }
+            }
+
+            // Handle optional PRIVILEGES keyword after ALL
+            if (priv_type == GrantStmt::PrivilegeType::ALL) {
+                match(TokenType::PRIVILEGES);
+            }
+
+            // Check for column list: UPDATE(col1, col2) or REFERENCES(col1)
+            if ((priv_type == GrantStmt::PrivilegeType::UPDATE ||
+                 priv_type == GrantStmt::PrivilegeType::REFERENCES) &&
+                match(TokenType::LPAREN)) {
+
+                GrantStmt::ColumnPrivilege col_priv;
+                col_priv.privilege = priv_type;
+
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        col_priv.columns.push_back(std::string(current().text));
+                        advance();
+                    }
+                } while (match(TokenType::COMMA));
+
+                expect(TokenType::RPAREN);
+                stmt->column_privileges.push_back(std::move(col_priv));
+                handled_column_priv = true;
+            }
+
+            // Add to privileges list (unless it was a column privilege or custom)
+            if (!handled_column_priv && priv_type != GrantStmt::PrivilegeType::CUSTOM) {
+                stmt->privileges.push_back(priv_type);
+            }
+
+        } while (match(TokenType::COMMA));
+
+        // ON clause (optional - some privileges like ALTER ANY USER don't require ON)
+        if (match(TokenType::ON)) {
+            // Object type (TABLE, DATABASE, SCHEMA, FUNCTION, SEQUENCE, etc.)
+            if (check(TokenType::TABLE) || check(TokenType::DATABASE) ||
+                check(TokenType::SCHEMA) || check(TokenType::FUNCTION)) {
+                stmt->object_type = std::string(current().text);
+                advance();
+            } else if (current().type == TokenType::IDENTIFIER) {
+                std::string obj_type(current().text);
+                // Convert to uppercase
+                for (char& c : obj_type) if (c >= 'a' && c <= 'z') c = c - 32;
+
+                if (obj_type == "SEQUENCE" || obj_type == "VIEW" || obj_type == "PROCEDURE" ||
+                    obj_type == "ROUTINE" || obj_type == "TABLESPACE" || obj_type == "TYPE" ||
+                    obj_type == "DOMAIN" || obj_type == "FOREIGN" || obj_type == "SERVER" ||
+                    obj_type == "WAREHOUSE" || obj_type == "DATASET" || obj_type == "LOGIN") {
+                    stmt->object_type = obj_type;
+                    advance();
+
+                    // Handle "FOREIGN DATA WRAPPER" and "FOREIGN SERVER"
+                    if (obj_type == "FOREIGN" && current().type == TokenType::IDENTIFIER) {
+                        stmt->object_type += " " + std::string(current().text);
+                        advance();
+                        if (current().type == TokenType::IDENTIFIER) {
+                            stmt->object_type += " " + std::string(current().text);
+                            advance();
+                        }
+                    }
+
+                    // Handle "LOGIN::sa" syntax (SQL Server)
+                    if (obj_type == "LOGIN" && current().type == TokenType::DOUBLE_COLON) {
+                        advance();  // Skip ::
+                        if (current().type == TokenType::IDENTIFIER) {
+                            stmt->object_name = std::string(current().text);
+                            advance();
+                        }
+                    }
+                }
+            }
+
+            // Parse object name(s) - support multiple objects (only if not already parsed like LOGIN::sa)
+            if (stmt->object_name.empty()) {
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        std::string obj_name(current().text);
+                        advance();
+
+                        // Check for schema.object notation or schema.*
+                        if (match(TokenType::DOT)) {
+                            stmt->schema_name = obj_name;
+                            if (current().type == TokenType::IDENTIFIER) {
+                                obj_name = std::string(current().text);
+                                advance();
+                            } else if (current().type == TokenType::STAR) {
+                                // Handle wildcard: schema.*
+                                obj_name = "*";
+                                advance();
+                            }
+                        }
+
+                        if (stmt->object_name.empty()) {
+                            stmt->object_name = obj_name;
+                        } else {
+                            stmt->object_list.push_back(obj_name);
+                        }
+                    } else if (current().type == TokenType::STAR) {
+                        // Handle standalone wildcard: *
+                        std::string obj_name = "*";
+                        advance();
+                        if (stmt->object_name.empty()) {
+                            stmt->object_name = obj_name;
+                        } else {
+                            stmt->object_list.push_back(obj_name);
+                        }
+                    }
+                } while (match(TokenType::COMMA));
+            }
         }
 
         // TO clause (grantees)
-        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "TO") {
-            advance();
+        // TO is not a keyword, comes as IDENTIFIER
+        bool found_to = false;
+        if (current().type == TokenType::IDENTIFIER) {
+            std::string to_text(current().text);
+            for (char& c : to_text) if (c >= 'a' && c <= 'z') c = c - 32;
+            if (to_text == "TO") {
+                found_to = true;
+                advance();  // consume TO
+            }
+        }
+
+        if (found_to) {
             do {
                 if (current().type == TokenType::IDENTIFIER) {
-                    stmt->grantees.push_back(std::string(current().text));
+                    std::string grantee(current().text);
+                    // Convert to uppercase for comparison
+                    for (char& c : grantee) if (c >= 'a' && c <= 'z') c = c - 32;
+
+                    if (grantee == "PUBLIC") {
+                        stmt->to_public = true;
+                    } else {
+                        stmt->grantees.push_back(std::string(current().text));
+                    }
                     advance();
                 }
             } while (match(TokenType::COMMA));
         }
 
-        // WITH GRANT OPTION
-        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "WITH") {
-            advance();
+        // WITH GRANT OPTION / WITH ADMIN OPTION / WITH HIERARCHY OPTION
+        if (check(TokenType::WITH)) {
+            advance();  // consume WITH
             if (check(TokenType::GRANT)) {
-                advance();
-                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "OPTION") {
-                    stmt->with_grant_option = true;
+                advance();  // consume GRANT
+                // Check for OPTION (identifier)
+                if (current().type == TokenType::IDENTIFIER) {
+                    std::string opt(current().text);
+                    for (char& c : opt) if (c >= 'a' && c <= 'z') c = c - 32;
+                    if (opt == "OPTION") {
+                        stmt->with_grant_option = true;
+                        advance();
+                    }
+                }
+            } else if (current().type == TokenType::IDENTIFIER) {
+                std::string opt(current().text);
+                for (char& c : opt) if (c >= 'a' && c <= 'z') c = c - 32;
+
+                if (opt == "ADMIN") {
                     advance();
+                    if (current().type == TokenType::IDENTIFIER) {
+                        std::string opt2(current().text);
+                        for (char& c : opt2) if (c >= 'a' && c <= 'z') c = c - 32;
+                        if (opt2 == "OPTION") {
+                            stmt->with_admin_option = true;
+                            advance();
+                        }
+                    }
+                } else if (opt == "HIERARCHY") {
+                    advance();
+                    if (current().type == TokenType::IDENTIFIER) {
+                        std::string opt2(current().text);
+                        for (char& c : opt2) if (c >= 'a' && c <= 'z') c = c - 32;
+                        if (opt2 == "OPTION") {
+                            stmt->with_hierarchy_option = true;
+                            advance();
+                        }
+                    }
                 }
             }
         }
@@ -1458,79 +1779,295 @@ public:
         return stmt;
     }
 
-    /// Parse REVOKE statement
+    /// Parse REVOKE statement - Production-grade with comprehensive privilege support
     RevokeStmt* parse_revoke() {
         auto stmt = arena_.create<RevokeStmt>();
         expect(TokenType::REVOKE);
 
-        // Parse privileges (same as GRANT)
-        do {
-            if (check(TokenType::SELECT)) {
-                stmt->privileges.push_back(RevokeStmt::PrivilegeType::SELECT);
+        // Check for GRANT OPTION FOR or ADMIN OPTION FOR
+        if (current().type == TokenType::GRANT ||
+            (current().type == TokenType::IDENTIFIER && std::string(current().text) == "ADMIN")) {
+
+            if (check(TokenType::GRANT)) {
                 advance();
-            } else if (check(TokenType::INSERT)) {
-                stmt->privileges.push_back(RevokeStmt::PrivilegeType::INSERT);
-                advance();
-            } else if (check(TokenType::UPDATE)) {
-                stmt->privileges.push_back(RevokeStmt::PrivilegeType::UPDATE);
-                advance();
-            } else if (check(TokenType::DELETE)) {
-                stmt->privileges.push_back(RevokeStmt::PrivilegeType::DELETE);
-                advance();
-            } else if (check(TokenType::ALL)) {
-                stmt->privileges.push_back(RevokeStmt::PrivilegeType::ALL);
-                advance();
-                match(TokenType::PRIVILEGES);
-            } else if (check(TokenType::EXECUTE)) {
-                stmt->privileges.push_back(RevokeStmt::PrivilegeType::EXECUTE);
-                advance();
-            } else if (current().type == TokenType::IDENTIFIER) {
-                std::string priv(current().text);
-                if (priv == "USAGE" || priv == "usage") {
-                    stmt->privileges.push_back(RevokeStmt::PrivilegeType::USAGE);
+                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "OPTION") {
                     advance();
-                } else {
-                    break;
+                    if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FOR") {
+                        stmt->grant_option_for = true;
+                        advance();
+                    }
                 }
-            } else {
-                break;
+            } else if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "ADMIN") {
+                advance();
+                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "OPTION") {
+                    advance();
+                    if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FOR") {
+                        stmt->admin_option_for = true;
+                        advance();
+                    }
+                }
             }
-        } while (match(TokenType::COMMA));
-
-        // ON clause
-        expect(TokenType::ON);
-
-        // Object type
-        if (check(TokenType::TABLE) || check(TokenType::DATABASE) ||
-            check(TokenType::SCHEMA) || check(TokenType::FUNCTION)) {
-            stmt->object_type = std::string(current().text);
-            advance();
         }
 
-        // Object name
+        // Check for role revoke: REVOKE role FROM user
         if (current().type == TokenType::IDENTIFIER) {
-            stmt->object_name = std::string(current().text);
+            size_t saved_pos = pos_;
+            std::string first_word(current().text);
             advance();
-        } else {
-            error_expected_after("object name", "REVOKE ... ON");
+
+            if (current().type == TokenType::IDENTIFIER &&
+                (std::string(current().text) == "FROM" || std::string(current().text) == "from")) {
+                // This is a role revoke
+                pos_ = saved_pos;
+                stmt->is_role_revoke = true;
+
+                // Parse role names
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        stmt->roles.push_back(std::string(current().text));
+                        advance();
+                    }
+                } while (match(TokenType::COMMA));
+
+                // FROM clause
+                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FROM") {
+                    advance();
+
+                    do {
+                        if (current().type == TokenType::IDENTIFIER) {
+                            if (std::string(current().text) == "PUBLIC" || std::string(current().text) == "public") {
+                                stmt->from_public = true;
+                            } else {
+                                stmt->grantees.push_back(std::string(current().text));
+                            }
+                            advance();
+                        }
+                    } while (match(TokenType::COMMA));
+                }
+
+                // CASCADE / RESTRICT
+                if (current().type == TokenType::IDENTIFIER) {
+                    std::string kw(current().text);
+                    if (kw == "CASCADE" || kw == "cascade") {
+                        stmt->cascade = true;
+                        advance();
+                    } else if (kw == "RESTRICT" || kw == "restrict") {
+                        stmt->restrict = true;
+                        advance();
+                    }
+                }
+
+                return stmt;
+            }
+
+            pos_ = saved_pos;
+        }
+
+        // Parse privileges with column-level support (same logic as GRANT)
+        do {
+            RevokeStmt::PrivilegeType priv_type = RevokeStmt::PrivilegeType::CUSTOM;
+            bool handled_column_priv = false;
+
+            // Get privilege name from current token (works for both keywords and identifiers)
+            std::string priv_text(current().text);
+            // Convert to uppercase for comparison
+            for (char& c : priv_text) if (c >= 'a' && c <= 'z') c = c - 32;
+
+            // Check for multi-word privileges by lookahead (same logic as GRANT)
+            std::string full_priv_text = priv_text;
+            bool found_multiword = false;
+
+            // Try three-word combination first (if enough tokens available)
+            if (pos_ + 2 < tokens_.size()) {
+                std::string next_text(tokens_[pos_ + 1].text);
+                std::string third_text(tokens_[pos_ + 2].text);
+                for (char& c : next_text) if (c >= 'a' && c <= 'z') c = c - 32;
+                for (char& c : third_text) if (c >= 'a' && c <= 'z') c = c - 32;
+
+                std::string three_word = priv_text + " " + next_text + " " + third_text;
+                auto three_word_type = parse_privilege_type(three_word);
+
+                if (three_word_type != RevokeStmt::PrivilegeType::CUSTOM) {
+                    // Found valid three-word privilege
+                    full_priv_text = three_word;
+                    priv_type = three_word_type;
+                    advance();  // Consume first word
+                    advance();  // Consume second word
+                    advance();  // Consume third word
+                    found_multiword = true;
+                }
+            }
+
+            // Try two-word combination if three-word didn't match
+            if (!found_multiword && pos_ + 1 < tokens_.size()) {
+                std::string next_text(tokens_[pos_ + 1].text);
+                for (char& c : next_text) if (c >= 'a' && c <= 'z') c = c - 32;
+
+                std::string two_word = priv_text + " " + next_text;
+                auto two_word_type = parse_privilege_type(two_word);
+
+                if (two_word_type != RevokeStmt::PrivilegeType::CUSTOM) {
+                    // Found valid two-word privilege
+                    full_priv_text = two_word;
+                    priv_type = two_word_type;
+                    advance();  // Consume first word
+                    advance();  // Consume second word
+                    found_multiword = true;
+                }
+            }
+
+            // If no multi-word privilege found, parse as single word
+            if (!found_multiword) {
+                priv_type = parse_privilege_type(priv_text);
+                advance();  // Consume single word
+            }
+
+            // If unrecognized, treat as custom privilege
+            if (priv_type == RevokeStmt::PrivilegeType::CUSTOM) {
+                // Check if this looks like a privilege (before ON/FROM keywords)
+                if (priv_text != "ON" && priv_text != "FROM") {
+                    stmt->custom_privileges.push_back(full_priv_text);
+                } else {
+                    break;  // Hit ON or FROM, stop parsing privileges
+                }
+            }
+
+            // Handle optional PRIVILEGES keyword after ALL
+            if (priv_type == RevokeStmt::PrivilegeType::ALL) {
+                match(TokenType::PRIVILEGES);
+            }
+
+            // Check for column list: UPDATE(col1, col2) or REFERENCES(col1)
+            if ((priv_type == RevokeStmt::PrivilegeType::UPDATE ||
+                 priv_type == RevokeStmt::PrivilegeType::REFERENCES) &&
+                match(TokenType::LPAREN)) {
+
+                RevokeStmt::ColumnPrivilege col_priv;
+                col_priv.privilege = priv_type;
+
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        col_priv.columns.push_back(std::string(current().text));
+                        advance();
+                    }
+                } while (match(TokenType::COMMA));
+
+                expect(TokenType::RPAREN);
+                stmt->column_privileges.push_back(std::move(col_priv));
+                handled_column_priv = true;
+            }
+
+            // Add to privileges list (unless it was a column privilege or custom)
+            if (!handled_column_priv && priv_type != RevokeStmt::PrivilegeType::CUSTOM) {
+                stmt->privileges.push_back(priv_type);
+            }
+
+        } while (match(TokenType::COMMA));
+
+        // ON clause (optional)
+        if (match(TokenType::ON)) {
+            // Object type (TABLE, DATABASE, SCHEMA, FUNCTION, SEQUENCE, etc.)
+            if (check(TokenType::TABLE) || check(TokenType::DATABASE) ||
+                check(TokenType::SCHEMA) || check(TokenType::FUNCTION)) {
+                stmt->object_type = std::string(current().text);
+                advance();
+            } else if (current().type == TokenType::IDENTIFIER) {
+                std::string obj_type(current().text);
+                for (char& c : obj_type) if (c >= 'a' && c <= 'z') c = c - 32;
+
+                if (obj_type == "SEQUENCE" || obj_type == "VIEW" || obj_type == "PROCEDURE" ||
+                    obj_type == "ROUTINE" || obj_type == "TABLESPACE" || obj_type == "TYPE" ||
+                    obj_type == "DOMAIN" || obj_type == "FOREIGN" || obj_type == "SERVER" ||
+                    obj_type == "WAREHOUSE" || obj_type == "DATASET" || obj_type == "LOGIN") {
+                    stmt->object_type = obj_type;
+                    advance();
+
+                    if (obj_type == "FOREIGN" && current().type == TokenType::IDENTIFIER) {
+                        stmt->object_type += " " + std::string(current().text);
+                        advance();
+                        if (current().type == TokenType::IDENTIFIER) {
+                            stmt->object_type += " " + std::string(current().text);
+                            advance();
+                        }
+                    }
+
+                    // Handle "LOGIN::sa" syntax (SQL Server)
+                    if (obj_type == "LOGIN" && current().type == TokenType::DOUBLE_COLON) {
+                        advance();  // Skip ::
+                        if (current().type == TokenType::IDENTIFIER) {
+                            stmt->object_name = std::string(current().text);
+                            advance();
+                        }
+                    }
+                }
+            }
+
+            // Parse object name(s) - support multiple objects (only if not already parsed like LOGIN::sa)
+            if (stmt->object_name.empty()) {
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        std::string obj_name(current().text);
+                        advance();
+
+                        // Schema.object notation or schema.*
+                        if (match(TokenType::DOT)) {
+                            stmt->schema_name = obj_name;
+                            if (current().type == TokenType::IDENTIFIER) {
+                                obj_name = std::string(current().text);
+                                advance();
+                            } else if (current().type == TokenType::STAR) {
+                                // Handle wildcard: schema.*
+                                obj_name = "*";
+                                advance();
+                            }
+                        }
+
+                        if (stmt->object_name.empty()) {
+                            stmt->object_name = obj_name;
+                        } else {
+                            stmt->object_list.push_back(obj_name);
+                        }
+                    } else if (current().type == TokenType::STAR) {
+                        // Handle standalone wildcard: *
+                        std::string obj_name = "*";
+                        advance();
+                        if (stmt->object_name.empty()) {
+                            stmt->object_name = obj_name;
+                        } else {
+                            stmt->object_list.push_back(obj_name);
+                        }
+                    }
+                } while (match(TokenType::COMMA));
+            }
         }
 
         // FROM clause (grantees)
-        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FROM") {
-            advance();
+        if (check(TokenType::FROM)) {
+            advance();  // consume FROM
             do {
                 if (current().type == TokenType::IDENTIFIER) {
-                    stmt->grantees.push_back(std::string(current().text));
+                    std::string grantee(current().text);
+                    // Convert to uppercase for comparison
+                    for (char& c : grantee) if (c >= 'a' && c <= 'z') c = c - 32;
+
+                    if (grantee == "PUBLIC") {
+                        stmt->from_public = true;
+                    } else {
+                        stmt->grantees.push_back(std::string(current().text));
+                    }
                     advance();
                 }
             } while (match(TokenType::COMMA));
         }
 
-        // CASCADE option
+        // CASCADE / RESTRICT
         if (current().type == TokenType::IDENTIFIER) {
             std::string kw(current().text);
             if (kw == "CASCADE" || kw == "cascade") {
                 stmt->cascade = true;
+                advance();
+            } else if (kw == "RESTRICT" || kw == "restrict") {
+                stmt->restrict = true;
                 advance();
             }
         }

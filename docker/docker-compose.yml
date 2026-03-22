@@ -1,5 +1,3 @@
-version: '3.8'
-
 x-common-env: &common-env
   CCACHE_DIR: /cache/ccache
   CCACHE_MAXSIZE: 5G
@@ -69,11 +67,11 @@ services:
       dockerfile: docker/Dockerfile
       target: wheel-builder
     volumes:
-      - ../dist:/workspace/dist:delegated
+      - ../dist:/workspace/dist-output:delegated
     environment:
       <<: *common-env
     working_dir: /workspace
-    command: bash -c "ls -lh dist/"
+    command: bash -c "cp -v dist/*.whl dist-output/ && ls -lh dist-output/"
 
   # Interactive development shell with all tools
   dev:

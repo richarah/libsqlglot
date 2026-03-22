@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.21)
-project(libsqlglot VERSION 0.2.6 LANGUAGES CXX)
+project(libsqlglot VERSION 0.2.9 LANGUAGES CXX)
 
 include(CheckCXXCompilerFlag)
 

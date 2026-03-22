@@ -100,7 +100,7 @@ FROM builder AS wheel-builder
 RUN pip3 install --break-system-packages --no-cache-dir build wheel && \
     python3 -m build --wheel && \
     cd dist && \
-    mv libsqlglot-*-linux_x86_64.whl libsqlglot-0.2.6-cp312-cp312-manylinux_2_35_x86_64.whl
+    mv libsqlglot-*-linux_x86_64.whl libsqlglot-0.2.9-cp312-cp312-manylinux_2_35_x86_64.whl
 
 # Development environment - includes all tools
 FROM builder-base AS dev

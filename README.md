@@ -144,6 +144,7 @@ Requires C++26 (GCC 14+ with `-freflection`) and CMake 3.21+.
 **C++26 features used:**
 - **Keyword reflection** (`std::meta`): Auto-generates 300+ keyword mappings from `TokenType` enum at compile time. Zero maintenance, impossible to desync.
 - **Dialect reflection**: Build-time code generation parses the `Dialect` enum and generates compile-time mappings (CMake → Python script → generated header). When GCC fixes the reflection bug, will switch to pure C++26 reflection.
+- **ExprType bindings**: Python bindings auto-generated from the C++ `ExprType` enum (124 values). Run `python3 scripts/generate_expr_type_bindings.py > src/python/expr_type_bindings_generated.h` after modifying `expression.h`.
 - **Advanced constexpr**: Perfect hash tables, compile-time string processing.
 
 ### Docker (Recommended)

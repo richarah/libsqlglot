@@ -108,24 +108,9 @@ NB_MODULE(_libsqlglot, m) {
     }
     dialect_enum.export_values();
 
-    // ExprType enum – exposing commonly used types
-    nb::enum_<ExprType>(m, "ExprType")
-        .value("LITERAL", ExprType::LITERAL)
-        .value("COLUMN", ExprType::COLUMN)
-        .value("STAR", ExprType::STAR)
-        .value("TABLE_REF", ExprType::TABLE_REF)
-        .value("SELECT_STMT", ExprType::SELECT_STMT)
-        .value("FUNCTION_CALL", ExprType::FUNCTION_CALL)
-        .value("BINARY_OP", ExprType::EQ)  // Expose at least one binary op
-        .value("AND", ExprType::AND)
-        .value("OR", ExprType::OR)
-        .value("EQ", ExprType::EQ)
-        .value("NEQ", ExprType::NEQ)
-        .value("LT", ExprType::LT)
-        .value("LTE", ExprType::LTE)
-        .value("GT", ExprType::GT)
-        .value("GTE", ExprType::GTE)
-        .export_values();
+    // ExprType enum – auto-generated bindings
+    // To regenerate: python3 scripts/generate_expr_type_bindings.py > src/python/expr_type_bindings_generated.h
+#include "expr_type_bindings_generated.h"
 
     // Expression base
     nb::class_<Expression>(m, "Expression")

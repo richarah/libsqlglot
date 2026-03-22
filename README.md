@@ -217,7 +217,7 @@ cmake --build build
 
 ## Architecture
 
-Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (2952 lines), `generator.h` (1643), `expression.h` (1105, 105 expression types). Entry point is `transpiler.h` (86 lines).
+Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (2958 lines), `generator.h` (1643), `expression.h` (1105, 105 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 

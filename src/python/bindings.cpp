@@ -28,7 +28,69 @@ static Arena& get_arena() {
 static Expression* parse_expr(const std::string& sql) {
     Arena& arena = get_arena();
     Parser parser(arena, sql);
-    return parser.parse();
+    return parser.parse_expression_public();
+}
+
+// Helper function to recursively traverse and collect matching expressions
+static void find_all_recursive(Expression* expr, ExprType type_to_find, std::vector<Expression*>& results) {
+    if (!expr) return;
+
+    if (expr->type == type_to_find) {
+        results.push_back(expr);
+    }
+
+    // Traverse based on expression type
+    if (auto* select = dynamic_cast<SelectStmt*>(expr)) {
+        for (auto* col : select->columns) find_all_recursive(col, type_to_find, results);
+        find_all_recursive(select->from, type_to_find, results);
+        find_all_recursive(select->where, type_to_find, results);
+        for (auto* gb : select->group_by) find_all_recursive(gb, type_to_find, results);
+        find_all_recursive(select->having, type_to_find, results);
+        find_all_recursive(select->qualify, type_to_find, results);
+        for (auto* ob : select->order_by) find_all_recursive(ob, type_to_find, results);
+        find_all_recursive(select->limit, type_to_find, results);
+        find_all_recursive(select->offset, type_to_find, results);
+    } else if (auto* binop = dynamic_cast<BinaryOp*>(expr)) {
+        find_all_recursive(binop->left, type_to_find, results);
+        find_all_recursive(binop->right, type_to_find, results);
+    } else if (auto* unop = dynamic_cast<UnaryOp*>(expr)) {
+        find_all_recursive(unop->operand, type_to_find, results);
+    } else if (auto* func = dynamic_cast<FunctionCall*>(expr)) {
+        for (auto* arg : func->args) find_all_recursive(arg, type_to_find, results);
+    } else if (auto* alias = dynamic_cast<Alias*>(expr)) {
+        find_all_recursive(alias->expr, type_to_find, results);
+    }
+    // Add more types as needed
+}
+
+// Helper function to walk all nodes in the tree
+static void walk_recursive(Expression* expr, const std::function<void(Expression*)>& callback) {
+    if (!expr) return;
+
+    callback(expr);  // Call the callback on this node
+
+    // Traverse based on expression type
+    if (auto* select = dynamic_cast<SelectStmt*>(expr)) {
+        for (auto* col : select->columns) walk_recursive(col, callback);
+        walk_recursive(select->from, callback);
+        walk_recursive(select->where, callback);
+        for (auto* gb : select->group_by) walk_recursive(gb, callback);
+        walk_recursive(select->having, callback);
+        walk_recursive(select->qualify, callback);
+        for (auto* ob : select->order_by) walk_recursive(ob, callback);
+        walk_recursive(select->limit, callback);
+        walk_recursive(select->offset, callback);
+    } else if (auto* binop = dynamic_cast<BinaryOp*>(expr)) {
+        walk_recursive(binop->left, callback);
+        walk_recursive(binop->right, callback);
+    } else if (auto* unop = dynamic_cast<UnaryOp*>(expr)) {
+        walk_recursive(unop->operand, callback);
+    } else if (auto* func = dynamic_cast<FunctionCall*>(expr)) {
+        for (auto* arg : func->args) walk_recursive(arg, callback);
+    } else if (auto* alias = dynamic_cast<Alias*>(expr)) {
+        walk_recursive(alias->expr, callback);
+    }
+    // Add more types as needed
 }
 
 NB_MODULE(_libsqlglot, m) {
@@ -46,11 +108,23 @@ NB_MODULE(_libsqlglot, m) {
     }
     dialect_enum.export_values();
 
-    // ExprType enum (unchanged)
+    // ExprType enum – exposing commonly used types
     nb::enum_<ExprType>(m, "ExprType")
         .value("LITERAL", ExprType::LITERAL)
         .value("COLUMN", ExprType::COLUMN)
-        // ... all other values ...
+        .value("STAR", ExprType::STAR)
+        .value("TABLE_REF", ExprType::TABLE_REF)
+        .value("SELECT_STMT", ExprType::SELECT_STMT)
+        .value("FUNCTION_CALL", ExprType::FUNCTION_CALL)
+        .value("BINARY_OP", ExprType::EQ)  // Expose at least one binary op
+        .value("AND", ExprType::AND)
+        .value("OR", ExprType::OR)
+        .value("EQ", ExprType::EQ)
+        .value("NEQ", ExprType::NEQ)
+        .value("LT", ExprType::LT)
+        .value("LTE", ExprType::LTE)
+        .value("GT", ExprType::GT)
+        .value("GTE", ExprType::GTE)
         .export_values();
 
     // Expression base
@@ -71,12 +145,19 @@ NB_MODULE(_libsqlglot, m) {
             return Generator::generate(expr, d, opts);
         }, nb::arg("dialect") = nb::none(), nb::arg("pretty") = false)
         .def("find_all", [](Expression* expr, ExprType type_to_find) -> nb::list {
-            nb::list result;
-            // TODO: Implement find_all traversal
-            return result;
+            std::vector<Expression*> results;
+            find_all_recursive(expr, type_to_find, results);
+            nb::list py_results;
+            for (auto* result : results) {
+                py_results.append(result);
+            }
+            return py_results;
         }, nb::arg("expr_type"))
         .def("walk", [](Expression* expr, nb::object func) {
-            // ... same as before ...
+            auto callback = [&func](Expression* node) {
+                func(node);
+            };
+            walk_recursive(expr, callback);
         }, nb::arg("callback"));
 
     // Column

@@ -2003,6 +2003,12 @@ public:
         error("Unexpected token - expected SQL statement (SELECT, INSERT, UPDATE, DELETE, CREATE, etc.)");
     }
 
+    /// Public wrapper for parse_expression() - useful for parsing standalone expressions
+    /// (e.g., WHERE conditions, calculated fields, etc.)
+    Expression* parse_expression_public() {
+        return parse_expression();
+    }
+
 private:
     /// RAII guard for recursion depth tracking
     struct RecursionGuard {

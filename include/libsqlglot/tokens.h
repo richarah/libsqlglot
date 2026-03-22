@@ -144,6 +144,7 @@ enum class TokenType : uint16_t {
     UNNEST, FLATTEN,
     OPTIONS, CLUSTER,
     CURRENT_DATE, CURRENT_TIME, CURRENT_TIMESTAMP,
+    MODEL, ML, PREDICT, EVALUATE, TRAINING_INFO,  // BigQuery ML keywords
 
     // Snowflake-specific
     VARIANT, OBJECT,

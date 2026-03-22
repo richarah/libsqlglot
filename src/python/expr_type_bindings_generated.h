@@ -2,7 +2,7 @@
 // DO NOT EDIT MANUALLY - regenerate using:
 //   python3 scripts/generate_expr_type_bindings.py > src/python/expr_type_bindings_generated.h
 // Source: include/libsqlglot/expression.h
-// Total values: 124
+// Total values: 134
 
 // ExprType enum – ALL values auto-generated from expression.h
 nb::enum_<ExprType>(m, "ExprType")
@@ -81,6 +81,10 @@ nb::enum_<ExprType>(m, "ExprType")
     .value("SHOW_STMT", ExprType::SHOW_STMT)
     .value("DESCRIBE_STMT", ExprType::DESCRIBE_STMT)
     .value("EXPLAIN_STMT", ExprType::EXPLAIN_STMT)
+    .value("ANALYZE_STMT", ExprType::ANALYZE_STMT)
+    .value("VACUUM_STMT", ExprType::VACUUM_STMT)
+    .value("GRANT_STMT", ExprType::GRANT_STMT)
+    .value("REVOKE_STMT", ExprType::REVOKE_STMT)
     .value("CTE", ExprType::CTE)
     .value("WITH_CLAUSE", ExprType::WITH_CLAUSE)
     .value("WINDOW_FUNCTION", ExprType::WINDOW_FUNCTION)
@@ -114,6 +118,7 @@ nb::enum_<ExprType>(m, "ExprType")
     .value("CONTINUE_STMT", ExprType::CONTINUE_STMT)
     .value("RETURN_STMT", ExprType::RETURN_STMT)
     .value("BEGIN_END_BLOCK", ExprType::BEGIN_END_BLOCK)
+    .value("DO_BLOCK", ExprType::DO_BLOCK)
     .value("EXCEPTION_BLOCK", ExprType::EXCEPTION_BLOCK)
     .value("ASSIGNMENT_STMT", ExprType::ASSIGNMENT_STMT)
     .value("DELIMITER_STMT", ExprType::DELIMITER_STMT)
@@ -126,6 +131,11 @@ nb::enum_<ExprType>(m, "ExprType")
     .value("PARTITION_SPEC", ExprType::PARTITION_SPEC)
     .value("CREATE_TABLESPACE", ExprType::CREATE_TABLESPACE)
     .value("CREATE_INDEX_ADV", ExprType::CREATE_INDEX_ADV)
+    .value("CREATE_MODEL", ExprType::CREATE_MODEL)
+    .value("DROP_MODEL", ExprType::DROP_MODEL)
+    .value("ML_PREDICT", ExprType::ML_PREDICT)
+    .value("ML_EVALUATE", ExprType::ML_EVALUATE)
+    .value("ML_TRAINING_INFO", ExprType::ML_TRAINING_INFO)
     .value("ALIAS", ExprType::ALIAS)
     .value("CAST", ExprType::CAST)
     .value("ANY_EXPR", ExprType::ANY_EXPR)

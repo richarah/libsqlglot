@@ -10,7 +10,9 @@ Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls
 
 Anywhere SQL hits a hot path: proxies, sidecars, migration tools, linters, etc. Also a replacement for every regex that's pretending to be a parser.
 
-#### Inspiration
+#### Why this exists
+
+libsqlglot was born out of a gap in the C++ ecosystem: the lack of native tooling for high-speed, hassle-free parsing & transpiling between dozens of SQL dialects.
 
 Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it: the algorithm was already O(n), the runtime wasn't.
 
@@ -216,7 +218,7 @@ cmake --build build
 
 ## Architecture
 
-Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (2958 lines), `generator.h` (1643), `expression.h` (1105, 105 expression types). Entry point is `transpiler.h` (86 lines).
+Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (3479 lines), `generator.h` (1913), `expression.h` (1248, 115 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 

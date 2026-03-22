@@ -229,50 +229,63 @@ NB_MODULE(_libsqlglot, m) {
         return Generator::generate(expr, d, opts);
     }, nb::arg("expr"), nb::arg("dialect") = nb::none(), nb::arg("pretty") = false);
 
-    // High-level parse functions
+    // High-level parse functions - convert all C++ exceptions to Python RuntimeError
     m.def("parse", [](const std::string& sql) -> Expression* {
-        Parser parser(get_arena(), sql);
-        return parser.parse();
-    }, nb::arg("sql"), nb::rv_policy::reference);
-    m.def("parse_one", [](const std::string& sql) -> Expression* {
-        Parser parser(get_arena(), sql);
-        return parser.parse();
+        try {
+            Parser parser(get_arena(), sql);
+            return parser.parse();
+        } catch (const std::exception& e) {
+            throw std::runtime_error(e.what());
+        }
     }, nb::arg("sql"), nb::rv_policy::reference);
 
-    // Transpile
+    m.def("parse_one", [](const std::string& sql) -> Expression* {
+        try {
+            Parser parser(get_arena(), sql);
+            return parser.parse();
+        } catch (const std::exception& e) {
+            throw std::runtime_error(e.what());
+        }
+    }, nb::arg("sql"), nb::rv_policy::reference);
+
+    // Transpile - convert all C++ exceptions to Python RuntimeError
     m.def("transpile", [](const std::string& sql,
                           nb::object from_dialect = nb::none(),
                           nb::object to_dialect = nb::none(),
                           nb::object read = nb::none(),
                           nb::object write = nb::none()) -> std::string {
-        Dialect from_d = Dialect::ANSI;
-        Dialect to_d = Dialect::ANSI;
+        try {
+            Dialect from_d = Dialect::ANSI;
+            Dialect to_d = Dialect::ANSI;
 
-        if (!read.is_none()) {
-            if (nb::isinstance<nb::str>(read))
-                from_d = dialects::from_name(nb::cast<std::string>(read));
-            else if (nb::isinstance<nb::int_>(read))
-                from_d = static_cast<Dialect>(nb::cast<int>(read));
-        } else if (!from_dialect.is_none()) {
-            if (nb::isinstance<nb::str>(from_dialect))
-                from_d = dialects::from_name(nb::cast<std::string>(from_dialect));
-            else if (nb::isinstance<nb::int_>(from_dialect))
-                from_d = static_cast<Dialect>(nb::cast<int>(from_dialect));
+            if (!read.is_none()) {
+                if (nb::isinstance<nb::str>(read))
+                    from_d = dialects::from_name(nb::cast<std::string>(read));
+                else if (nb::isinstance<nb::int_>(read))
+                    from_d = static_cast<Dialect>(nb::cast<int>(read));
+            } else if (!from_dialect.is_none()) {
+                if (nb::isinstance<nb::str>(from_dialect))
+                    from_d = dialects::from_name(nb::cast<std::string>(from_dialect));
+                else if (nb::isinstance<nb::int_>(from_dialect))
+                    from_d = static_cast<Dialect>(nb::cast<int>(from_dialect));
+            }
+
+            if (!write.is_none()) {
+                if (nb::isinstance<nb::str>(write))
+                    to_d = dialects::from_name(nb::cast<std::string>(write));
+                else if (nb::isinstance<nb::int_>(write))
+                    to_d = static_cast<Dialect>(nb::cast<int>(write));
+            } else if (!to_dialect.is_none()) {
+                if (nb::isinstance<nb::str>(to_dialect))
+                    to_d = dialects::from_name(nb::cast<std::string>(to_dialect));
+                else if (nb::isinstance<nb::int_>(to_dialect))
+                    to_d = static_cast<Dialect>(nb::cast<int>(to_dialect));
+            }
+
+            return Transpiler::transpile(sql, from_d, to_d);
+        } catch (const std::exception& e) {
+            throw std::runtime_error(e.what());
         }
-
-        if (!write.is_none()) {
-            if (nb::isinstance<nb::str>(write))
-                to_d = dialects::from_name(nb::cast<std::string>(write));
-            else if (nb::isinstance<nb::int_>(write))
-                to_d = static_cast<Dialect>(nb::cast<int>(write));
-        } else if (!to_dialect.is_none()) {
-            if (nb::isinstance<nb::str>(to_dialect))
-                to_d = dialects::from_name(nb::cast<std::string>(to_dialect));
-            else if (nb::isinstance<nb::int_>(to_dialect))
-                to_d = static_cast<Dialect>(nb::cast<int>(to_dialect));
-        }
-
-        return Transpiler::transpile(sql, from_d, to_d);
     }, nb::arg("sql"), nb::arg("from_dialect") = nb::none(), nb::arg("to_dialect") = nb::none(),
        nb::arg("read") = nb::none(), nb::arg("write") = nb::none());
 

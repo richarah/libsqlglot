@@ -91,6 +91,10 @@ enum class ExprType : uint16_t {
     SHOW_STMT,
     DESCRIBE_STMT,
     EXPLAIN_STMT,
+    ANALYZE_STMT,       // ANALYZE table
+    VACUUM_STMT,        // VACUUM table
+    GRANT_STMT,         // GRANT privileges
+    REVOKE_STMT,        // REVOKE privileges
 
     // Advanced SELECT features
     CTE,                // Common Table Expression (WITH clause)
@@ -132,6 +136,7 @@ enum class ExprType : uint16_t {
     CONTINUE_STMT,      // CONTINUE statement
     RETURN_STMT,        // RETURN expression
     BEGIN_END_BLOCK,    // BEGIN ... END block (T-SQL, MySQL, PL/SQL)
+    DO_BLOCK,           // DO $$ ... $$ (PostgreSQL anonymous block)
     EXCEPTION_BLOCK,    // EXCEPTION block (PL/pgSQL, PL/SQL)
     ASSIGNMENT_STMT,    // Variable assignment (SET var = val, var := val)
     DELIMITER_STMT,     // DELIMITER command (MySQL)
@@ -148,6 +153,13 @@ enum class ExprType : uint16_t {
     PARTITION_SPEC,     // Table partitioning specification
     CREATE_TABLESPACE,  // CREATE TABLESPACE
     CREATE_INDEX_ADV,   // Advanced CREATE INDEX (partial, expression, concurrent)
+
+    // BigQuery ML & Advanced Analytics
+    CREATE_MODEL,       // CREATE MODEL (BigQuery ML)
+    DROP_MODEL,         // DROP MODEL
+    ML_PREDICT,         // ML.PREDICT() function
+    ML_EVALUATE,        // ML.EVALUATE() function
+    ML_TRAINING_INFO,   // ML.TRAINING_INFO() function
 
     // Other
     ALIAS,
@@ -1100,6 +1112,137 @@ struct CreateIndexAdvStmt : Expression {
 
     CreateIndexAdvStmt()
         : Expression(ExprType::CREATE_INDEX_ADV), where_clause(nullptr) {}
+};
+
+// ============================================================================
+// NEW UTILITY & PERMISSIONS STATEMENTS
+// ============================================================================
+
+/// DO block (PostgreSQL anonymous code block)
+struct DoBlockStmt : Expression {
+    std::string language;                         // plpgsql, sql, etc.
+    std::vector<Expression*> statements;          // Block body
+
+    DoBlockStmt()
+        : Expression(ExprType::DO_BLOCK) {}
+};
+
+/// ANALYZE statement
+struct AnalyzeStmt : Expression {
+    std::string table;                            // Optional table name
+    std::vector<std::string> columns;             // Optional column list
+
+    AnalyzeStmt()
+        : Expression(ExprType::ANALYZE_STMT) {}
+};
+
+/// VACUUM statement (PostgreSQL-specific)
+struct VacuumStmt : Expression {
+    std::string table;                            // Optional table name
+    std::vector<std::string> columns;             // Optional column list (requires ANALYZE)
+
+    // Boolean options
+    bool full = false;
+    bool freeze = false;
+    bool verbose = false;
+    bool analyze = false;
+    bool disable_page_skipping = false;
+    bool skip_locked = false;
+    bool truncate = true;                         // Default is true
+
+    // Integer options
+    int parallel_workers = -1;                    // -1 means not specified
+    int buffer_usage_limit = -1;                  // -1 means not specified (in KB)
+
+    // Index cleanup: true/false/auto
+    enum class IndexCleanup { AUTO, ON, OFF };
+    IndexCleanup index_cleanup = IndexCleanup::AUTO;
+
+    // Use parenthesized syntax (PostgreSQL 9.0+) vs legacy syntax
+    bool use_parenthesized_syntax = true;
+
+    VacuumStmt()
+        : Expression(ExprType::VACUUM_STMT) {}
+};
+
+/// GRANT statement
+struct GrantStmt : Expression {
+    enum class PrivilegeType { SELECT, INSERT, UPDATE, DELETE, ALL, EXECUTE, USAGE };
+
+    std::vector<PrivilegeType> privileges;
+    std::string object_type;                      // TABLE, DATABASE, SCHEMA, FUNCTION, etc.
+    std::string object_name;
+    std::vector<std::string> grantees;            // Users/roles to grant to
+    bool with_grant_option = false;
+
+    GrantStmt()
+        : Expression(ExprType::GRANT_STMT) {}
+};
+
+/// REVOKE statement
+struct RevokeStmt : Expression {
+    using PrivilegeType = GrantStmt::PrivilegeType;
+
+    std::vector<PrivilegeType> privileges;
+    std::string object_type;
+    std::string object_name;
+    std::vector<std::string> grantees;
+    bool cascade = false;
+
+    RevokeStmt()
+        : Expression(ExprType::REVOKE_STMT) {}
+};
+
+// ============================================================================
+// BIGQUERY ML
+// ============================================================================
+
+/// CREATE MODEL statement (BigQuery ML)
+struct CreateModelStmt : Expression {
+    std::string model_name;
+    std::string model_type;                       // LINEAR_REG, LOGISTIC_REG, etc.
+    std::vector<std::pair<std::string, std::string>> options;  // Model options
+    SelectStmt* training_query;                   // Training data query
+    bool or_replace = false;
+    bool if_not_exists = false;
+
+    CreateModelStmt()
+        : Expression(ExprType::CREATE_MODEL), training_query(nullptr) {}
+};
+
+/// DROP MODEL statement
+struct DropModelStmt : Expression {
+    std::string model_name;
+    bool if_exists = false;
+
+    DropModelStmt()
+        : Expression(ExprType::DROP_MODEL) {}
+};
+
+/// ML.PREDICT function
+struct MLPredictExpr : Expression {
+    std::string model_name;
+    SelectStmt* input_query;                      // Input data for prediction
+
+    MLPredictExpr()
+        : Expression(ExprType::ML_PREDICT), input_query(nullptr) {}
+};
+
+/// ML.EVALUATE function
+struct MLEvaluateExpr : Expression {
+    std::string model_name;
+    SelectStmt* evaluation_query;                 // Evaluation data
+
+    MLEvaluateExpr()
+        : Expression(ExprType::ML_EVALUATE), evaluation_query(nullptr) {}
+};
+
+/// ML.TRAINING_INFO function
+struct MLTrainingInfoExpr : Expression {
+    std::string model_name;
+
+    MLTrainingInfoExpr()
+        : Expression(ExprType::ML_TRAINING_INFO) {}
 };
 
 } // namespace libsqlglot

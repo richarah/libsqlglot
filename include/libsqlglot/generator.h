@@ -300,6 +300,36 @@ private:
             case ExprType::RAISE_STMT:
                 visit_raise(static_cast<const RaiseStmt*>(expr));
                 break;
+            case ExprType::DO_BLOCK:
+                visit_do_block(static_cast<const DoBlockStmt*>(expr));
+                break;
+            case ExprType::ANALYZE_STMT:
+                visit_analyze(static_cast<const AnalyzeStmt*>(expr));
+                break;
+            case ExprType::VACUUM_STMT:
+                visit_vacuum(static_cast<const VacuumStmt*>(expr));
+                break;
+            case ExprType::GRANT_STMT:
+                visit_grant(static_cast<const GrantStmt*>(expr));
+                break;
+            case ExprType::REVOKE_STMT:
+                visit_revoke(static_cast<const RevokeStmt*>(expr));
+                break;
+            case ExprType::CREATE_MODEL:
+                visit_create_model(static_cast<const CreateModelStmt*>(expr));
+                break;
+            case ExprType::DROP_MODEL:
+                visit_drop_model(static_cast<const DropModelStmt*>(expr));
+                break;
+            case ExprType::ML_PREDICT:
+                visit_ml_predict(static_cast<const MLPredictExpr*>(expr));
+                break;
+            case ExprType::ML_EVALUATE:
+                visit_ml_evaluate(static_cast<const MLEvaluateExpr*>(expr));
+                break;
+            case ExprType::ML_TRAINING_INFO:
+                visit_ml_training_info(static_cast<const MLTrainingInfoExpr*>(expr));
+                break;
             default:
                 // Unsupported node types are silently ignored to avoid breaking existing functionality
                 break;
@@ -1614,6 +1644,246 @@ private:
         }
     }
 
+    void visit_do_block(const DoBlockStmt* stmt) {
+        sql_ << "DO";
+        if (!stmt->language.empty() && stmt->language != "plpgsql") {
+            sql_ << " LANGUAGE " << stmt->language;
+        }
+        sql_ << " $$";
+        for (auto* s : stmt->statements) {
+            sql_ << " ";
+            visit(s);
+            sql_ << ";";
+        }
+        sql_ << " $$";
+    }
+
+    void visit_analyze(const AnalyzeStmt* stmt) {
+        sql_ << "ANALYZE";
+        if (!stmt->table.empty()) {
+            sql_ << " TABLE " << stmt->table;
+            if (!stmt->columns.empty()) {
+                sql_ << " (";
+                for (size_t i = 0; i < stmt->columns.size(); ++i) {
+                    if (i > 0) sql_ << ", ";
+                    sql_ << stmt->columns[i];
+                }
+                sql_ << ")";
+            }
+        }
+    }
+
+    void visit_vacuum(const VacuumStmt* stmt) {
+        sql_ << "VACUUM";
+
+        // Generate based on syntax preference
+        if (stmt->use_parenthesized_syntax) {
+            // Modern PostgreSQL 9.0+ syntax: VACUUM (option [, ...])
+            bool has_options = stmt->full || stmt->freeze || stmt->verbose || stmt->analyze ||
+                              stmt->disable_page_skipping || stmt->skip_locked ||
+                              stmt->index_cleanup != VacuumStmt::IndexCleanup::AUTO ||
+                              !stmt->truncate || stmt->parallel_workers != -1 ||
+                              stmt->buffer_usage_limit != -1;
+
+            if (has_options) {
+                sql_ << " (";
+                bool first = true;
+
+                auto add_option = [&](const std::string& opt) {
+                    if (!first) sql_ << ", ";
+                    sql_ << opt;
+                    first = false;
+                };
+
+                if (stmt->full) add_option("FULL");
+                if (stmt->freeze) add_option("FREEZE");
+                if (stmt->verbose) add_option("VERBOSE");
+                if (stmt->analyze) add_option("ANALYZE");
+                if (stmt->disable_page_skipping) add_option("DISABLE_PAGE_SKIPPING");
+                if (stmt->skip_locked) add_option("SKIP_LOCKED");
+
+                if (stmt->index_cleanup != VacuumStmt::IndexCleanup::AUTO) {
+                    if (!first) sql_ << ", ";
+                    sql_ << "INDEX_CLEANUP ";
+                    switch (stmt->index_cleanup) {
+                        case VacuumStmt::IndexCleanup::ON: sql_ << "ON"; break;
+                        case VacuumStmt::IndexCleanup::OFF: sql_ << "OFF"; break;
+                        default: sql_ << "AUTO"; break;
+                    }
+                    first = false;
+                }
+
+                if (!stmt->truncate) {
+                    if (!first) sql_ << ", ";
+                    sql_ << "TRUNCATE OFF";
+                    first = false;
+                }
+
+                if (stmt->parallel_workers != -1) {
+                    if (!first) sql_ << ", ";
+                    sql_ << "PARALLEL " << stmt->parallel_workers;
+                    first = false;
+                }
+
+                if (stmt->buffer_usage_limit != -1) {
+                    if (!first) sql_ << ", ";
+                    sql_ << "BUFFER_USAGE_LIMIT " << stmt->buffer_usage_limit;
+                    first = false;
+                }
+
+                sql_ << ")";
+            }
+        } else {
+            // Legacy syntax: VACUUM [ FULL ] [ FREEZE ] [ VERBOSE ] [ ANALYZE ]
+            if (stmt->full) sql_ << " FULL";
+            if (stmt->freeze) sql_ << " FREEZE";
+            if (stmt->verbose) sql_ << " VERBOSE";
+            if (stmt->analyze) sql_ << " ANALYZE";
+        }
+
+        // Table name
+        if (!stmt->table.empty()) {
+            sql_ << " " << stmt->table;
+
+            // Column list (only with ANALYZE)
+            if (stmt->analyze && !stmt->columns.empty()) {
+                sql_ << " (";
+                for (size_t i = 0; i < stmt->columns.size(); ++i) {
+                    if (i > 0) sql_ << ", ";
+                    sql_ << stmt->columns[i];
+                }
+                sql_ << ")";
+            }
+        }
+    }
+
+    void visit_grant(const GrantStmt* stmt) {
+        sql_ << "GRANT ";
+
+        // Privileges
+        for (size_t i = 0; i < stmt->privileges.size(); ++i) {
+            if (i > 0) sql_ << ", ";
+            switch (stmt->privileges[i]) {
+                case GrantStmt::PrivilegeType::SELECT: sql_ << "SELECT"; break;
+                case GrantStmt::PrivilegeType::INSERT: sql_ << "INSERT"; break;
+                case GrantStmt::PrivilegeType::UPDATE: sql_ << "UPDATE"; break;
+                case GrantStmt::PrivilegeType::DELETE: sql_ << "DELETE"; break;
+                case GrantStmt::PrivilegeType::ALL: sql_ << "ALL PRIVILEGES"; break;
+                case GrantStmt::PrivilegeType::EXECUTE: sql_ << "EXECUTE"; break;
+                case GrantStmt::PrivilegeType::USAGE: sql_ << "USAGE"; break;
+            }
+        }
+
+        // ON clause
+        sql_ << " ON ";
+        if (!stmt->object_type.empty()) {
+            sql_ << stmt->object_type << " ";
+        }
+        sql_ << stmt->object_name;
+
+        // TO clause
+        sql_ << " TO ";
+        for (size_t i = 0; i < stmt->grantees.size(); ++i) {
+            if (i > 0) sql_ << ", ";
+            sql_ << stmt->grantees[i];
+        }
+
+        if (stmt->with_grant_option) {
+            sql_ << " WITH GRANT OPTION";
+        }
+    }
+
+    void visit_revoke(const RevokeStmt* stmt) {
+        sql_ << "REVOKE ";
+
+        // Privileges
+        for (size_t i = 0; i < stmt->privileges.size(); ++i) {
+            if (i > 0) sql_ << ", ";
+            switch (stmt->privileges[i]) {
+                case RevokeStmt::PrivilegeType::SELECT: sql_ << "SELECT"; break;
+                case RevokeStmt::PrivilegeType::INSERT: sql_ << "INSERT"; break;
+                case RevokeStmt::PrivilegeType::UPDATE: sql_ << "UPDATE"; break;
+                case RevokeStmt::PrivilegeType::DELETE: sql_ << "DELETE"; break;
+                case RevokeStmt::PrivilegeType::ALL: sql_ << "ALL PRIVILEGES"; break;
+                case RevokeStmt::PrivilegeType::EXECUTE: sql_ << "EXECUTE"; break;
+                case RevokeStmt::PrivilegeType::USAGE: sql_ << "USAGE"; break;
+            }
+        }
+
+        // ON clause
+        sql_ << " ON ";
+        if (!stmt->object_type.empty()) {
+            sql_ << stmt->object_type << " ";
+        }
+        sql_ << stmt->object_name;
+
+        // FROM clause
+        sql_ << " FROM ";
+        for (size_t i = 0; i < stmt->grantees.size(); ++i) {
+            if (i > 0) sql_ << ", ";
+            sql_ << stmt->grantees[i];
+        }
+
+        if (stmt->cascade) {
+            sql_ << " CASCADE";
+        }
+    }
+
+    void visit_create_model(const CreateModelStmt* stmt) {
+        sql_ << "CREATE ";
+        if (stmt->or_replace) {
+            sql_ << "OR REPLACE ";
+        }
+        sql_ << "MODEL ";
+        if (stmt->if_not_exists) {
+            sql_ << "IF NOT EXISTS ";
+        }
+        sql_ << stmt->model_name;
+
+        if (!stmt->options.empty()) {
+            sql_ << " OPTIONS(";
+            for (size_t i = 0; i < stmt->options.size(); ++i) {
+                if (i > 0) sql_ << ", ";
+                sql_ << stmt->options[i].first << "=" << stmt->options[i].second;
+            }
+            sql_ << ")";
+        }
+
+        if (stmt->training_query) {
+            sql_ << " AS ";
+            visit_select(stmt->training_query);
+        }
+    }
+
+    void visit_drop_model(const DropModelStmt* stmt) {
+        sql_ << "DROP MODEL ";
+        if (stmt->if_exists) {
+            sql_ << "IF EXISTS ";
+        }
+        sql_ << stmt->model_name;
+    }
+
+    void visit_ml_predict(const MLPredictExpr* stmt) {
+        sql_ << "ML.PREDICT(MODEL " << stmt->model_name;
+        if (stmt->input_query) {
+            sql_ << ", ";
+            visit_select(stmt->input_query);
+        }
+        sql_ << ")";
+    }
+
+    void visit_ml_evaluate(const MLEvaluateExpr* stmt) {
+        sql_ << "ML.EVALUATE(MODEL " << stmt->model_name;
+        if (stmt->evaluation_query) {
+            sql_ << ", ";
+            visit_select(stmt->evaluation_query);
+        }
+        sql_ << ")";
+    }
+
+    void visit_ml_training_info(const MLTrainingInfoExpr* stmt) {
+        sql_ << "ML.TRAINING_INFO(MODEL " << stmt->model_name << ")";
+    }
 
     static std::string operator_string(ExprType type) {
         switch (type) {

@@ -247,7 +247,7 @@ public:
         return stmt;
     }
 
-    /// Parse CREATE statement (dispatches to TABLE, VIEW, SCHEMA, DATABASE, PROCEDURE, FUNCTION)
+    /// Parse CREATE statement (dispatches to TABLE, VIEW, SCHEMA, DATABASE, PROCEDURE, FUNCTION, MODEL)
     Expression* parse_create_statement() {
         expect(TokenType::CREATE);
 
@@ -261,8 +261,10 @@ public:
                 return parse_create_procedure(true, or_replace);
             } else if (check(TokenType::FUNCTION)) {
                 return parse_create_procedure(false, or_replace);
+            } else if (check(TokenType::MODEL)) {
+                return parse_create_model(or_replace);
             }
-            error("CREATE OR REPLACE is only supported for VIEW, PROCEDURE, or FUNCTION");
+            error("CREATE OR REPLACE is only supported for VIEW, PROCEDURE, FUNCTION, or MODEL");
         }
 
         if (check(TokenType::TABLE)) {
@@ -277,9 +279,11 @@ public:
             return parse_create_procedure(true, or_replace);
         } else if (check(TokenType::FUNCTION)) {
             return parse_create_procedure(false, or_replace);
+        } else if (check(TokenType::MODEL)) {
+            return parse_create_model(or_replace);
         }
 
-        error_expected_after("TABLE, VIEW, SCHEMA, DATABASE, PROCEDURE, or FUNCTION", "CREATE");
+        error_expected_after("TABLE, VIEW, SCHEMA, DATABASE, PROCEDURE, FUNCTION, or MODEL", "CREATE");
     }
 
     /// Parse CREATE TABLE statement
@@ -814,7 +818,7 @@ public:
         
         return stmt;
     }
-    /// Parse DROP statement (dispatches to TABLE, VIEW, SCHEMA, DATABASE)
+    /// Parse DROP statement (dispatches to TABLE, VIEW, SCHEMA, DATABASE, MODEL)
     Expression* parse_drop_statement() {
         expect(TokenType::DROP);
 
@@ -826,9 +830,11 @@ public:
             return parse_drop_schema();
         } else if (check(TokenType::DATABASE)) {
             return parse_drop_database();
+        } else if (check(TokenType::MODEL)) {
+            return parse_drop_model();
         }
 
-        error_expected_after("TABLE, VIEW, SCHEMA, or DATABASE", "DROP");
+        error_expected_after("TABLE, VIEW, SCHEMA, DATABASE, or MODEL", "DROP");
     }
 
     /// Parse DROP TABLE statement
@@ -931,6 +937,76 @@ public:
             error_expected_after("database name", "DROP DATABASE");
         }
         stmt->name = std::string(current().text);
+        advance();
+
+        return stmt;
+    }
+
+    /// Parse CREATE MODEL statement (BigQuery ML)
+    CreateModelStmt* parse_create_model(bool or_replace) {
+        auto stmt = arena_.create<CreateModelStmt>();
+        stmt->or_replace = or_replace;
+
+        expect(TokenType::MODEL);
+
+        // IF NOT EXISTS (mutually exclusive with OR REPLACE)
+        if (match(TokenType::IF_KW)) {
+            expect(TokenType::NOT);
+            expect(TokenType::EXISTS);
+            stmt->if_not_exists = true;
+        }
+
+        // Model name
+        if (current().type != TokenType::IDENTIFIER) {
+            error_expected_after("model name", "CREATE MODEL");
+        }
+        stmt->model_name = std::string(current().text);
+        advance();
+
+        // OPTIONS clause
+        if (match(TokenType::OPTIONS)) {
+            expect(TokenType::LPAREN);
+            do {
+                // Parse key=value pairs
+                if (current().type == TokenType::IDENTIFIER) {
+                    std::string key = std::string(current().text);
+                    advance();
+                    expect(TokenType::EQ);
+                    std::string value;
+                    if (current().type == TokenType::STRING || current().type == TokenType::IDENTIFIER) {
+                        value = std::string(current().text);
+                        advance();
+                    }
+                    stmt->options.emplace_back(key, value);
+                }
+            } while (match(TokenType::COMMA));
+            expect(TokenType::RPAREN);
+        }
+
+        // AS SELECT clause (training query)
+        if (match(TokenType::AS)) {
+            stmt->training_query = static_cast<SelectStmt*>(parse_select());
+        }
+
+        return stmt;
+    }
+
+    /// Parse DROP MODEL statement (BigQuery ML)
+    DropModelStmt* parse_drop_model() {
+        auto stmt = arena_.create<DropModelStmt>();
+        expect(TokenType::MODEL);
+
+        // IF EXISTS
+        if (match(TokenType::IF_KW)) {
+            expect(TokenType::EXISTS);
+            stmt->if_exists = true;
+        }
+
+        // Model name
+        if (current().type != TokenType::IDENTIFIER) {
+            error_expected_after("model name", "DROP MODEL");
+        }
+        stmt->model_name = std::string(current().text);
         advance();
 
         return stmt;
@@ -1097,6 +1173,366 @@ public:
         if (current().type == TokenType::IDENTIFIER) {
             stmt->name = std::string(current().text);
             advance();
+        }
+
+        return stmt;
+    }
+
+    /// Parse DO block (PostgreSQL anonymous code block)
+    DoBlockStmt* parse_do() {
+        auto stmt = arena_.create<DoBlockStmt>();
+        expect(TokenType::DO);
+
+        // Optional LANGUAGE specification
+        if (match(TokenType::LANGUAGE)) {
+            if (current().type == TokenType::IDENTIFIER || current().type == TokenType::PLPGSQL) {
+                stmt->language = std::string(current().text);
+                advance();
+            } else {
+                error_expected_after("language name", "DO LANGUAGE");
+            }
+        } else {
+            stmt->language = "plpgsql";  // Default language
+        }
+
+        // Parse the block body (string literal or dollar-quoted)
+        if (current().type == TokenType::STRING) {
+            // String literal body - skip for simplified parsing
+            advance();
+        } else {
+            // For now, we'll parse as a BEGIN...END block if present
+            if (check(TokenType::BEGIN)) {
+                auto* block = parse_begin();
+                if (block->type == ExprType::BEGIN_END_BLOCK) {
+                    auto* begin_block = static_cast<BeginEndBlock*>(block);
+                    stmt->statements = begin_block->statements;
+                }
+            }
+        }
+
+        return stmt;
+    }
+
+    /// Parse ANALYZE statement (PostgreSQL, MySQL)
+    AnalyzeStmt* parse_analyze() {
+        auto stmt = arena_.create<AnalyzeStmt>();
+        expect(TokenType::ANALYZE);
+
+        // Optional TABLE keyword
+        match(TokenType::TABLE);
+
+        // Optional table name
+        if (current().type == TokenType::IDENTIFIER) {
+            stmt->table = std::string(current().text);
+            advance();
+
+            // Optional column list: (col1, col2, ...)
+            if (match(TokenType::LPAREN)) {
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        stmt->columns.push_back(std::string(current().text));
+                        advance();
+                    }
+                } while (match(TokenType::COMMA));
+                expect(TokenType::RPAREN);
+            }
+        }
+
+        return stmt;
+    }
+
+    /// Parse VACUUM statement (PostgreSQL) - supports both parenthesized and legacy syntax
+    VacuumStmt* parse_vacuum() {
+        auto stmt = arena_.create<VacuumStmt>();
+        expect(TokenType::VACUUM);
+
+        // Check for parenthesized syntax: VACUUM (option [, ...])
+        if (match(TokenType::LPAREN)) {
+            stmt->use_parenthesized_syntax = true;
+
+            // Parse comma-separated options
+            do {
+                if (current().type != TokenType::IDENTIFIER) {
+                    error_expected_after("option name", "VACUUM (");
+                }
+
+                std::string option(current().text);
+                advance();
+
+                // Convert to uppercase for comparison
+                for (char& c : option) {
+                    if (c >= 'a' && c <= 'z') c = c - 32;
+                }
+
+                if (option == "FULL") {
+                    stmt->full = true;
+                } else if (option == "FREEZE") {
+                    stmt->freeze = true;
+                } else if (option == "VERBOSE") {
+                    stmt->verbose = true;
+                } else if (option == "ANALYZE" || option == "ANALYSE") {
+                    stmt->analyze = true;
+                } else if (option == "DISABLE_PAGE_SKIPPING") {
+                    stmt->disable_page_skipping = true;
+                } else if (option == "SKIP_LOCKED") {
+                    stmt->skip_locked = true;
+                } else if (option == "INDEX_CLEANUP") {
+                    // INDEX_CLEANUP { AUTO | ON | OFF }
+                    if (current().type == TokenType::IDENTIFIER) {
+                        std::string val(current().text);
+                        for (char& c : val) {
+                            if (c >= 'a' && c <= 'z') c = c - 32;
+                        }
+                        if (val == "AUTO") {
+                            stmt->index_cleanup = VacuumStmt::IndexCleanup::AUTO;
+                        } else if (val == "ON" || val == "TRUE") {
+                            stmt->index_cleanup = VacuumStmt::IndexCleanup::ON;
+                        } else if (val == "OFF" || val == "FALSE") {
+                            stmt->index_cleanup = VacuumStmt::IndexCleanup::OFF;
+                        }
+                        advance();
+                    }
+                } else if (option == "TRUNCATE") {
+                    // TRUNCATE { ON | OFF }
+                    if (current().type == TokenType::IDENTIFIER) {
+                        std::string val(current().text);
+                        for (char& c : val) {
+                            if (c >= 'a' && c <= 'z') c = c - 32;
+                        }
+                        stmt->truncate = (val == "ON" || val == "TRUE");
+                        advance();
+                    }
+                } else if (option == "PARALLEL") {
+                    // PARALLEL integer
+                    if (current().type == TokenType::NUMBER) {
+                        stmt->parallel_workers = std::stoi(std::string(current().text));
+                        advance();
+                    }
+                } else if (option == "BUFFER_USAGE_LIMIT") {
+                    // BUFFER_USAGE_LIMIT size (e.g., '256 MB')
+                    if (current().type == TokenType::NUMBER || current().type == TokenType::STRING) {
+                        std::string val(current().text);
+                        // Parse size (simplified - just extract number)
+                        stmt->buffer_usage_limit = std::stoi(val);
+                        advance();
+                        // Skip unit if present (MB, KB, etc.)
+                        if (current().type == TokenType::IDENTIFIER) {
+                            advance();
+                        }
+                    }
+                } else {
+                    error("Unknown VACUUM option: " + option);
+                }
+            } while (match(TokenType::COMMA));
+
+            expect(TokenType::RPAREN);
+        } else {
+            // Legacy syntax: VACUUM [ FULL ] [ FREEZE ] [ VERBOSE ] [ ANALYZE ]
+            stmt->use_parenthesized_syntax = false;
+
+            // Parse options - check each in order
+            while (current().type == TokenType::IDENTIFIER) {
+                std::string option(current().text);
+                for (char& c : option) {
+                    if (c >= 'a' && c <= 'z') c = c - 32;
+                }
+
+                if (option == "FULL" && !stmt->full) {
+                    stmt->full = true;
+                    advance();
+                } else if (option == "FREEZE" && !stmt->freeze) {
+                    stmt->freeze = true;
+                    advance();
+                } else if (option == "VERBOSE" && !stmt->verbose) {
+                    stmt->verbose = true;
+                    advance();
+                } else if ((option == "ANALYZE" || option == "ANALYSE") && !stmt->analyze) {
+                    stmt->analyze = true;
+                    advance();
+                } else {
+                    break;  // Not a recognized option or already set
+                }
+            }
+        }
+
+        // Optional table name
+        if (current().type == TokenType::IDENTIFIER) {
+            stmt->table = std::string(current().text);
+            advance();
+
+            // Optional column list (only if ANALYZE is specified)
+            if (stmt->analyze && match(TokenType::LPAREN)) {
+                do {
+                    if (current().type == TokenType::IDENTIFIER) {
+                        stmt->columns.push_back(std::string(current().text));
+                        advance();
+                    }
+                } while (match(TokenType::COMMA));
+                expect(TokenType::RPAREN);
+            }
+        }
+
+        return stmt;
+    }
+
+    /// Parse GRANT statement
+    GrantStmt* parse_grant() {
+        auto stmt = arena_.create<GrantStmt>();
+        expect(TokenType::GRANT);
+
+        // Parse privileges: SELECT, INSERT, UPDATE, DELETE, ALL, etc.
+        do {
+            if (check(TokenType::SELECT)) {
+                stmt->privileges.push_back(GrantStmt::PrivilegeType::SELECT);
+                advance();
+            } else if (check(TokenType::INSERT)) {
+                stmt->privileges.push_back(GrantStmt::PrivilegeType::INSERT);
+                advance();
+            } else if (check(TokenType::UPDATE)) {
+                stmt->privileges.push_back(GrantStmt::PrivilegeType::UPDATE);
+                advance();
+            } else if (check(TokenType::DELETE)) {
+                stmt->privileges.push_back(GrantStmt::PrivilegeType::DELETE);
+                advance();
+            } else if (check(TokenType::ALL)) {
+                stmt->privileges.push_back(GrantStmt::PrivilegeType::ALL);
+                advance();
+                match(TokenType::PRIVILEGES);  // Optional PRIVILEGES keyword
+            } else if (check(TokenType::EXECUTE)) {
+                stmt->privileges.push_back(GrantStmt::PrivilegeType::EXECUTE);
+                advance();
+            } else if (current().type == TokenType::IDENTIFIER) {
+                std::string priv(current().text);
+                if (priv == "USAGE" || priv == "usage") {
+                    stmt->privileges.push_back(GrantStmt::PrivilegeType::USAGE);
+                    advance();
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        } while (match(TokenType::COMMA));
+
+        // ON clause
+        expect(TokenType::ON);
+
+        // Object type (TABLE, DATABASE, SCHEMA, FUNCTION, etc.)
+        if (check(TokenType::TABLE) || check(TokenType::DATABASE) ||
+            check(TokenType::SCHEMA) || check(TokenType::FUNCTION)) {
+            stmt->object_type = std::string(current().text);
+            advance();
+        }
+
+        // Object name
+        if (current().type == TokenType::IDENTIFIER) {
+            stmt->object_name = std::string(current().text);
+            advance();
+        } else {
+            error_expected_after("object name", "GRANT ... ON");
+        }
+
+        // TO clause (grantees)
+        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "TO") {
+            advance();
+            do {
+                if (current().type == TokenType::IDENTIFIER) {
+                    stmt->grantees.push_back(std::string(current().text));
+                    advance();
+                }
+            } while (match(TokenType::COMMA));
+        }
+
+        // WITH GRANT OPTION
+        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "WITH") {
+            advance();
+            if (check(TokenType::GRANT)) {
+                advance();
+                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "OPTION") {
+                    stmt->with_grant_option = true;
+                    advance();
+                }
+            }
+        }
+
+        return stmt;
+    }
+
+    /// Parse REVOKE statement
+    RevokeStmt* parse_revoke() {
+        auto stmt = arena_.create<RevokeStmt>();
+        expect(TokenType::REVOKE);
+
+        // Parse privileges (same as GRANT)
+        do {
+            if (check(TokenType::SELECT)) {
+                stmt->privileges.push_back(RevokeStmt::PrivilegeType::SELECT);
+                advance();
+            } else if (check(TokenType::INSERT)) {
+                stmt->privileges.push_back(RevokeStmt::PrivilegeType::INSERT);
+                advance();
+            } else if (check(TokenType::UPDATE)) {
+                stmt->privileges.push_back(RevokeStmt::PrivilegeType::UPDATE);
+                advance();
+            } else if (check(TokenType::DELETE)) {
+                stmt->privileges.push_back(RevokeStmt::PrivilegeType::DELETE);
+                advance();
+            } else if (check(TokenType::ALL)) {
+                stmt->privileges.push_back(RevokeStmt::PrivilegeType::ALL);
+                advance();
+                match(TokenType::PRIVILEGES);
+            } else if (check(TokenType::EXECUTE)) {
+                stmt->privileges.push_back(RevokeStmt::PrivilegeType::EXECUTE);
+                advance();
+            } else if (current().type == TokenType::IDENTIFIER) {
+                std::string priv(current().text);
+                if (priv == "USAGE" || priv == "usage") {
+                    stmt->privileges.push_back(RevokeStmt::PrivilegeType::USAGE);
+                    advance();
+                } else {
+                    break;
+                }
+            } else {
+                break;
+            }
+        } while (match(TokenType::COMMA));
+
+        // ON clause
+        expect(TokenType::ON);
+
+        // Object type
+        if (check(TokenType::TABLE) || check(TokenType::DATABASE) ||
+            check(TokenType::SCHEMA) || check(TokenType::FUNCTION)) {
+            stmt->object_type = std::string(current().text);
+            advance();
+        }
+
+        // Object name
+        if (current().type == TokenType::IDENTIFIER) {
+            stmt->object_name = std::string(current().text);
+            advance();
+        } else {
+            error_expected_after("object name", "REVOKE ... ON");
+        }
+
+        // FROM clause (grantees)
+        if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FROM") {
+            advance();
+            do {
+                if (current().type == TokenType::IDENTIFIER) {
+                    stmt->grantees.push_back(std::string(current().text));
+                    advance();
+                }
+            } while (match(TokenType::COMMA));
+        }
+
+        // CASCADE option
+        if (current().type == TokenType::IDENTIFIER) {
+            std::string kw(current().text);
+            if (kw == "CASCADE" || kw == "cascade") {
+                stmt->cascade = true;
+                advance();
+            }
         }
 
         return stmt;
@@ -1957,6 +2393,16 @@ public:
             return parse_rollback();
         } else if (check(TokenType::SAVEPOINT)) {
             return parse_savepoint();
+        } else if (check(TokenType::DO)) {
+            return parse_do();
+        } else if (check(TokenType::ANALYZE)) {
+            return parse_analyze();
+        } else if (check(TokenType::VACUUM)) {
+            return parse_vacuum();
+        } else if (check(TokenType::GRANT)) {
+            return parse_grant();
+        } else if (check(TokenType::REVOKE)) {
+            return parse_revoke();
         } else if (check(TokenType::SET)) {
             return parse_set_statement();
         } else if (check(TokenType::SHOW)) {
@@ -2791,6 +3237,81 @@ private:
             } else {
                 // Not a function - error
                 error("DATE/TIME/TIMESTAMP keyword must be followed by ( for function call");
+            }
+        }
+
+        // BigQuery ML functions: ML.PREDICT, ML.EVALUATE, ML.TRAINING_INFO
+        if (match(TokenType::ML)) {
+            expect(TokenType::DOT);
+
+            if (match(TokenType::PREDICT)) {
+                expect(TokenType::LPAREN);
+
+                // MODEL argument
+                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "MODEL") {
+                    advance();
+                    // Model name
+                    if (current().type == TokenType::IDENTIFIER) {
+                        auto stmt = arena_.create<MLPredictExpr>();
+                        stmt->model_name = std::string(current().text);
+                        advance();
+
+                        // Comma before input query
+                        expect(TokenType::COMMA);
+
+                        // Input query (TABLE or SELECT)
+                        if (check(TokenType::SELECT) || check(TokenType::WITH)) {
+                            stmt->input_query = static_cast<SelectStmt*>(parse_select());
+                        }
+
+                        expect(TokenType::RPAREN);
+                        return stmt;
+                    }
+                }
+                error_expected_after("MODEL <model_name>", "ML.PREDICT(");
+            } else if (match(TokenType::EVALUATE)) {
+                expect(TokenType::LPAREN);
+
+                // MODEL argument
+                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "MODEL") {
+                    advance();
+                    // Model name
+                    if (current().type == TokenType::IDENTIFIER) {
+                        auto stmt = arena_.create<MLEvaluateExpr>();
+                        stmt->model_name = std::string(current().text);
+                        advance();
+
+                        // Optional: comma and evaluation query
+                        if (match(TokenType::COMMA)) {
+                            if (check(TokenType::SELECT) || check(TokenType::WITH)) {
+                                stmt->evaluation_query = static_cast<SelectStmt*>(parse_select());
+                            }
+                        }
+
+                        expect(TokenType::RPAREN);
+                        return stmt;
+                    }
+                }
+                error_expected_after("MODEL <model_name>", "ML.EVALUATE(");
+            } else if (match(TokenType::TRAINING_INFO)) {
+                expect(TokenType::LPAREN);
+
+                // MODEL argument
+                if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "MODEL") {
+                    advance();
+                    // Model name
+                    if (current().type == TokenType::IDENTIFIER) {
+                        auto stmt = arena_.create<MLTrainingInfoExpr>();
+                        stmt->model_name = std::string(current().text);
+                        advance();
+
+                        expect(TokenType::RPAREN);
+                        return stmt;
+                    }
+                }
+                error_expected_after("MODEL <model_name>", "ML.TRAINING_INFO(");
+            } else {
+                error("Expected PREDICT, EVALUATE, or TRAINING_INFO after ML.");
             }
         }
 

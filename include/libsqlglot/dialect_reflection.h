@@ -33,7 +33,8 @@ namespace libsqlglot::dialects {
 
 /// Find dialect by name (case-insensitive) - runtime function
 /// Uses compile-time generated mappings for zero-maintenance lookups
-[[nodiscard]] inline Dialect from_name(std::string_view name) {
+/// Returns ANSI dialect if name is unknown (fail-safe, not fail-fast)
+[[nodiscard]] inline Dialect from_name(std::string_view name) noexcept {
     // Convert to lowercase for comparison
     auto to_lower = [](char c) { return (c >= 'A' && c <= 'Z') ? (c - 'A' + 'a') : c; };
 
@@ -66,7 +67,8 @@ namespace libsqlglot::dialects {
     if (lower_name == "tsql" || lower_name == "sqlserver") return Dialect::SQLServer;
     if (lower_name == "cockroach" || lower_name == "cockroachdb") return Dialect::CockroachDB;
 
-    throw std::runtime_error("Unknown dialect: " + std::string(name));
+    // Unknown dialect - return ANSI as safe default (fail-safe)
+    return Dialect::ANSI;
 }
 
 /// Get dialect name as string

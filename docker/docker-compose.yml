@@ -1,0 +1,136 @@
+version: '3.8'
+
+x-common-env: &common-env
+  CCACHE_DIR: /cache/ccache
+  CCACHE_MAXSIZE: 5G
+  CMAKE_GENERATOR: Ninja
+  CMAKE_BUILD_TYPE: Release
+
+services:
+  # Main build service with GCC 14 + C++26 reflection
+  build:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: builder
+      args:
+        BUILDKIT_INLINE_CACHE: "1"
+    volumes:
+      - ..:/workspace:cached
+      - build-cache:/workspace/build:delegated
+      - ccache:/cache/ccache
+    environment:
+      <<: *common-env
+    working_dir: /workspace
+    command: >
+      bash -c "
+        ccache -z &&
+        cmake -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DLIBSQLGLOT_BUILD_PYTHON=ON
+          -DLIBSQLGLOT_BUILD_TESTS=ON &&
+        cmake --build build --parallel $(nproc) &&
+        ccache -s
+      "
+
+  # Test runner (C++ tests)
+  test:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: tester
+    volumes:
+      - ..:/workspace:cached
+      - build-cache:/workspace/build
+    environment:
+      <<: *common-env
+    depends_on:
+      - build
+    command: bash -c "cd build && ctest --output-on-failure --parallel $(nproc)"
+
+  # Python tests
+  test-python:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: dev
+    volumes:
+      - ..:/workspace:cached
+      - build-cache:/workspace/build
+    environment:
+      <<: *common-env
+      PYTHONPATH: /workspace/src/python
+    working_dir: /workspace
+    depends_on:
+      - build
+    command: bash -c "python3 -m pytest tests/python/ -v"
+
+  # Python wheel builder with manylinux compatibility
+  wheel:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: wheel-builder
+    volumes:
+      - ..:/workspace:cached
+      - ../dist:/workspace/dist:delegated
+      - build-cache:/workspace/build
+      - ccache:/cache/ccache
+    environment:
+      <<: *common-env
+    working_dir: /workspace
+    depends_on:
+      - build
+    command: bash -c "
+      python3 -m pip install --upgrade build wheel setuptools &&
+      python3 -m build --wheel --outdir dist &&
+      ls -lh dist/
+      "
+
+  # Interactive development shell with all tools
+  dev:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: dev
+    volumes:
+      - ..:/workspace:cached
+      - build-cache:/workspace/build:delegated
+      - ccache:/cache/ccache
+      - ~/.gitconfig:/root/.gitconfig:ro
+      - ~/.bashrc:/root/.bashrc:ro
+    environment:
+      <<: *common-env
+      PS1: '\[\033[01;32m\]libsqlglot-dev\[\033[00m\]:\[\033[01;34m\]\w\[\033[00m\]\$ '
+    working_dir: /workspace
+    stdin_open: true
+    tty: true
+    command: /bin/bash
+
+  # Clean build (no cache)
+  clean-build:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: builder
+      no_cache: true
+    volumes:
+      - ..:/workspace:cached
+    environment:
+      <<: *common-env
+    working_dir: /workspace
+    command: >
+      bash -c "
+        rm -rf build &&
+        cmake -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DLIBSQLGLOT_BUILD_PYTHON=ON
+          -DLIBSQLGLOT_BUILD_TESTS=ON &&
+        cmake --build build --parallel $(nproc)
+      "
+
+volumes:
+  build-cache:
+    driver: local
+  ccache:
+    driver: local

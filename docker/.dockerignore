@@ -1,0 +1,56 @@
+# Build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+*.dylib
+*.dll
+*.o
+*.a
+*.out
+a.out
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Docker (don't copy docker into docker)
+docker/
+Dockerfile*
+docker-compose*.yml
+.dockerignore
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# Temporary files
+*.log
+*.pid
+*.tmp
+runner.pid
+
+# Cache
+.cache/
+.ccache/
+*.egg-info/

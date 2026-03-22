@@ -107,7 +107,7 @@ stmt = (sqlglot.select(["id", "name"])
 diff = sqlglot.diff("SELECT id FROM users", "SELECT user_id FROM users")
 ```
 
-See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot.Dialect.` values.
+See [Supported SQL dialects](#supported-sql-dialects) for all available dialect names.
 
 **Python API**: `parse()`, `parse_one()`, `generate()`, `transpile()`, `optimize()`, `diff()`, `.sql()`, `.find_all()`, `.walk()`, `select()` builder.
 
@@ -123,7 +123,7 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot
 | **Stored procedures** | Full support (PL/pgSQL, T-SQL, MySQL, PL/SQL) | Limited (`exp.Command` passthrough) |
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
-| **Optimizer** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
+| **Optimiser** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
 | **Codebase** | Header-only C++26 library | 50,000+ lines Python |
 | **Keywords** | C++26 reflection: auto-generated from enum (300+ keywords, zero maintenance) | Manually maintained dictionaries |
 | **Binary** | 15KB lib, optional 258KB Python extension | N/A |
@@ -134,13 +134,35 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available `sqlglot
 
 ## Building
 
-Requires C++26 (GCC 16+ trunk with `-freflection`) and CMake 3.21+.
+Requires C++26 (GCC 14+ with `-freflection`) and CMake 3.21+.
 
 **C++26 features used:**
 - **Static reflection** (`std::meta`): Auto-generates 300+ keyword mappings from `TokenType` enum at compile time. Zero maintenance, impossible to desync.
 - **Advanced constexpr**: Perfect hash tables, compile-time string processing, full keyword system generated during compilation.
 
-### C++ library
+### Docker (Recommended)
+
+The easiest way to build with GCC trunk + reflection support:
+
+```bash
+# Build the project (first build takes 30-45 min to compile GCC trunk)
+docker compose -f docker/docker-compose.yml run --rm build
+
+# Run tests
+docker compose -f docker/docker-compose.yml run --rm test
+
+# Build Python wheel
+docker compose -f docker/docker-compose.yml run --rm wheel
+
+# Development shell
+docker compose -f docker/docker-compose.yml run --rm dev
+```
+
+See `docker/README.md` for full documentation.
+
+### C++ library (native)
+
+Requires GCC trunk built from source with `-freflection` support:
 
 ```bash
 cmake -B build -DCMAKE_BUILD_TYPE=Release
@@ -168,9 +190,9 @@ ctest --test-dir build
 
 **Code quality**: Compiles with `-Wall -Wextra -Wpedantic -Werror`. No runtime dependencies. No RTTI. Passes 27,127 assertions across 378 test cases. Fuzz-tested with `libFuzzer` + `AddressSanitizer`.
 
-### Advanced optimizations
+### Advanced optimisations
 
-**Profile-Guided Optimization (PGO)**: For production deployments requiring maximum performance, enable PGO in 3 steps:
+**Profile-Guided Optimisation (PGO)**: For production deployments requiring maximum performance, enable PGO in 3 steps:
 
 ```bash
 # Step 1: Build with profiling instrumentation
@@ -194,6 +216,9 @@ Header-only C++ library. 19 header files, no `.cpp` files. See `include/libsqlgl
 ### Memory management
 
 Arena allocation: all AST nodes allocated in contiguous chunks, freed together in O(1) time. String interning deduplicates identifiers. Tokenisation is zero-copy via `string_view`. Everything uses RAII, no manual `delete` calls.
+
+### Grammar pipeline
+Grammar definitions from multiple sources (ANTLR and normalized JSON specs) are unified into a canonical IR, then compiled into a cache-efficient LUT used by the runtime parser.
 
 ### SQL support
 
@@ -490,59 +515,72 @@ See `benchmarks/bench_complete_comparison.py` to reproduce.
 
 ## Supported SQL dialects
 
-**45 dialects** with full parse and generation support. Use `Dialect::Name` in C++ or `sqlglot.Dialect.Name` in Python.
+**45 dialects** with full parse and generation support. Use `Dialect::Name` in C++ or `"name"` strings in Python (e.g., `read="mysql"`, `write="postgres"`).
 
 **Note:** Dialect names are case-sensitive (e.g., `Dialect::PostgreSQL`, not `Dialect::postgresql`).
 
 Each dialect includes proper identifier quoting, keyword handling, function name translation, and syntax transformations (e.g. LIMIT vs TOP vs FETCH FIRST).
 
-| Database | Dialect | Dialect-Specific Features Tested |
-|----------|---------|----------------------------------|
+
+If somehow a dialect is missing from the map, get_features() returns ANSI SQL defaults.
+
+### Core dialects (explicit configurations)
+
+| Database | Dialect | Dialect-Specific Features |
+|----------|---------|---------------------------|
 | ANSI SQL | ANSI | Standard SQL compliance: ANSI joins, standard aggregations, CTEs |
-| Athena | Athena | AWS Athena Presto syntax, S3 partitioning |
 | BigQuery | BigQuery | STRUCT types, ARRAY literals `[1,2,3]`, SAFE_CAST, INT64/STRING types, nested field access |
 | Calcite | Calcite | TABLESAMPLE BERNOULLI, Apache Calcite optimizer hints |
 | ClickHouse | ClickHouse | Column-oriented syntax, MergeTree engines, SAMPLE BY, ARRAY JOIN |
-| CockroachDB | CockroachDB | UPSERT statement, distributed transactions, RETURNING clause |
-| Databricks | Databricks | OPTIMIZE tables, ZORDER BY clustering, Delta Lake operations |
 | DB2 | DB2 | FETCH FIRST n ROWS ONLY, DB2 stored procedures, OLAP functions |
-| Doris | Doris | DUPLICATE KEY model, BUCKETS distribution, DISTRIBUTED BY HASH, aggregate keys |
-| Dremio | Dremio | CREATE REFLECTION for materialization, data lakehouse queries |
 | Drill | Drill | Schema-free JSON queries, nested data access, FLATTEN |
-| Druid | Druid | TIME_FLOOR for time bucketing, approximate aggregations, roll-up |
 | DuckDB | DuckDB | QUALIFY clause, ASOF joins, PIVOT/UNPIVOT, macro functions, LIST type |
-| Dune | Dune | Blockchain analytics: bytearray_to_uint256, ETH address functions |
-| Exasol | Exasol | DISTRIBUTE BY for parallel execution, Lua scripting UDFs |
-| Fabric (Microsoft) | Fabric | Three-part lakehouse.schema.table naming, OneLake integration |
-| Greenplum | Greenplum | DISTRIBUTED BY/RANDOMLY, column/append-optimized tables, GPORCA optimizer |
 | Hive | Hive | PARTITIONED BY, CLUSTERED BY, SerDe formats, Hive UDFs |
-| Impala | Impala | COMPUTE STATS, Kudu integration, CACHED IN pools |
-| MariaDB | MariaDB | MySQL-compatible with RETURNING, window functions, JSON functions |
-| Materialize | Materialize | TAIL for streaming results, materialized views, temporal filters |
 | MySQL | MySQL | Backtick identifiers, MySQL-specific functions, storage engines |
-| Netezza | Netezza | DISTRIBUTE ON distribution keys, zone maps, statistics |
 | Oracle | Oracle | CONNECT BY hierarchical queries, PRIOR, START WITH, DUAL table, PL/SQL blocks |
 | Phoenix | Phoenix | HBase integration: SALT_BUCKETS, ARRAY_APPEND, UPSERT VALUES |
 | Pinot | Pinot | Real-time OLAP: segment pruning, star-tree indexes, broker queries |
 | PostgreSQL | PostgreSQL | RETURNING, ON CONFLICT, LATERAL joins, window functions, array types, JSONB |
 | Presto | Presto | APPROX_DISTINCT, UNNEST, ROW types, lambda functions |
-| Redshift | Redshift | DISTKEY distribution, SORTKEY ordering, SUPER type (JSON), DISTSTYLE ALL/EVEN/KEY |
-| RisingWave | RisingWave | EMIT CHANGES for streaming, temporal joins, watermarks |
-| SingleStore | SingleStore | VECTOR type for embeddings, DOT_PRODUCT, columnstore/rowstore, distributed joins |
 | Snowflake | Snowflake | FLATTEN for JSON, VARIANT type, TIME_TRAVEL, CLUSTER BY, RESULT_SCAN |
 | Solr | Solr | score() relevance function, faceted search, Lucene query syntax |
 | Spark | Spark | NULL-SAFE equality `<=>`, Hive metastore, broadcast hints, cache table |
-| Spark 2 | Spark2 | Legacy Spark 2.x: CACHE TABLE, broadcast joins, RDD compatibility |
 | SQL Server | SQLServer | T-SQL syntax: TOP, IDENTITY, OUTPUT clause, EXEC, GO batches, temp tables `#` |
 | SQLite | SQLite | Minimal SQL: no RIGHT JOIN, PRAGMA commands, autoincrement |
-| StarRocks | StarRocks | Vectorized execution, primary key model, materialized views, bitmap indexes |
-| Tableau | Tableau | ZN() null-to-zero, Tableau calculation functions, RAWSQL passthrough |
 | Teradata | Teradata | MULTISET tables, BTEQ syntax, FastLoad/MultiLoad hints |
-| TiDB | TiDB | AUTO_RANDOM for distributed primary keys, MySQL compatibility, TiKV storage |
-| TimescaleDB | TimescaleDB | time_bucket() for time-series, hypertables, continuous aggregates |
-| Trino | Trino | Presto-compatible: UNNEST, lambda expressions, ROW types, catalog.schema.table |
-| Vertica | Vertica | CREATE PROJECTION for physical design, SEGMENTED BY HASH, columnar storage |
-| YugabyteDB | YugabyteDB | SPLIT INTO n TABLETS, distributed SQL, PostgreSQL compatibility |
+
+### Inherited dialect configurations
+
+These dialects inherit features from a compatible base dialect and add specific extensions.
+
+| Database | Dialect | Inherits From | Dialect-Specific Features |
+|----------|---------|---------------|---------------------------|
+| Athena | Athena | Presto | AWS Athena Presto syntax, S3 partitioning |
+| CockroachDB | CockroachDB | PostgreSQL | UPSERT statement, distributed transactions, RETURNING clause |
+| Databricks | Databricks | Spark | OPTIMIZE tables, ZORDER BY clustering, Delta Lake operations |
+| Doris | Doris | MySQL | DUPLICATE KEY model, BUCKETS distribution, DISTRIBUTED BY HASH |
+| Dremio | Dremio | Presto | CREATE REFLECTION for materialization, data lakehouse queries |
+| Druid | Druid | MySQL | TIME_FLOOR for time bucketing, approximate aggregations, roll-up |
+| Dune | Dune | PostgreSQL | Blockchain analytics: bytearray_to_uint256, ETH address functions |
+| Exasol | Exasol | PostgreSQL | DISTRIBUTE BY for parallel execution, Lua scripting UDFs |
+| Fabric | Fabric | SQL Server | Three-part lakehouse.schema.table naming, OneLake integration |
+| Greenplum | Greenplum | PostgreSQL | DISTRIBUTED BY/RANDOMLY, column/append-optimized tables, GPORCA optimizer |
+| Impala | Impala | Hive | COMPUTE STATS, Kudu integration, CACHED IN pools |
+| MariaDB | MariaDB | MySQL | MySQL-compatible with RETURNING, window functions, JSON functions |
+| Materialize | Materialize | PostgreSQL | TAIL for streaming results, materialized views, temporal filters |
+| Netezza | Netezza | PostgreSQL | DISTRIBUTE ON distribution keys, zone maps, statistics |
+| Redshift | Redshift | PostgreSQL | DISTKEY distribution, SORTKEY ordering, SUPER type (JSON) |
+| RisingWave | RisingWave | PostgreSQL | EMIT CHANGES for streaming, temporal joins, watermarks |
+| SingleStore | SingleStore | MySQL | VECTOR type for embeddings, DOT_PRODUCT, columnstore/rowstore |
+| Spark2 | Spark2 | Spark | Legacy Spark 2.x: CACHE TABLE, broadcast joins, RDD compatibility |
+| StarRocks | StarRocks | MySQL | Vectorized execution, primary key model, materialized views, bitmap indexes |
+| Tableau | Tableau | PostgreSQL | ZN() null-to-zero, Tableau calculation functions, RAWSQL passthrough |
+| Teradata | Teradata | Teradata | MULTISET tables, BTEQ syntax, FastLoad/MultiLoad hints |
+| TiDB | TiDB | MySQL | AUTO_RANDOM for distributed primary keys, MySQL compatibility, TiKV storage |
+| TimescaleDB | TimescaleDB | PostgreSQL | time_bucket() for time-series, hypertables, continuous aggregates |
+| Trino | Trino | Presto | Presto-compatible: UNNEST, lambda expressions, ROW types |
+| Vertica | Vertica | PostgreSQL | CREATE PROJECTION for physical design, SEGMENTED BY HASH, columnar storage |
+| YugabyteDB | YugabyteDB | PostgreSQL | SPLIT INTO n TABLETS, distributed SQL, PostgreSQL compatibility |
 
 ## Licence
 

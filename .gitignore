@@ -61,6 +61,14 @@ pip-wheel-metadata/
 *.dylib
 *.dll
 
+# Docker artifacts
+.dockerignore.bak
+docker/**/.env
+docker/**/volumes/
+*.pid
+runner.pid
+a.out
+
 # Misc
 README.md.bak
 *.tmp
@@ -82,3 +90,6 @@ README.md.bak
 # External dependencies
 external/grammars-v4/
 external/lemon/lemon
+
+# Misc
+CLAUDE.md

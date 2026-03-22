@@ -8,7 +8,7 @@ namespace libsqlglot {
 
 /// SQL Dialect enumeration - all supported dialects
 enum class Dialect {
-    // Phase 1: Already implemented (10 dialects)
+    // Phase 1: Already implemented (11 dialects)
     ANSI,
     MySQL,
     PostgreSQL,
@@ -21,11 +21,12 @@ enum class Dialect {
     DuckDB,
     ClickHouse,
 
-    // Phase 2: To be implemented (21 dialects)
+    // Phase 2: Additional dialects (34 dialects)
     Presto,
     Trino,
     Hive,
     Spark,
+    Spark2,
     Athena,
     Vertica,
     Teradata,
@@ -42,7 +43,22 @@ enum class Dialect {
     Dremio,
     Pinot,
     StarRocks,
-    Doris
+    Doris,
+    DB2,
+    Dune,
+    Exasol,
+    Fabric,
+    Materialize,
+    RisingWave,
+    SingleStore,
+    Solr,
+    Tableau,
+    TiDB,
+    YugabyteDB,
+    Druid,
+
+    // Sentinel value for compile-time dialect count
+    COUNT
 };
 
 } // namespace libsqlglot
@@ -159,6 +175,19 @@ public:
             case Dialect::Pinot: return "Pinot";
             case Dialect::StarRocks: return "StarRocks";
             case Dialect::Doris: return "Doris";
+            case Dialect::Spark2: return "Spark2";
+            case Dialect::DB2: return "DB2";
+            case Dialect::Dune: return "Dune";
+            case Dialect::Exasol: return "Exasol";
+            case Dialect::Fabric: return "Fabric";
+            case Dialect::Materialize: return "Materialize";
+            case Dialect::RisingWave: return "RisingWave";
+            case Dialect::SingleStore: return "SingleStore";
+            case Dialect::Solr: return "Solr";
+            case Dialect::Tableau: return "Tableau";
+            case Dialect::TiDB: return "TiDB";
+            case Dialect::YugabyteDB: return "YugabyteDB";
+            case Dialect::Druid: return "Druid";
             default: return "Unknown";
         }
     }
@@ -331,6 +360,51 @@ private:
         // StarRocks / Doris (MySQL-compatible)
         features[Dialect::StarRocks] = mysql;
         features[Dialect::Doris] = mysql;
+
+        // Spark 2 (legacy Spark version)
+        features[Dialect::Spark2] = spark;
+
+        // DB2
+        auto& db2 = features[Dialect::DB2];
+        db2.identifier_quote = '"';
+        db2.concat_op = DialectFeatures::ConcatOp::PIPES;
+        db2.limit_style = DialectFeatures::LimitStyle::FETCH_FIRST;
+
+        // Dune (blockchain analytics, PostgreSQL-based)
+        features[Dialect::Dune] = postgres;
+
+        // Exasol (PostgreSQL-compatible)
+        features[Dialect::Exasol] = postgres;
+
+        // Fabric (Microsoft Fabric, SQL Server-based)
+        features[Dialect::Fabric] = sqlserver;
+
+        // Materialize (PostgreSQL-compatible streaming)
+        features[Dialect::Materialize] = postgres;
+
+        // RisingWave (PostgreSQL-compatible streaming)
+        features[Dialect::RisingWave] = postgres;
+
+        // SingleStore (MySQL-compatible)
+        features[Dialect::SingleStore] = mysql;
+
+        // Solr (Apache Solr SQL)
+        auto& solr = features[Dialect::Solr];
+        solr.identifier_quote = '"';
+
+        // Tableau (PostgreSQL-like)
+        features[Dialect::Tableau] = postgres;
+
+        // TiDB (MySQL-compatible)
+        features[Dialect::TiDB] = mysql;
+
+        // YugabyteDB (PostgreSQL-compatible)
+        features[Dialect::YugabyteDB] = postgres;
+
+        // Druid (Apache Druid, MySQL-like)
+        auto& druid = features[Dialect::Druid];
+        druid = mysql;
+        druid.supports_window_functions = false;  // Limited window function support
 
         return features;
     }

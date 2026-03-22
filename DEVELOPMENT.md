@@ -224,9 +224,9 @@ scripts/build_optimized.sh
 Enables LTO, PGO (2-pass), aggressive inlining.
 
 **Expected gains**:
-- LTO: 5-15% speedup
-- PGO: 10-30% speedup
-- Combined: 15-45% over baseline Release
+- LTO: 5-10% speedup
+- PGO: 10-20% speedup
+- Combined: 15-30% over baseline Release
 
 ## Directory Structure
 

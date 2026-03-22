@@ -4,6 +4,12 @@ nanobind_add_module(_libsqlglot bindings.cpp)
 # Link against the header-only library
 target_link_libraries(_libsqlglot PRIVATE libsqlglot)
 
+# Compiler options for nanobind ABI compatibility
+target_compile_options(_libsqlglot PRIVATE
+    -fvisibility=hidden           # Hide symbols by default (nanobind handles exports)
+    -fno-semantic-interposition   # Allow better optimization across boundaries
+)
+
 # Static link libstdc++ and libgcc for portability (wheel distribution)
 if(CMAKE_BUILD_TYPE STREQUAL "Release")
     target_link_options(_libsqlglot PRIVATE -static-libstdc++ -static-libgcc)

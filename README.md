@@ -10,11 +10,9 @@ Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls
 
 Anywhere SQL hits a hot path: proxies, sidecars, migration tools, linters, etc. Also a replacement for every regex that's pretending to parse SQL.
 
-#### Why it exists
+#### Inspiration
 
-Because the hardest part of parsing SQL in Python is explaining to Python why you're doing it so often. The algorithm was already O(n). The runtime wasn't.
-
-Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it.
+Inspired by the original [sqlglot](https://github.com/tobymao/sqlglot), which did the decade-long work of mapping 31+ SQL dialects into an elegant, universal AST. libsqlglot does the comparatively trivial work of compiling it: the algorithm was already O(n), the runtime wasn't.
 
 ## Contents
 

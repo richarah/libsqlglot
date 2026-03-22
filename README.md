@@ -529,7 +529,7 @@ If somehow a dialect is missing from the map, get_features() returns ANSI SQL de
 
 ### Core dialects (explicit configurations)
 
-| Database | Dialect | Dialect-Specific Features |
+| Database | Dialect | Supported features |
 |----------|---------|---------------------------|
 | ANSI SQL | ANSI | Standard SQL compliance: ANSI joins, standard aggregations, CTEs |
 | BigQuery | BigQuery | STRUCT types, ARRAY literals `[1,2,3]`, SAFE_CAST, INT64/STRING types, nested field access |

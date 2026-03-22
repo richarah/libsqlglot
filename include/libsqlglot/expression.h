@@ -1121,7 +1121,10 @@ struct CreateIndexAdvStmt : Expression {
 /// DO block (PostgreSQL anonymous code block)
 struct DoBlockStmt : Expression {
     std::string language;                         // plpgsql, sql, etc.
-    std::vector<Expression*> statements;          // Block body
+    bool language_explicit = false;               // Was LANGUAGE explicitly specified?
+    std::vector<Expression*> statements;          // Block body (parsed statements)
+    std::string raw_body;                         // Raw body text (for dollar-quoted strings)
+    std::string delimiter;                        // Dollar quote delimiter (e.g., "$$", "$custom$")
 
     DoBlockStmt()
         : Expression(ExprType::DO_BLOCK) {}
@@ -1129,8 +1132,13 @@ struct DoBlockStmt : Expression {
 
 /// ANALYZE statement
 struct AnalyzeStmt : Expression {
-    std::string table;                            // Optional table name
+    std::string table;                            // Primary table name
+    std::vector<std::string> tables;              // Multiple tables (if supported)
     std::vector<std::string> columns;             // Optional column list
+    bool verbose = false;                         // VERBOSE option
+    bool local = false;                           // LOCAL option (MySQL)
+    bool no_write_to_binlog = false;              // NO_WRITE_TO_BINLOG (MySQL)
+    bool has_table_keyword = false;               // Was TABLE keyword used? (MySQL)
 
     AnalyzeStmt()
         : Expression(ExprType::ANALYZE_STMT) {}
@@ -1138,7 +1146,8 @@ struct AnalyzeStmt : Expression {
 
 /// VACUUM statement (PostgreSQL-specific)
 struct VacuumStmt : Expression {
-    std::string table;                            // Optional table name
+    std::string table;                            // Primary table name
+    std::vector<std::string> tables;              // Multiple tables (if supported)
     std::vector<std::string> columns;             // Optional column list (requires ANALYZE)
 
     // Boolean options
@@ -1159,7 +1168,7 @@ struct VacuumStmt : Expression {
     IndexCleanup index_cleanup = IndexCleanup::AUTO;
 
     // Use parenthesized syntax (PostgreSQL 9.0+) vs legacy syntax
-    bool use_parenthesized_syntax = true;
+    bool use_parenthesized_syntax = false;        // Default to legacy syntax
 
     VacuumStmt()
         : Expression(ExprType::VACUUM_STMT) {}

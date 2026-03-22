@@ -113,6 +113,27 @@ stmt = (sqlglot.select(["id", "name"])
 diff = sqlglot.diff("SELECT id FROM users", "SELECT user_id FROM users")
 ```
 
+### Unix Pipes
+
+libsqlglot can be used in Unix pipelines via the Python CLI:
+
+```bash
+# Basic transpilation
+echo "SELECT \`id\` FROM \`users\`" | python3 -m libsqlglot -r mysql -w postgres
+# Output: SELECT "id" FROM "users"
+
+# Pipeline with grep
+cat queries.sql | python3 -m libsqlglot -r mysql -w bigquery | grep "SELECT"
+
+# Process multiple files
+cat *.sql | python3 -m libsqlglot -r sqlserver -w postgres > output.sql
+
+# Combine with other tools
+find . -name "*.sql" -exec cat {} \; | python3 -m libsqlglot -r mysql -w postgres | wc -l
+```
+
+The CLI reads SQL from stdin and writes transpiled SQL to stdout, making it composable with standard Unix tools.
+
 See [Supported SQL dialects](#supported-sql-dialects) for all available dialect names.
 
 **Python API**: `parse()`, `parse_one()`, `generate()`, `transpile()`, `optimize()`, `diff()`, `.sql()`, `.find_all()`, `.walk()`, `select()` builder.
@@ -218,7 +239,7 @@ cmake --build build
 
 ## Architecture
 
-Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (4016 lines), `generator.h` (2092), `expression.h` (1376, 115 expression types). Entry point is `transpiler.h` (86 lines).
+Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (4157 lines), `generator.h` (2137), `expression.h` (1385, 115 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 
@@ -591,9 +612,9 @@ These dialects inherit features from a compatible base dialect and add specific 
 
 # Contributing
 
-libsqlglot is a solo project. Bug reports, test cases, and dialect edge cases are welcome via GitHub issues.
+libsqlglot is a solo project. Bug reports, test cases, and dialect edge cases are welcome via GitHub issues. If you have a dialect you wish to see added, please open an issue or PR.
 
-If you find a query that parses incorrectly, or a dialect transformation that produces wrong output, please open an issue with the input SQL, source dialect, target dialect, and expected output.
+If a query parses incorrectly, or a dialect transformation that produces wrong output, please open an issue with the input SQL, source dialect, target dialect, expected output and any other pertinent details.
 
 Pull requests are considered but there is no guarantee of merge. The codebase is intentionally small and opinionated.
 

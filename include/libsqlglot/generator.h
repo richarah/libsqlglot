@@ -1646,24 +1646,66 @@ private:
 
     void visit_do_block(const DoBlockStmt* stmt) {
         sql_ << "DO";
-        if (!stmt->language.empty() && stmt->language != "plpgsql") {
+        if (stmt->language_explicit && !stmt->language.empty()) {
             sql_ << " LANGUAGE " << stmt->language;
         }
-        sql_ << " $$";
-        for (auto* s : stmt->statements) {
+
+        // Use raw_body if available (from dollar-quoted strings)
+        if (!stmt->raw_body.empty()) {
             sql_ << " ";
-            visit(s);
-            sql_ << ";";
+            if (!stmt->delimiter.empty()) {
+                sql_ << stmt->delimiter;
+            } else {
+                sql_ << "$$";
+            }
+            sql_ << stmt->raw_body;
+            if (!stmt->delimiter.empty()) {
+                sql_ << stmt->delimiter;
+            } else {
+                sql_ << "$$";
+            }
+        } else {
+            // Fallback to parsed statements
+            sql_ << " $$";
+            for (auto* s : stmt->statements) {
+                sql_ << " ";
+                visit(s);
+                sql_ << ";";
+            }
+            sql_ << " $$";
         }
-        sql_ << " $$";
     }
 
     void visit_analyze(const AnalyzeStmt* stmt) {
         sql_ << "ANALYZE";
-        if (!stmt->table.empty()) {
-            sql_ << " TABLE " << stmt->table;
+
+        // MySQL options: LOCAL or NO_WRITE_TO_BINLOG
+        if (stmt->local) {
+            sql_ << " LOCAL";
+        } else if (stmt->no_write_to_binlog) {
+            sql_ << " NO_WRITE_TO_BINLOG";
+        }
+
+        // PostgreSQL option: VERBOSE
+        if (stmt->verbose) {
+            sql_ << " VERBOSE";
+        }
+
+        // MySQL: TABLE keyword
+        if (stmt->has_table_keyword) {
+            sql_ << " TABLE";
+        }
+
+        // Table names (comma-separated)
+        if (!stmt->tables.empty()) {
+            for (size_t i = 0; i < stmt->tables.size(); ++i) {
+                if (i > 0) sql_ << ",";
+                sql_ << " " << stmt->tables[i];
+            }
+
+            // Column list (only on first table)
             if (!stmt->columns.empty()) {
-                sql_ << " (";
+                sql_ << "(";
                 for (size_t i = 0; i < stmt->columns.size(); ++i) {
                     if (i > 0) sql_ << ", ";
                     sql_ << stmt->columns[i];
@@ -1741,13 +1783,16 @@ private:
             if (stmt->analyze) sql_ << " ANALYZE";
         }
 
-        // Table name
-        if (!stmt->table.empty()) {
-            sql_ << " " << stmt->table;
+        // Table names (comma-separated)
+        if (!stmt->tables.empty()) {
+            for (size_t i = 0; i < stmt->tables.size(); ++i) {
+                if (i > 0) sql_ << ",";
+                sql_ << " " << stmt->tables[i];
+            }
 
-            // Column list (only with ANALYZE)
-            if (stmt->analyze && !stmt->columns.empty()) {
-                sql_ << " (";
+            // Column list (allowed with or without ANALYZE)
+            if (!stmt->columns.empty()) {
+                sql_ << "(";
                 for (size_t i = 0; i < stmt->columns.size(); ++i) {
                     if (i > 0) sql_ << ", ";
                     sql_ << stmt->columns[i];
@@ -1780,7 +1825,7 @@ private:
             case GrantStmt::PrivilegeType::CREATEDB: return "CREATEDB";
             case GrantStmt::PrivilegeType::REPLICATION: return "REPLICATION";
             case GrantStmt::PrivilegeType::BYPASSRLS: return "BYPASSRLS";
-            case GrantStmt::PrivilegeType::ALL: return "ALL PRIVILEGES";
+            case GrantStmt::PrivilegeType::ALL: return "ALL";
             case GrantStmt::PrivilegeType::ALL_PRIVILEGES: return "ALL PRIVILEGES";
             case GrantStmt::PrivilegeType::INDEX: return "INDEX";
             case GrantStmt::PrivilegeType::DEBUG: return "DEBUG";

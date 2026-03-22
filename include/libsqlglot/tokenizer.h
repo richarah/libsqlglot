@@ -68,6 +68,31 @@ public:
             return tokenize_string(c);
         }
 
+        // Dollar-quoted strings (PostgreSQL): $$...$$ or $tag$...$tag$
+        if (c == '$' && (peek(1) == '$' || is_identifier_start(peek(1)))) {
+            // Check if this looks like a dollar quote
+            size_t lookahead = 1;
+            if (peek(1) == '$') {
+                // $$ - definitely a dollar quote
+                return tokenize_dollar_string();
+            } else {
+                // Might be $tag$ - look for closing $
+                // Note: dollar is NOT part of the tag name, only letters/digits/_
+                while (lookahead < 64 && is_identifier_start(peek(lookahead))) {
+                    lookahead++;
+                }
+                // Continue with digits (but not $)
+                while (lookahead < 64 && is_digit(peek(lookahead))) {
+                    lookahead++;
+                }
+                if (peek(lookahead) == '$') {
+                    // Found $tag$ pattern - this is a dollar quote
+                    return tokenize_dollar_string();
+                }
+                // Not a dollar quote pattern, fall through to parameter handling
+            }
+        }
+
         // Parameters: @name (T-SQL), :name (Oracle), $1 (Postgres), ?
         if (c == '@' || c == ':' || c == '$' || c == '?') {
             return tokenize_parameter();
@@ -282,6 +307,74 @@ private:
             advance();
         }
 
+        std::string_view text = source_.substr(start_pos, pos_ - start_pos);
+        return make_token(TokenType::STRING, start_pos, pos_, start_line, start_col, pool_->intern(text));
+    }
+
+    Token tokenize_dollar_string() {
+        uint32_t start_pos = pos_;
+        uint16_t start_line = line_;
+        uint16_t start_col = col_;
+
+        // Parse opening delimiter: $$ or $tag$
+        advance(); // First $
+
+        std::string delimiter = "$";
+        if (is_identifier_start(peek())) {
+            // Tagged delimiter: $tag$
+            // Note: tag can only contain letters, digits, and underscores (NOT $)
+            size_t tag_start = pos_;
+            while (!is_eof() && (is_identifier_start(peek()) || is_digit(peek()))) {
+                advance();
+            }
+            delimiter += std::string(source_.substr(tag_start, pos_ - tag_start));
+        }
+
+        if (peek() != '$') {
+            // Malformed delimiter - treat as error
+            return make_token(TokenType::ERROR, start_pos, pos_, start_line, start_col);
+        }
+
+        advance(); // Closing $ of delimiter
+        delimiter += "$";
+
+        // Now find the matching closing delimiter
+        // We need to search for the exact delimiter sequence
+        bool found_end = false;
+
+        while (!is_eof()) {
+            // Check if we're at the start of the closing delimiter
+            if (peek() == '$') {
+                size_t check_pos = pos_;
+                bool matches = true;
+
+                // Try to match the full delimiter
+                for (size_t i = 0; i < delimiter.size() && check_pos + i < source_.size(); ++i) {
+                    if (source_[check_pos + i] != delimiter[i]) {
+                        matches = false;
+                        break;
+                    }
+                }
+
+                if (matches && check_pos + delimiter.size() <= source_.size()) {
+                    // Found matching delimiter
+                    for (size_t i = 0; i < delimiter.size(); ++i) {
+                        advance();
+                    }
+                    found_end = true;
+                    break;
+                }
+            }
+
+            advance();
+        }
+
+        if (!found_end) {
+            // Unterminated dollar-quoted string - still return STRING token
+            // Error handling will be done at parse time if needed
+        }
+
+        // Return the entire dollar-quoted string including delimiters
         std::string_view text = source_.substr(start_pos, pos_ - start_pos);
         return make_token(TokenType::STRING, start_pos, pos_, start_line, start_col, pool_->intern(text));
     }

@@ -346,6 +346,8 @@ keywords = [
     ("STRAIGHT_JOIN", "STRAIGHT_JOIN"),
     ("FORCE", "FORCE"),
     ("USE_INDEX", "USE_INDEX"),
+    ("LOCAL", "LOCAL"),
+    ("NO_WRITE_TO_BINLOG", "NO_WRITE_TO_BINLOG"),
 
     # Oracle-specific
     ("DUAL", "DUAL"),

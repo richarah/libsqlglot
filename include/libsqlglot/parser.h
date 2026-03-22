@@ -1183,8 +1183,9 @@ public:
         auto stmt = arena_.create<DoBlockStmt>();
         expect(TokenType::DO);
 
-        // Optional LANGUAGE specification
+        // Optional LANGUAGE specification (must come before body)
         if (match(TokenType::LANGUAGE)) {
+            stmt->language_explicit = true;
             if (current().type == TokenType::IDENTIFIER || current().type == TokenType::PLPGSQL) {
                 stmt->language = std::string(current().text);
                 advance();
@@ -1193,21 +1194,47 @@ public:
             }
         } else {
             stmt->language = "plpgsql";  // Default language
+            stmt->language_explicit = false;
         }
 
-        // Parse the block body (string literal or dollar-quoted)
+        // Parse the block body
+        // The tokenizer should handle dollar-quoted strings as STRING tokens
+        // Format: $$body$$ or $tag$body$tag$ or 'body'
+
         if (current().type == TokenType::STRING) {
-            // String literal body - skip for simplified parsing
+            // String literal body (includes dollar-quoted strings from tokenizer)
+            std::string text = std::string(current().text);
+
+            // Detect delimiter from the string
+            if (text.size() >= 4 && text[0] == '$' && text[1] == '$') {
+                // Dollar-quoted: $$...$$
+                stmt->delimiter = "$$";
+                // Extract body (remove $$ from both ends)
+                stmt->raw_body = text.substr(2, text.size() - 4);
+            } else if (text.size() >= 2 && text[0] == '$') {
+                // Tagged dollar quote: $tag$...$tag$
+                size_t end_delimiter_pos = text.find('$', 1);
+                if (end_delimiter_pos != std::string::npos) {
+                    stmt->delimiter = text.substr(0, end_delimiter_pos + 1);
+                    size_t body_start = end_delimiter_pos + 1;
+                    size_t body_end = text.rfind(stmt->delimiter);
+                    if (body_end != std::string::npos && body_end > body_start) {
+                        stmt->raw_body = text.substr(body_start, body_end - body_start);
+                    }
+                }
+            } else if (text.size() >= 2 && text[0] == '\'' && text[text.size()-1] == '\'') {
+                // Single-quoted string
+                stmt->delimiter = "'";
+                stmt->raw_body = text.substr(1, text.size() - 2);
+            } else {
+                // Unquoted or other format - store as-is
+                stmt->raw_body = text;
+                stmt->delimiter = "$$";  // Default to $$
+            }
+
             advance();
         } else {
-            // For now, we'll parse as a BEGIN...END block if present
-            if (check(TokenType::BEGIN)) {
-                auto* block = parse_begin();
-                if (block->type == ExprType::BEGIN_END_BLOCK) {
-                    auto* begin_block = static_cast<BeginEndBlock*>(block);
-                    stmt->statements = begin_block->statements;
-                }
-            }
+            error_expected_after("string literal or dollar-quoted string", "DO [LANGUAGE]");
         }
 
         return stmt;
@@ -1218,25 +1245,64 @@ public:
         auto stmt = arena_.create<AnalyzeStmt>();
         expect(TokenType::ANALYZE);
 
-        // Optional TABLE keyword
-        match(TokenType::TABLE);
-
-        // Optional table name
-        if (current().type == TokenType::IDENTIFIER) {
-            stmt->table = std::string(current().text);
+        // MySQL options: LOCAL or NO_WRITE_TO_BINLOG
+        if (match(TokenType::LOCAL)) {
+            stmt->local = true;
+        } else if (current().type == TokenType::NO_WRITE_TO_BINLOG) {
+            stmt->no_write_to_binlog = true;
             advance();
+        }
 
-            // Optional column list: (col1, col2, ...)
-            if (match(TokenType::LPAREN)) {
-                do {
+        // PostgreSQL option: VERBOSE
+        if (match(TokenType::VERBOSE)) {
+            stmt->verbose = true;
+        }
+
+        // MySQL: TABLE keyword (optional in PostgreSQL)
+        bool has_table_keyword = match(TokenType::TABLE);
+
+        // Parse table names (comma-separated list)
+        if (current().type == TokenType::IDENTIFIER) {
+            do {
+                std::string table_name = std::string(current().text);
+                advance();
+
+                // Handle schema.table notation
+                if (match(TokenType::DOT)) {
                     if (current().type == TokenType::IDENTIFIER) {
-                        stmt->columns.push_back(std::string(current().text));
+                        table_name += "." + std::string(current().text);
                         advance();
                     }
-                } while (match(TokenType::COMMA));
-                expect(TokenType::RPAREN);
-            }
+                }
+
+                // Check for column list only on the first/last table
+                std::vector<std::string> columns;
+                if (match(TokenType::LPAREN)) {
+                    if (current().type == TokenType::RPAREN) {
+                        // Empty column list - error
+                        error("Empty column list not allowed in ANALYZE statement");
+                    }
+                    do {
+                        if (current().type == TokenType::IDENTIFIER) {
+                            columns.push_back(std::string(current().text));
+                            advance();
+                        }
+                    } while (match(TokenType::COMMA));
+                    expect(TokenType::RPAREN);
+                }
+
+                // Add table with columns
+                if (stmt->tables.empty()) {
+                    stmt->table = table_name;
+                    stmt->columns = columns;
+                }
+                stmt->tables.push_back(table_name);
+
+            } while (match(TokenType::COMMA));
         }
+
+        // Track if TABLE keyword was used (for MySQL dialect generation)
+        stmt->has_table_keyword = has_table_keyword;
 
         return stmt;
     }
@@ -1252,18 +1318,32 @@ public:
 
             // Parse comma-separated options
             do {
-                if (current().type != TokenType::IDENTIFIER) {
+                // Accept both IDENTIFIER and keyword tokens for options
+                std::string option;
+
+                // Handle keyword tokens that have their own TokenType
+                if (current().type == TokenType::FULL) {
+                    option = "FULL";
+                    advance();
+                } else if (current().type == TokenType::VERBOSE) {
+                    option = "VERBOSE";
+                    advance();
+                } else if (current().type == TokenType::ANALYZE) {
+                    option = "ANALYZE";
+                    advance();
+                } else if (current().type == TokenType::IDENTIFIER) {
+                    option = std::string(current().text);
+                    advance();
+
+                    // Convert to uppercase for comparison
+                    for (char& c : option) {
+                        if (c >= 'a' && c <= 'z') c = c - 32;
+                    }
+                } else {
                     error_expected_after("option name", "VACUUM (");
                 }
 
-                std::string option(current().text);
-                advance();
-
-                // Convert to uppercase for comparison
-                for (char& c : option) {
-                    if (c >= 'a' && c <= 'z') c = c - 32;
-                }
-
+                // Process all options uniformly
                 if (option == "FULL") {
                     stmt->full = true;
                 } else if (option == "FREEZE") {
@@ -1331,45 +1411,70 @@ public:
             stmt->use_parenthesized_syntax = false;
 
             // Parse options - check each in order
-            while (current().type == TokenType::IDENTIFIER) {
-                std::string option(current().text);
-                for (char& c : option) {
-                    if (c >= 'a' && c <= 'z') c = c - 32;
-                }
-
-                if (option == "FULL" && !stmt->full) {
+            // Note: FULL, VERBOSE, ANALYZE are keywords with their own token types
+            // FREEZE is tokenized as IDENTIFIER
+            while (true) {
+                if (current().type == TokenType::FULL && !stmt->full) {
                     stmt->full = true;
                     advance();
-                } else if (option == "FREEZE" && !stmt->freeze) {
-                    stmt->freeze = true;
-                    advance();
-                } else if (option == "VERBOSE" && !stmt->verbose) {
+                } else if (current().type == TokenType::IDENTIFIER && !stmt->freeze) {
+                    // Check for FREEZE (not a reserved keyword)
+                    std::string option(current().text);
+                    for (char& c : option) {
+                        if (c >= 'a' && c <= 'z') c = c - 32;
+                    }
+                    if (option == "FREEZE") {
+                        stmt->freeze = true;
+                        advance();
+                    } else {
+                        break;  // Not a VACUUM option
+                    }
+                } else if (current().type == TokenType::VERBOSE && !stmt->verbose) {
                     stmt->verbose = true;
                     advance();
-                } else if ((option == "ANALYZE" || option == "ANALYSE") && !stmt->analyze) {
+                } else if (current().type == TokenType::ANALYZE && !stmt->analyze) {
                     stmt->analyze = true;
                     advance();
                 } else {
-                    break;  // Not a recognized option or already set
+                    break;  // No more options
                 }
             }
         }
 
-        // Optional table name
+        // Parse table names (comma-separated list)
         if (current().type == TokenType::IDENTIFIER) {
-            stmt->table = std::string(current().text);
-            advance();
+            do {
+                std::string table_name = std::string(current().text);
+                advance();
 
-            // Optional column list (only if ANALYZE is specified)
-            if (stmt->analyze && match(TokenType::LPAREN)) {
-                do {
+                // Handle schema.table notation
+                if (match(TokenType::DOT)) {
                     if (current().type == TokenType::IDENTIFIER) {
-                        stmt->columns.push_back(std::string(current().text));
+                        table_name += "." + std::string(current().text);
                         advance();
                     }
-                } while (match(TokenType::COMMA));
-                expect(TokenType::RPAREN);
-            }
+                }
+
+                // Check for column list (allowed with or without ANALYZE)
+                std::vector<std::string> columns;
+                if (match(TokenType::LPAREN)) {
+                    do {
+                        if (current().type == TokenType::IDENTIFIER) {
+                            columns.push_back(std::string(current().text));
+                            advance();
+                        }
+                    } while (match(TokenType::COMMA));
+                    expect(TokenType::RPAREN);
+                }
+
+                // Add table with columns
+                if (stmt->tables.empty()) {
+                    stmt->table = table_name;
+                    stmt->columns = columns;
+                }
+                stmt->tables.push_back(table_name);
+
+            } while (match(TokenType::COMMA));
         }
 
         return stmt;
@@ -1460,12 +1565,20 @@ public:
         auto stmt = arena_.create<GrantStmt>();
         expect(TokenType::GRANT);
 
-        // Check for role grant: GRANT role TO user
+        // Check for role grant: GRANT role TO user or GRANT role1, role2 TO user
         if (current().type == TokenType::IDENTIFIER) {
-            // Peek ahead to see if this is "role TO" pattern
+            // Peek ahead to see if this is "role[, role...] TO" pattern
             size_t saved_pos = pos_;
             std::string first_word(current().text);
             advance();
+
+            // Skip past comma-separated role names to find TO
+            while (current().type == TokenType::COMMA) {
+                advance();  // skip comma
+                if (current().type == TokenType::IDENTIFIER) {
+                    advance();  // skip role name
+                }
+            }
 
             if (current().type == TokenType::IDENTIFIER &&
                 (std::string(current().text) == "TO" || std::string(current().text) == "to")) {
@@ -1530,6 +1643,11 @@ public:
             GrantStmt::PrivilegeType priv_type = GrantStmt::PrivilegeType::CUSTOM;
             bool handled_column_priv = false;
 
+            // Check if we have a valid token
+            if (is_at_end() || current().text == nullptr) {
+                break;
+            }
+
             // Get privilege name from current token (works for both keywords and identifiers)
             std::string priv_text(current().text);
             // Convert to uppercase for comparison
@@ -1540,7 +1658,9 @@ public:
             bool found_multiword = false;
 
             // Try three-word combination first (if enough tokens available)
-            if (pos_ + 2 < tokens_.size()) {
+            if (pos_ + 2 < tokens_.size() &&
+                tokens_[pos_ + 1].text != nullptr &&
+                tokens_[pos_ + 2].text != nullptr) {
                 std::string next_text(tokens_[pos_ + 1].text);
                 std::string third_text(tokens_[pos_ + 2].text);
                 for (char& c : next_text) if (c >= 'a' && c <= 'z') c = c - 32;
@@ -1561,7 +1681,8 @@ public:
             }
 
             // Try two-word combination if three-word didn't match
-            if (!found_multiword && pos_ + 1 < tokens_.size()) {
+            if (!found_multiword && pos_ + 1 < tokens_.size() &&
+                tokens_[pos_ + 1].text != nullptr) {
                 std::string next_text(tokens_[pos_ + 1].text);
                 for (char& c : next_text) if (c >= 'a' && c <= 'z') c = c - 32;
 
@@ -1596,7 +1717,9 @@ public:
 
             // Handle optional PRIVILEGES keyword after ALL
             if (priv_type == GrantStmt::PrivilegeType::ALL) {
-                match(TokenType::PRIVILEGES);
+                if (match(TokenType::PRIVILEGES)) {
+                    priv_type = GrantStmt::PrivilegeType::ALL_PRIVILEGES;
+                }
             }
 
             // Check for column list: UPDATE(col1, col2) or REFERENCES(col1)
@@ -1792,7 +1915,7 @@ public:
                 advance();
                 if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "OPTION") {
                     advance();
-                    if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FOR") {
+                    if (current().type == TokenType::FOR) {
                         stmt->grant_option_for = true;
                         advance();
                     }
@@ -1801,7 +1924,7 @@ public:
                 advance();
                 if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "OPTION") {
                     advance();
-                    if (current().type == TokenType::IDENTIFIER && std::string(current().text) == "FOR") {
+                    if (current().type == TokenType::FOR) {
                         stmt->admin_option_for = true;
                         advance();
                     }
@@ -1809,11 +1932,19 @@ public:
             }
         }
 
-        // Check for role revoke: REVOKE role FROM user
+        // Check for role revoke: REVOKE role FROM user or REVOKE role1, role2 FROM user
         if (current().type == TokenType::IDENTIFIER) {
             size_t saved_pos = pos_;
             std::string first_word(current().text);
             advance();
+
+            // Skip past comma-separated role names to find FROM
+            while (current().type == TokenType::COMMA) {
+                advance();  // skip comma
+                if (current().type == TokenType::IDENTIFIER) {
+                    advance();  // skip role name
+                }
+            }
 
             if (current().type == TokenType::IDENTIFIER &&
                 (std::string(current().text) == "FROM" || std::string(current().text) == "from")) {
@@ -1868,6 +1999,11 @@ public:
             RevokeStmt::PrivilegeType priv_type = RevokeStmt::PrivilegeType::CUSTOM;
             bool handled_column_priv = false;
 
+            // Check if we have a valid token
+            if (is_at_end() || current().text == nullptr) {
+                break;
+            }
+
             // Get privilege name from current token (works for both keywords and identifiers)
             std::string priv_text(current().text);
             // Convert to uppercase for comparison
@@ -1878,7 +2014,9 @@ public:
             bool found_multiword = false;
 
             // Try three-word combination first (if enough tokens available)
-            if (pos_ + 2 < tokens_.size()) {
+            if (pos_ + 2 < tokens_.size() &&
+                tokens_[pos_ + 1].text != nullptr &&
+                tokens_[pos_ + 2].text != nullptr) {
                 std::string next_text(tokens_[pos_ + 1].text);
                 std::string third_text(tokens_[pos_ + 2].text);
                 for (char& c : next_text) if (c >= 'a' && c <= 'z') c = c - 32;
@@ -1899,7 +2037,8 @@ public:
             }
 
             // Try two-word combination if three-word didn't match
-            if (!found_multiword && pos_ + 1 < tokens_.size()) {
+            if (!found_multiword && pos_ + 1 < tokens_.size() &&
+                tokens_[pos_ + 1].text != nullptr) {
                 std::string next_text(tokens_[pos_ + 1].text);
                 for (char& c : next_text) if (c >= 'a' && c <= 'z') c = c - 32;
 
@@ -1934,7 +2073,9 @@ public:
 
             // Handle optional PRIVILEGES keyword after ALL
             if (priv_type == RevokeStmt::PrivilegeType::ALL) {
-                match(TokenType::PRIVILEGES);
+                if (match(TokenType::PRIVILEGES)) {
+                    priv_type = RevokeStmt::PrivilegeType::ALL_PRIVILEGES;
+                }
             }
 
             // Check for column list: UPDATE(col1, col2) or REFERENCES(col1)

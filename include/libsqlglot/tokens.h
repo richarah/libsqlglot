@@ -189,6 +189,7 @@ enum class TokenType : uint16_t {
     ENGINE, CHARSET, COLLATE,
     STRAIGHT_JOIN,
     FORCE, IGNORE_MYSQL, USE_INDEX,  // IGNORE_MYSQL to avoid conflict
+    LOCAL, NO_WRITE_TO_BINLOG,  // ANALYZE options
 
     // Oracle-specific
     DUAL, ROWNUM, ROWID,

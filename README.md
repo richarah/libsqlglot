@@ -232,7 +232,15 @@ cmake --build build
 
 This enables CPU-specific instructions (AVX2, AVX-512, etc.) for your exact processor, typically 5-15% faster than generic builds.
 
-**Benchmarking**: Comprehensive benchmark suite available. Build with `-DLIBSQLGLOT_BUILD_BENCHMARKS=ON` to measure performance on your workload.
+**Benchmarking**: Comprehensive benchmark suite with 40+ microbenchmarks. Build with `-DLIBSQLGLOT_BUILD_BENCHMARKS=ON`.
+
+Recent benchmark results (Release build, x86-64, 12-core):
+- Tokenization: 245-950ns (186-514 MB/s throughput)
+- Parsing: 1.5-2.7μs (simple SELECT to multi-join queries)
+- Generation: 279-554ns
+- Full transpilation: 1.7-5.9μs (simple to complex queries)
+- String interning: 9-15ns per operation
+- Real-world queries: 5-9μs (dashboard/report workloads)
 
 ## Architecture
 

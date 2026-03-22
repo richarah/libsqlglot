@@ -122,13 +122,13 @@ See [Supported SQL dialects](#supported-sql-dialects) for all available dialect 
 | | libsqlglot | Python sqlglot |
 |---|---|---|
 | **Performance** | 32-242× faster (126× avg) | Baseline |
-| **Stored procedures** | Full support (PL/pgSQL, T-SQL, MySQL, PL/SQL) | Limited (`exp.Command` passthrough) |
+| **Stored procedures** | Support for PL/pgSQL, T-SQL, MySQL, PL/SQL | Limited (`exp.Command` passthrough) |
 | **Error handling** | Fail-fast with precise errors (line, column, context) | Error recovery (IDE-friendly, slower) |
 | **Memory** | Arena allocation (O(1) cleanup) | Garbage collection |
 | **Optimiser** | Column qualification, predicate pushdown, constant folding, subquery elimination | Same + additional passes + full execution engine |
 | **Codebase** | Header-only C++26 library | 50,000+ lines Python |
 | **Keywords** | C++26 reflection: auto-generated from enum (300+ keywords, zero maintenance) | Manually maintained dictionaries |
-| **Binary** | 14KB lib, optional 1.5MB Python wheel | N/A |
+| **Binary** | C++ library 14KB, Python wheel 1.5MB | N/A |
 | **Dialects** | 45 SQL dialects (14 unique to libsqlglot, including ANSI) | 32 dialects (including PRQL, which libsqlglot doesn't support) |
 | **SQL coverage** | Same as Python sqlglot | Full SQL support |
 | **Dependencies** | None (no runtime deps) | None |
@@ -213,7 +213,7 @@ cmake --build build
 
 ## Architecture
 
-Header-only C++ library. 19 header files, no `.cpp` files. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (2952 lines), `generator.h` (1643), `expression.h` (1105, 105 expression types). Entry point is `transpiler.h` (86 lines).
+Header-only design: you only pay for what you use. 19 header files, no `.cpp`. See `include/libsqlglot/` for the full layout. Core files: `parser.h` (2952 lines), `generator.h` (1643), `expression.h` (1105, 105 expression types). Entry point is `transpiler.h` (86 lines).
 
 ### Memory management
 

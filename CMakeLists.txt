@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.21)
 cmake_policy(SET CMP0048 NEW)
-project(libsqlglot VERSION 0.3.0 LANGUAGES CXX)
+project(libsqlglot VERSION 0.2.10 LANGUAGES CXX)
 
 # Generate version header
 configure_file(

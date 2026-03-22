@@ -8,7 +8,7 @@ Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls
 
 #### What it's for
 
-Proxies, sidecars, migration tools, linters, anywhere SQL hits a hot path. Also a replacement for every regex that's pretending to parse SQL.
+Anywhere SQL hits a hot path: proxies, sidecars, migration tools, linters *inter alia*. Also a replacement for every regex that's pretending to parse SQL.
 
 #### Why it exists
 

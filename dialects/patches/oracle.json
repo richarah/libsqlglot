@@ -4,6 +4,8 @@
   "description": "Oracle Database - Enterprise RDBMS with PL/SQL",
   "keywords": {
     "add": [
+      {"name": "CONNECT", "token_type": "CONNECT"},
+      {"name": "PRIOR", "token_type": "PRIOR"},
       {"name": "FLASHBACK", "token_type": "FLASHBACK"},
       {"name": "VERSIONS", "token_type": "VERSIONS"},
       {"name": "SCN", "token_type": "SCN"},

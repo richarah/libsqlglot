@@ -86,6 +86,9 @@ private:
             return '\0';  // Out of bounds
         }
         size_t p = pos_ + offset;
+        if (p >= source_.size()) {
+            return '\0';  // Out of bounds
+        }
         return source_[p];
     }
 

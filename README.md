@@ -2,7 +2,7 @@
 
 #### What this is
 
-sqlglot, in C++. 45 dialects, 126× faster on benchmark SQL, 252× on the kind your ORM generates when nobody's looking. Performance gap scales with query complexity, see [Benchmarks](#benchmarks).
+sqlglot, in C++. 45 dialects, 126× faster on benchmark SQL, 252× on the kind your ORM generates when nobody's looking. Performance gap scales with query complexity, see [Benchmarks](#benchmarks). 
 
 Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls back to passthrough, libsqlglot parses them into the AST.
 
@@ -235,7 +235,7 @@ This enables CPU-specific instructions (AVX2, AVX-512, etc.) for your exact proc
 **Benchmarking**: Comprehensive benchmark suite with 40+ microbenchmarks. Build with `-DLIBSQLGLOT_BUILD_BENCHMARKS=ON`.
 
 Recent benchmark results (Release build, x86-64, 12-core):
-- Tokenization: 245-950ns (186-514 MB/s throughput)
+- Tokenisation: 245-950ns (186-514 MB/s throughput)
 - Parsing: 1.5-2.7μs (simple SELECT to multi-join queries)
 - Generation: 279-554ns
 - Full transpilation: 1.7-5.9μs (simple to complex queries)

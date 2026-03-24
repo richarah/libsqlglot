@@ -1,3 +1,7 @@
+**Please note**
+
+This is a work in progress. Expect undocumented features.
+
 # libsqlglot
 
 #### What this is

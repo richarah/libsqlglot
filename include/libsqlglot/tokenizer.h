@@ -11,18 +11,46 @@
 
 namespace libsqlglot {
 
+/// Tokenizer configuration for dialect-specific behavior
+struct TokenizerConfig {
+    bool hash_comments_enabled = true;  // MySQL uses #, SQL Server doesn't (uses # for temp tables)
+    bool bracket_quoted_identifiers = true;  // SQL Server uses [identifiers], Snowflake uses [] for array indexing
+
+    /// Factory methods for common dialects
+    static constexpr TokenizerConfig mysql() noexcept {
+        return TokenizerConfig{.hash_comments_enabled = true, .bracket_quoted_identifiers = false};
+    }
+
+    static constexpr TokenizerConfig sqlserver() noexcept {
+        return TokenizerConfig{.hash_comments_enabled = false, .bracket_quoted_identifiers = true};
+    }
+
+    static constexpr TokenizerConfig postgresql() noexcept {
+        return TokenizerConfig{.hash_comments_enabled = true, .bracket_quoted_identifiers = false};
+    }
+
+    static constexpr TokenizerConfig snowflake() noexcept {
+        return TokenizerConfig{.hash_comments_enabled = true, .bracket_quoted_identifiers = false};
+    }
+
+    static constexpr TokenizerConfig default_config() noexcept {
+        return TokenizerConfig{.hash_comments_enabled = true, .bracket_quoted_identifiers = false};
+    }
+};
+
 /// Tokenizer - converts SQL source text into tokens
 /// Fast scalar implementation with branchless optimizations and perfect hash keyword lookup
 /// Thread-safe (stateless), uses LocalStringPool for interning
 class Tokenizer {
 public:
-    explicit Tokenizer(std::string_view source, LocalStringPool* pool = nullptr)
+    explicit Tokenizer(std::string_view source, LocalStringPool* pool = nullptr, TokenizerConfig config = TokenizerConfig::default_config())
         : source_(source)
         , pos_(0)
         , line_(1)
         , col_(1)
         , pool_(pool)
         , default_pool_()
+        , config_(config)
     {
         if (!pool_) {
             pool_ = &default_pool_;
@@ -54,7 +82,10 @@ public:
         char c = peek();
 
         // Identifiers and keywords (including quoted identifiers)
-        if (is_identifier_start(c) || c == '"' || c == '`' || c == '[') {
+        // In SQL Server mode (hash comments disabled), # is an identifier prefix for temp tables
+        // Bracket quotes [] are only for SQL Server, not Snowflake (which uses [] for array indexing)
+        bool bracket_quote = config_.bracket_quoted_identifiers && c == '[';
+        if (is_identifier_start(c) || c == '"' || c == '`' || bracket_quote || (!config_.hash_comments_enabled && c == '#')) {
             return tokenize_identifier();
         }
 
@@ -93,9 +124,25 @@ public:
             }
         }
 
-        // Parameters: @name (T-SQL), :name (Oracle), $1 (Postgres), ?
-        if (c == '@' || c == ':' || c == '$' || c == '?') {
+        // JSON operators that start with # must be checked BEFORE parameters
+        // because @ can be @> operator or @parameter, and # can be #> operator or # comment
+        if (c == '@' && peek(1) == '>') {
+            return tokenize_operator();
+        }
+        if (c == '#' && (peek(1) == '>' || peek(1) == '>')) {
+            return tokenize_operator();
+        }
+
+        // Parameters: @name (T-SQL), $1 (Postgres), ?
+        // Note: : is NOT handled here - see below
+        if (c == '@' || c == '$' || c == '?') {
             return tokenize_parameter();
+        }
+
+        // Colon - could be :name parameter, := assignment, :: cast, or Snowflake :field
+        // Let tokenize_operator handle it to distinguish these cases
+        if (c == ':') {
+            return tokenize_operator();
         }
 
         // Operators and delimiters
@@ -149,8 +196,12 @@ private:
                 continue;
             }
 
-            // Line comment: -- or #
-            if ((c == '-' && peek(1) == '-') || c == '#') {
+            // Line comment: -- or # (dialect-dependent)
+            // SQL Server doesn't use # for comments (it's for temp tables), but MySQL does
+            // But # followed by > is #> or #>> operator, not a comment
+            bool is_line_comment = (c == '-' && peek(1) == '-') ||
+                                   (config_.hash_comments_enabled && c == '#' && peek(1) != '>');
+            if (is_line_comment) {
                 while (!is_eof() && peek() != '\n') {
                     advance();
                 }
@@ -213,7 +264,16 @@ private:
             return make_token(TokenType::IDENTIFIER, start_pos, pos_, start_line, start_col, interned);
         }
 
-        // Regular identifier
+        // Handle # prefix for SQL Server temp tables (#temp, ##global)
+        // When hash comments are disabled, # is an identifier prefix
+        if (peek() == '#') {
+            advance();  // Consume first #
+            if (peek() == '#') {
+                advance();  // Consume second # for global temp tables
+            }
+        }
+
+        // Regular identifier (including after # prefix)
         while (!is_eof() && is_identifier_continue(peek())) {
             advance();
         }
@@ -221,7 +281,7 @@ private:
         std::string_view text = source_.substr(start_pos, pos_ - start_pos);
         const char* interned = pool_->intern(text);
 
-        // Check if it's a keyword
+        // Check if it's a keyword (but # prefixed identifiers are never keywords)
         TokenType type = keyword_type(text);
 
         return make_token(type, start_pos, pos_, start_line, start_col, interned);
@@ -386,10 +446,13 @@ private:
 
         char prefix = advance(); // @ or : or $ or ?
 
-        // For standalone ? parameter, return immediately
+        // For standalone ? it could be either:
+        // 1. A parameter: WHERE x = ?
+        // 2. JSON exists operator: WHERE data ? 'key'
+        // We treat it as QUESTION token (which can be used for both)
         if (prefix == '?') {
             std::string_view text = source_.substr(start_pos, pos_ - start_pos);
-            return make_token(TokenType::PARAMETER, start_pos, pos_, start_line, start_col, pool_->intern(text));
+            return make_token(TokenType::QUESTION, start_pos, pos_, start_line, start_col, pool_->intern(text));
         }
 
         // For :=, don't treat as parameter (it's assignment operator)
@@ -443,16 +506,23 @@ private:
 
         // Three-character operators
         if (c == '<' && next == '=' && peek(1) == '>') {
-            advance(); advance(); // <=
+            advance(); advance(); // <=>
             return make_token(TokenType::NULL_SAFE_EQ, start_pos, pos_, start_line, start_col);
+        }
+        if (c == '#' && next == '>' && peek(1) == '>') {
+            advance(); advance(); // #>>
+            return make_token(TokenType::HASH_LONG_ARROW, start_pos, pos_, start_line, start_col);
         }
 
         // Two-character operators
         if (c == '|' && next == '|') { advance(); return make_token(TokenType::CONCAT, start_pos, pos_, start_line, start_col); }
         if (c == '<' && next == '>') { advance(); return make_token(TokenType::NEQ, start_pos, pos_, start_line, start_col); }
         if (c == '<' && next == '=') { advance(); return make_token(TokenType::LTE, start_pos, pos_, start_line, start_col); }
+        if (c == '<' && next == '@') { advance(); return make_token(TokenType::LT_AT, start_pos, pos_, start_line, start_col); }
         if (c == '>' && next == '=') { advance(); return make_token(TokenType::GTE, start_pos, pos_, start_line, start_col); }
         if (c == '!' && next == '=') { advance(); return make_token(TokenType::NEQ, start_pos, pos_, start_line, start_col); }
+        if (c == '@' && next == '>') { advance(); return make_token(TokenType::AT_GT, start_pos, pos_, start_line, start_col); }
+        if (c == '#' && next == '>') { advance(); return make_token(TokenType::HASH_ARROW, start_pos, pos_, start_line, start_col); }
         if (c == ':' && next == '=') { advance(); return make_token(TokenType::COLON_EQUALS, start_pos, pos_, start_line, start_col); }
         if (c == ':' && next == ':') { advance(); return make_token(TokenType::DOUBLE_COLON, start_pos, pos_, start_line, start_col); }
         if (c == '.' && next == '.') { advance(); return make_token(TokenType::DOUBLE_DOT, start_pos, pos_, start_line, start_col); }
@@ -502,6 +572,7 @@ private:
     uint16_t col_;
     LocalStringPool* pool_;
     LocalStringPool default_pool_;
+    TokenizerConfig config_;
 };
 
 } // namespace libsqlglot

@@ -1,14 +1,12 @@
-**Please note**
+#### Deprecation notice
 
-This is a work in progress. Expect undocumented features.
+This repo is now deprecated. Please use [libglot](https://github.com/richarah/libglot).
 
 # libsqlglot
 
 #### What this is
 
 sqlglot, in C++. 45 dialects, 126× faster on benchmark SQL, 252× on the kind your ORM generates when nobody's looking. Performance gap scales with query complexity, see [Benchmarks](#benchmarks). 
-
-Supports stored procedures (PL/pgSQL, T-SQL, MySQL, PL/SQL): where sqlglot falls back to passthrough, libsqlglot parses them into the AST.
 
 #### What it's for
 
